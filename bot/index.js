@@ -27,15 +27,14 @@ const SkillManager = require('./skills');
 
 // ── Validar variables de entorno ────────────────────────────
 const REQUIRED_ENV = ['GEMINI_API_KEY', 'FIREBASE_PROJECT_ID', 'BOT_OWNER_UID'];
-for (const key of REQUIRED_ENV) {
-  if (!process.env[key]) {
-    console.error(`❌ Falta la variable de entorno: ${key}`);
-    process.exit(1);
-  }
+const missingEnv = REQUIRED_ENV.filter(key => !process.env[key]);
+if (missingEnv.length > 0) {
+  console.error(`⚠️ Variables de entorno faltantes: ${missingEnv.join(', ')}`);
+  console.error('El bot NO funcionará correctamente hasta que las configures en Railway → Variables');
 }
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const BOT_OWNER_UID = process.env.BOT_OWNER_UID;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+const BOT_OWNER_UID = process.env.BOT_OWNER_UID || '';
 const HTTP_PORT = process.env.PORT || process.env.BOT_PORT || 3001;
 
 // ── Skills (análisis y auto-corrección de código) ───────────
@@ -481,6 +480,13 @@ let sock = null;
 const AUTH_DIR = process.env.AUTH_DIR || './auth_session';
 
 async function startBot() {
+  // No arrancar si faltan variables críticas
+  if (missingEnv.length > 0) {
+    botState.status = 'error';
+    addLog(`❌ No se puede iniciar: faltan variables de entorno: ${missingEnv.join(', ')}`);
+    return;
+  }
+
   botState.status = 'reconnecting';
   botState.qr = null;
   botState.qrDataUrl = null;
@@ -710,7 +716,8 @@ app.get('/', (req, res) => {
     version: '3.0',
     status: botState.status,
     uptime: process.uptime(),
-    phone: botState.phone
+    phone: botState.phone,
+    missingEnv: missingEnv.length > 0 ? missingEnv : undefined
   });
 });
 
