@@ -32,10 +32,25 @@ const RE_TODO      = /(TODO|FIXME|HACK|XXX)\b:?\s*(.+)/i;
 class CodeAnalyzer {
   constructor() {
     this.eslint = new ESLint({
-      useEslintrc: false,
+      overrideConfigFile: true,
       overrideConfig: {
-        env: { browser: true, node: true, es2021: true },
-        parserOptions: { ecmaVersion: 'latest', sourceType: 'module' },
+        languageOptions: {
+          ecmaVersion: 'latest',
+          sourceType: 'module',
+          globals: {
+            // browser globals
+            window: 'readonly', document: 'readonly', navigator: 'readonly',
+            console: 'readonly', setTimeout: 'readonly', setInterval: 'readonly',
+            clearTimeout: 'readonly', clearInterval: 'readonly', fetch: 'readonly',
+            alert: 'readonly', confirm: 'readonly', prompt: 'readonly',
+            localStorage: 'readonly', sessionStorage: 'readonly',
+            HTMLElement: 'readonly', Event: 'readonly', URL: 'readonly',
+            // node globals
+            process: 'readonly', require: 'readonly', module: 'readonly',
+            exports: 'readonly', __dirname: 'readonly', __filename: 'readonly',
+            Buffer: 'readonly', global: 'readonly'
+          }
+        },
         rules: {
           'no-unused-vars': 'warn',
           'no-undef': 'error',
