@@ -5,7 +5,7 @@
    y devuelve la respuesta del bot.
    ============================================================ */
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // CORS preflight
   if (req.method === 'OPTIONS') {
     setCorsHeaders(req, res);

@@ -5,7 +5,7 @@
    para no exponer las claves directamente en el código fuente.
    ============================================================ */
 
-export default function handler(req, res) {
+module.exports = function handler(req, res) {
   // Solo permitir GET
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
