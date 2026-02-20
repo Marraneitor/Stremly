@@ -32,22 +32,20 @@ let firebaseReady = false;
 async function initFirebase() {
   let config = null;
 
-  // Solo intentar la API serverless en producción (no localhost)
-  if (!['localhost', '127.0.0.1'].includes(location.hostname) && !location.hostname.startsWith('192.168.')) {
-    try {
-      const res = await fetch('/api/firebase-config');
-      if (res.ok) {
-        config = await res.json();
-        console.log('🔒 Config cargada desde API segura');
-      }
-    } catch (_) {
-      // Si falla, usar fallback
+  // Intentar la API serverless primero (funciona si las env vars están en Vercel)
+  try {
+    const res = await fetch('/api/firebase-config');
+    if (res.ok) {
+      config = await res.json();
+      console.log('🔒 Config cargada desde API segura');
     }
+  } catch (_) {
+    // Si falla, usar fallback
   }
 
-  // Fallback para desarrollo local (reemplazar con tus valores o usar .env)
+  // Fallback: config embebida (para desarrollo local o si la API no está configurada)
   if (!config) {
-    console.warn('⚠️ Usando config local de desarrollo. En producción usa variables de entorno en Vercel.');
+    console.warn('⚠️ Usando config embebida como fallback.');
     config = {
       apiKey: "AIzaSyBU-GbRvIie3n5jepmRurFjjyRCWQiqN0U",
       authDomain: "accf-8b065.firebaseapp.com",
