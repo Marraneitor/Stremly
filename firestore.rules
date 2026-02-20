@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Denegar todo por defecto ─────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ─── Cuentas de streaming ─────────────────────────────────
+    match /cuentas/{cuentaId} {
+      allow read, update, delete: if request.auth != null
+                                   && resource.data.uid == request.auth.uid;
+      allow create: if request.auth != null
+                     && request.resource.data.uid == request.auth.uid;
+    }
+
+    // ─── Clientes ─────────────────────────────────────────────
+    match /clientes/{clienteId} {
+      allow read, update, delete: if request.auth != null
+                                   && resource.data.uid == request.auth.uid;
+      allow create: if request.auth != null
+                     && request.resource.data.uid == request.auth.uid;
+    }
+
+    // ─── Movimientos / Pagos ──────────────────────────────────
+    match /movimientos/{movimientoId} {
+      allow read, update, delete: if request.auth != null
+                                   && resource.data.uid == request.auth.uid;
+      allow create: if request.auth != null
+                     && request.resource.data.uid == request.auth.uid;
+    }
+
+    // ─── Perfil de usuario ────────────────────────────────────
+    match /usuarios/{userId} {
+      allow read, write: if request.auth != null
+                          && request.auth.uid == userId;
+    }
+
+    // ─── Configuración del Chatbot ────────────────────────────
+    match /chatbot_config/{userId} {
+      allow read, write: if request.auth != null
+                          && request.auth.uid == userId;
+    }
+  }
+}

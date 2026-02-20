@@ -3,15 +3,30 @@
    ============================================================ */
 
 // ── Proveedor de Google ─────────────────────────────────────
-const googleProvider = new firebase.auth.GoogleAuthProvider();
+let googleProvider = null;
 
 // ── Estado de autenticación ─────────────────────────────────
 let currentUser = null;
 
 /**
- * Observer de Firebase Auth — detecta login/logout
+ * Esperar a que Firebase esté listo y luego configurar Auth
  */
-if (auth) {
+function waitForFirebase() {
+  return new Promise((resolve) => {
+    const check = setInterval(() => {
+      if (firebaseReady && auth) {
+        clearInterval(check);
+        resolve();
+      }
+    }, 50);
+    // Timeout de seguridad (10s)
+    setTimeout(() => { clearInterval(check); resolve(); }, 10000);
+  });
+}
+
+waitForFirebase().then(() => {
+  googleProvider = new firebase.auth.GoogleAuthProvider();
+
   auth.onAuthStateChanged(async (user) => {
     if (user) {
       currentUser = user;
@@ -21,9 +36,7 @@ if (auth) {
       showLogin();
     }
   });
-} else {
-  console.error('❌ Firebase Auth no disponible');
-}
+});
 
 /**
  * Muestra la app principal y oculta login

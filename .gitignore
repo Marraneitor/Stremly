@@ -1,6 +1,12 @@
 # Dependencies
 node_modules/
 
+# Environment variables (NUNCA subir)
+.env
+.env.local
+.env.production
+.env*.local
+
 # OS files
 .DS_Store
 Thumbs.db
@@ -10,6 +16,15 @@ desktop.ini
 .vscode/
 *.swp
 *.swo
+
+# Vercel
+.vercel/
+
+# Bot WhatsApp (sesión y credenciales)
+bot/auth_session/
+bot/.env
+bot/node_modules/
+bot/serviceAccountKey.json
 
 # Misc
 Nuevo documento de texto.txt

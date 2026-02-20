@@ -1,10 +1,7 @@
 /* ============================================================
    Streamly — Admin Panel Logic
-   Reads ALL data across ALL users from Firestore
+   Reads user data from Firestore (with Auth)
    ============================================================ */
-
-// ── Admin passkey (cámbiala a lo que quieras) ───────────────
-const ADMIN_PASSKEY = 'streamly2026';
 
 // ── State ───────────────────────────────────────────────────
 let allUsers      = [];
@@ -12,6 +9,7 @@ let allAccounts   = [];
 let allClients    = [];
 let allMovements  = [];
 let adminReady    = false;
+let adminUser     = null;  // Firebase Auth user
 
 // ── Utility helpers (standalone) ────────────────────────────
 function escapeHtml(str) {
@@ -75,42 +73,86 @@ function showAdminToast(msg) {
   setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(() => t.remove(), 300); }, 2000);
 }
 
-// ── Gate: Passkey check ─────────────────────────────────────
-function checkPasskey() {
-  const input = document.getElementById('adminPasskey');
+// ── Wait for Firebase ───────────────────────────────────────
+function waitForFirebaseAdmin() {
+  return new Promise((resolve) => {
+    const check = setInterval(() => {
+      if (firebaseReady && auth && db) { clearInterval(check); resolve(); }
+    }, 50);
+    setTimeout(() => { clearInterval(check); resolve(); }, 10000);
+  });
+}
+
+// ── Auth: Check existing session or show login ──────────────
+waitForFirebaseAdmin().then(() => {
+  // Show loading while checking auth
+  document.getElementById('gateLoading').style.display = 'block';
+  document.getElementById('gateForm').style.display = 'none';
+
+  auth.onAuthStateChanged((user) => {
+    if (user) {
+      // Already logged in — go directly to admin
+      adminUser = user;
+      document.getElementById('adminGate').classList.add('hidden');
+      document.getElementById('adminLayout').classList.add('active');
+      initAdmin();
+    } else {
+      // Show login form
+      document.getElementById('gateLoading').style.display = 'none';
+      document.getElementById('gateForm').style.display = 'block';
+      document.getElementById('gateMessage').textContent = 'Inicia sesión con tu cuenta de Streamly';
+    }
+  });
+});
+
+// ── Login with email/password ───────────────────────────────
+async function adminLogin() {
+  const email = document.getElementById('adminEmail').value.trim();
+  const pass  = document.getElementById('adminPassword').value;
   const error = document.getElementById('gateError');
-  
-  if (input.value === ADMIN_PASSKEY) {
+
+  if (!email || !pass) {
+    error.textContent = 'Ingresa correo y contraseña';
+    error.classList.add('show');
+    return;
+  }
+
+  error.classList.remove('show');
+
+  try {
+    const cred = await auth.signInWithEmailAndPassword(email, pass);
+    adminUser = cred.user;
     document.getElementById('adminGate').classList.add('hidden');
     document.getElementById('adminLayout').classList.add('active');
     initAdmin();
-  } else {
-    error.textContent = 'Clave incorrecta';
+  } catch (err) {
+    console.error('Admin login error:', err);
+    const messages = {
+      'auth/user-not-found': 'Usuario no encontrado',
+      'auth/wrong-password': 'Contraseña incorrecta',
+      'auth/invalid-email': 'Correo inválido',
+      'auth/too-many-requests': 'Demasiados intentos. Intenta más tarde.',
+      'auth/invalid-credential': 'Credenciales inválidas'
+    };
+    error.textContent = messages[err.code] || `Error: ${err.message}`;
     error.classList.add('show');
-    input.value = '';
-    input.focus();
   }
 }
 
-// Allow Enter key on passkey input
-document.getElementById('adminPasskey')?.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') checkPasskey();
+// Allow Enter key on password input
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !document.getElementById('adminGate').classList.contains('hidden')) {
+    adminLogin();
+  }
 });
 
 // ── Init: Load all data from Firestore ──────────────────────
 async function initAdmin() {
   showLoading(true);
 
-  // Wait for Firebase
-  let attempts = 0;
-  while (!firebaseReady && attempts < 20) {
-    await new Promise(r => setTimeout(r, 250));
-    attempts++;
-  }
-
-  if (!db) {
+  if (!db || !adminUser) {
     showLoading(false);
-    document.getElementById('adminInfoBar').innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Firebase no disponible. Verifica la configuración.';
+    document.getElementById('adminInfoBar').innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Firebase no disponible o no autenticado.';
     document.getElementById('adminInfoBar').style.display = 'flex';
     return;
   }
@@ -129,7 +171,7 @@ async function initAdmin() {
     updateLastRefresh();
   } catch (err) {
     console.error('Admin load error:', err);
-    document.getElementById('adminInfoBar').innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Error cargando datos: ${escapeHtml(err.message)}. Verifica las reglas de Firestore.`;
+    document.getElementById('adminInfoBar').innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Error cargando datos: ${escapeHtml(err.message)}`;
     document.getElementById('adminInfoBar').style.display = 'flex';
   }
 
@@ -146,24 +188,35 @@ function updateLastRefresh() {
   if (el) el.textContent = `Última actualización: ${new Date().toLocaleTimeString('es-ES')}`;
 }
 
-// ── Data Loaders (NO uid filter — reads ALL) ────────────────
+// ── Data Loaders (filtered by authenticated user's UID) ─────
 async function loadAllUsers() {
-  const snap = await db.collection('usuarios').get();
-  allUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  try {
+    // Load the current user's profile
+    const doc = await db.collection('usuarios').doc(adminUser.uid).get();
+    if (doc.exists) {
+      allUsers = [{ id: doc.id, ...doc.data() }];
+    } else {
+      // Create a virtual user entry from auth
+      allUsers = [{ id: adminUser.uid, email: adminUser.email, nombre_negocio: adminUser.displayName || 'Admin' }];
+    }
+  } catch (e) {
+    console.warn('Could not load usuarios:', e.message);
+    allUsers = [{ id: adminUser.uid, email: adminUser.email, nombre_negocio: adminUser.displayName || 'Admin' }];
+  }
 }
 
 async function loadAllAccounts() {
-  const snap = await db.collection('cuentas').get();
+  const snap = await db.collection('cuentas').where('uid', '==', adminUser.uid).get();
   allAccounts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
 async function loadAllClients() {
-  const snap = await db.collection('clientes').get();
+  const snap = await db.collection('clientes').where('uid', '==', adminUser.uid).get();
   allClients = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
 async function loadAllMovements() {
-  const snap = await db.collection('movimientos').get();
+  const snap = await db.collection('movimientos').where('uid', '==', adminUser.uid).get();
   allMovements = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
@@ -191,19 +244,31 @@ function updateAdminStats() {
   document.getElementById('statClients').textContent     = allClients.length;
   document.getElementById('statMovements').textContent   = allMovements.length;
 
-  // Revenue total
-  const totalRevenue = allMovements.reduce((s, m) => s + (m.monto || 0), 0);
-  document.getElementById('statRevenue').textContent = fmtCurrency(totalRevenue);
+  // Revenue total (from clients' prices)
+  const totalRevenue = allClients.reduce((s, c) => s + (c.precio || 0), 0);
+  const totalRevenueMov = allMovements.reduce((s, m) => s + (m.monto || 0), 0);
+  document.getElementById('statRevenue').textContent = fmtCurrency(Math.max(totalRevenue, totalRevenueMov));
 
   // Revenue this month
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const monthRevenue = allMovements.filter(m => {
+
+  // From clients with fecha_inicio in current month + paid
+  const clientMonthRevenue = allClients.filter(c => {
+    if (!c.precio || c.precio <= 0) return false;
+    if (c.estado_pago !== 'pagado') return false;
+    const d = c.fecha_inicio instanceof Date ? c.fecha_inicio : c.fecha_inicio?.toDate ? c.fecha_inicio.toDate() : new Date(c.fecha_inicio);
+    return d >= monthStart;
+  }).reduce((s, c) => s + (c.precio || 0), 0);
+
+  // From movements
+  const movMonthRevenue = allMovements.filter(m => {
     if (!m.fecha_pago) return false;
     const d = m.fecha_pago instanceof Date ? m.fecha_pago : m.fecha_pago.toDate ? m.fecha_pago.toDate() : new Date(m.fecha_pago);
     return d >= monthStart;
   }).reduce((s, m) => s + (m.monto || 0), 0);
-  document.getElementById('statMonthRevenue').textContent = fmtCurrency(monthRevenue);
+
+  document.getElementById('statMonthRevenue').textContent = fmtCurrency(Math.max(clientMonthRevenue, movMonthRevenue));
 
   // Active clients
   const active = allClients.filter(c => daysLeft(c.fecha_fin) > 0).length;
@@ -557,7 +622,8 @@ function exportCSV(type) {
 }
 
 // ── Logout from admin ───────────────────────────────────────
-function exitAdmin() {
+async function exitAdmin() {
+  try { await auth.signOut(); } catch (_) {}
   window.location.href = 'index.html';
 }
 

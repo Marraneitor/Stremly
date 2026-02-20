@@ -1,0 +1,11 @@
+{
+  "name": "streamly",
+  "version": "3.0.0",
+  "private": true,
+  "description": "Streamly — Streaming Account Manager + WhatsApp Bot",
+  "scripts": {
+    "dev": "npx serve . -l 8080",
+    "build": "echo 'Static site — no build needed'",
+    "deploy:rules": "firebase deploy --only firestore:rules"
+  }
+}

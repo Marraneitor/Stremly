@@ -112,6 +112,22 @@ function renderProfileSlots(total, occupied) {
   return html;
 }
 
+// ── Plataforma personalizada ────────────────────────────────
+function toggleCustomPlatform() {
+  const sel = document.getElementById('accountPlatform');
+  const custom = document.getElementById('accountPlatformCustom');
+  if (!sel || !custom) return;
+  if (sel.value === '__custom__') {
+    custom.style.display = '';
+    custom.required = true;
+    custom.focus();
+  } else {
+    custom.style.display = 'none';
+    custom.required = false;
+    custom.value = '';
+  }
+}
+
 // ── Modales ─────────────────────────────────────────────────
 function openModal(modalId) {
   const modal = document.getElementById(modalId);
@@ -133,6 +149,13 @@ function closeModal(modalId) {
       // Limpiar hidden inputs de IDs para evitar conflictos editar/crear
       const hiddenInputs = form.querySelectorAll('input[type="hidden"]');
       hiddenInputs.forEach(input => input.value = '');
+    }
+    // Ocultar campo de plataforma personalizada al cerrar
+    const customPlatform = document.getElementById('accountPlatformCustom');
+    if (customPlatform) {
+      customPlatform.style.display = 'none';
+      customPlatform.required = false;
+      customPlatform.value = '';
     }
   }
 }
@@ -217,13 +240,24 @@ function navigateTo(section) {
     cuentas: 'Cuentas',
     clientes: 'Clientes',
     movimientos: 'Movimientos',
-    reportes: 'Reportes'
+    reportes: 'Reportes',
+    chatbot: 'Chatbot IA'
   };
   document.getElementById('pageTitle').textContent = titles[section] || section;
 
   // Cerrar sidebar en mobile
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebarOverlay').classList.remove('active');
+
+  // Auto-conectar al bot cuando se visita la sección chatbot
+  if (section === 'chatbot' && typeof connectBotServer === 'function' && typeof botPollingInterval !== 'undefined' && !botPollingInterval) {
+    setTimeout(() => connectBotServer(), 400);
+  }
+
+  // Cargar pedidos pendientes al visitar clientes
+  if (section === 'clientes' && typeof loadPendingOrders === 'function') {
+    setTimeout(() => loadPendingOrders(), 200);
+  }
 }
 
 // ── Toggle Password Visibility ──────────────────────────────
@@ -259,21 +293,30 @@ function copyToClipboard(text) {
 
 // ── WhatsApp Link Generator ─────────────────────────────────
 /**
- * Genera un link de WhatsApp con credenciales formateadas
+ * Genera un link de WhatsApp con credenciales formateadas (envío de datos de acceso)
  */
-function generateWhatsAppLink(client, account) {
+function generateCredentialsLink(client, account) {
   const phone = (client.whatsapp || '').replace(/[^0-9]/g, '');
   
   const message = `¡Hola ${client.nombre}! 👋\n\n` +
-    `📺 *Datos de tu cuenta ${account?.plataforma || ''}:*\n\n` +
-    `📧 Correo: ${account?.correo_cuenta || ''}\n` +
-    `🔑 Contraseña: ${account?.password || ''}\n` +
-    `👤 Perfil: ${client.perfil_asignado || ''}\n` +
-    `🔒 PIN: ${client.pin || 'Sin PIN'}\n\n` +
-    `📅 Vigente hasta: ${formatDate(client.fecha_fin)}\n\n` +
-    `_Enviado desde Streamly_ ⚡`;
+    `Aquí están tus datos de acceso para *${account?.plataforma || 'tu cuenta'}*:\n\n` +
+    `📧 *Correo:* ${account?.correo_cuenta || ''}\n` +
+    `🔑 *Contraseña:* ${account?.password || ''}\n` +
+    `👤 *Perfil:* ${client.perfil_asignado || ''}\n` +
+    (client.pin ? `🔒 *PIN:* ${client.pin}\n` : '') +
+    `\n📅 *Fecha de inicio:* ${formatDate(client.fecha_inicio)}\n` +
+    `📅 *Fecha de fin:* ${formatDate(client.fecha_fin)}\n\n` +
+    `¡Gracias por tu compra! Que lo disfrutes 🎬✨\n\n` +
+    `_Si tienes alguna duda, escríbeme por aquí_ 😊`;
 
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+}
+
+/**
+ * Link de WhatsApp genérico (antiguo)
+ */
+function generateWhatsAppLink(client, account) {
+  return generateCredentialsLink(client, account);
 }
 
 // ── Fecha Header ────────────────────────────────────────────
@@ -295,12 +338,14 @@ function openQuickAdd() {
   if (activeSection.includes('cuentas')) {
     openModal('accountModal');
   } else if (activeSection.includes('clientes')) {
-    openModal('clientModal');
+    if (typeof openNewClientModal === 'function') openNewClientModal();
+    else openModal('clientModal');
   } else if (activeSection.includes('movimientos')) {
     openModal('movementModal');
   } else {
     // Default: nuevo cliente
-    openModal('clientModal');
+    if (typeof openNewClientModal === 'function') openNewClientModal();
+    else openModal('clientModal');
   }
 }
 
