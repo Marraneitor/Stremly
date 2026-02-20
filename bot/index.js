@@ -1119,11 +1119,13 @@ console.log(`  🔥 Firestore: ${process.env.FIREBASE_SERVICE_ACCOUNT ? 'con cre
 console.log('═══════════════════════════════════════════');
 console.log('');
 
-app.listen(HTTP_PORT, '0.0.0.0', () => {
+// Iniciar HTTP primero (Railway healthcheck necesita respuesta rápida)
+const server = app.listen(HTTP_PORT, '0.0.0.0', () => {
   addLog(`🌐 Servidor HTTP en puerto ${HTTP_PORT} (${ENV})`);
-});
-
-startBot().catch(err => {
-  console.error('❌ Error fatal:', err);
-  process.exit(1);
+  // Iniciar bot DESPUÉS de que el servidor esté listo
+  startBot().catch(err => {
+    addLog(`❌ Error iniciando bot: ${err.message}`);
+    console.error('❌ Error en startBot:', err);
+    // No salir — el servidor HTTP sigue vivo para healthcheck y reconfig
+  });
 });
