@@ -159,7 +159,16 @@ async function initAdmin() {
     return;
   }
 
-  isOwnerSession = !!(adminUser.email && adminUser.email.toLowerCase() === OWNER_EMAIL.toLowerCase());
+  // Owner detection MUST use the ID token claim (more reliable than user.email in some cases)
+  let tokenEmail = '';
+  try {
+    const tokenResult = await adminUser.getIdTokenResult();
+    tokenEmail = String(tokenResult?.claims?.email || adminUser.email || '').trim().toLowerCase();
+  } catch {
+    tokenEmail = String(adminUser.email || '').trim().toLowerCase();
+  }
+
+  isOwnerSession = tokenEmail === OWNER_EMAIL.toLowerCase();
 
   // Hide Regalos tab for non-owners; always visible for owner
   const giftTab = document.getElementById('tabGifts');
