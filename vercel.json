@@ -12,18 +12,23 @@
   ],
   "functions": {
     "api/chatbot.js": {
+      "runtime": "nodejs20.x",
       "maxDuration": 30
     },
     "api/improve-context.js": {
+      "runtime": "nodejs20.x",
       "maxDuration": 30
     },
     "api/firebase-config.js": {
+      "runtime": "nodejs20.x",
       "maxDuration": 10
     },
     "api/create-checkout-session.js": {
+      "runtime": "nodejs20.x",
       "maxDuration": 15
     },
     "api/stripe-webhook.js": {
+      "runtime": "nodejs20.x",
       "maxDuration": 15
     }
   },

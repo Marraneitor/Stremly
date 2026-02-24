@@ -98,6 +98,17 @@ En Vercel → tu proyecto → **Settings** → **Environment Variables**, agrega
 | `FIREBASE_MEASUREMENT_ID` | `G-XXXXXXXXXX` | Mismo lugar |
 | `GEMINI_API_KEY` | `tu_api_key` | [AI Studio](https://aistudio.google.com/apikey) |
 | `ALLOWED_ORIGIN` | `https://streamly.vercel.app` | Tu dominio en Vercel |
+| `STRIPE_SECRET_KEY` | `sk_live_...` o `sk_test_...` | Stripe Dashboard → Developers → API keys |
+| `STRIPE_WEBHOOK_SECRET` | `whsec_...` | Stripe Dashboard → Developers → Webhooks |
+| `FIREBASE_SERVICE_ACCOUNT` | `{...}` (JSON en una sola línea) | Firebase Console → Project Settings → Service Accounts |
+
+> 🔐 **Seguridad (importante):**
+> - **Nunca** pegues claves (`sk_*`, `pk_*`, `whsec_*`) en el código ni las subas a GitHub.
+> - Si ya compartiste una clave por chat o la subiste sin querer, **rotála** en Stripe inmediatamente.
+> - La clave **publicable** (`pk_*`) no es tan crítica como la secreta, pero igual evita hardcodearla.
+
+> ℹ️ En este proyecto, para Stripe Checkout **solo necesitas** `STRIPE_SECRET_KEY` en el backend.
+> La `pk_*` se usaría únicamente si integras Stripe.js (tarjeta embebida), no para redirección a Checkout.
 
 > ⚠️ Después de agregar las variables, ve a **Deployments** → haz clic en **⋮** del último deploy → **Redeploy** para que tome efecto.
 
@@ -107,6 +118,18 @@ En Vercel → tu proyecto → **Settings** → **Environment Variables**, agrega
 - `https://tu-dominio.vercel.app/admin` → Panel de administración
 - `https://tu-dominio.vercel.app/api/firebase-config` → Debe devolver JSON con la config
 - `https://tu-dominio.vercel.app/api/chatbot` → Debe devolver error 405 (solo acepta POST)
+- `https://tu-dominio.vercel.app/api/create-checkout-session` → Debe devolver 405 (solo acepta POST)
+
+### 2.4 Configurar Webhook de Stripe (para activar plan automático)
+
+1. Ve a Stripe Dashboard → **Developers** → **Webhooks** → **Add endpoint**
+2. Endpoint URL:
+   - `https://tu-dominio.vercel.app/api/stripe-webhook`
+3. Events:
+   - Selecciona **`checkout.session.completed`**
+4. Copia el **Signing secret** (`whsec_...`) y guárdalo en Vercel como `STRIPE_WEBHOOK_SECRET`
+
+> ⚠️ El webhook necesita `FIREBASE_SERVICE_ACCOUNT` en Vercel para poder activar el plan en Firestore.
 
 ---
 

@@ -3,6 +3,9 @@
   "version": "3.0.0",
   "private": true,
   "description": "Streamly — Streaming Account Manager + WhatsApp Bot",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "npx serve . -l 8080",
     "build": "echo 'Static site — no build needed'",

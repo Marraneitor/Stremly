@@ -79,12 +79,20 @@ async function startPlanCheckout(plan) {
       })
     });
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || 'Error creando sesión de pago');
+    const rawText = await res.text();
+    let data = null;
+    try {
+      data = rawText ? JSON.parse(rawText) : null;
+    } catch {
+      data = null;
     }
 
-    const data = await res.json();
+    if (!res.ok) {
+      const msg = (data && data.error) ? data.error : (rawText || 'Error creando sesión de pago');
+      throw new Error(String(msg).slice(0, 300));
+    }
+
+    if (!data) throw new Error('Respuesta inválida del servidor');
     if (!data.url) throw new Error('No se recibió URL de Stripe');
     window.location.href = data.url;
   } catch (err) {
@@ -94,6 +102,47 @@ async function startPlanCheckout(plan) {
       btn.disabled = false;
       btn.innerHTML = original;
     }
+  }
+}
+
+/**
+ * Cargar settings de monedas por usuario.
+ * Firestore: usuarios/{uid}
+ * - currencies_allowed: ["COP","USD",...]
+ * - currency_default: "COP"
+ */
+async function loadUserCurrencySettings() {
+  if (!currentUser || !db) return;
+  try {
+    const snap = await db.collection('usuarios').doc(currentUser.uid).get();
+    if (!snap.exists) return;
+    const data = snap.data() || {};
+
+    // Backfill defaults for cuentas antiguas (una sola vez).
+    const needsBackfill = !data.currency_default || !Array.isArray(data.currencies_allowed);
+    if (needsBackfill) {
+      try {
+        await db.collection('usuarios').doc(currentUser.uid).set({
+          currency_default: data.currency_default || 'COP',
+          currencies_allowed: Array.isArray(data.currencies_allowed)
+            ? data.currencies_allowed
+            : ['COP', 'USD', 'EUR', 'MXN', 'ARS', 'BRL', 'PEN', 'CLP']
+        }, { merge: true });
+      } catch (e) {
+        console.warn('No se pudo backfillear moneda:', e.message);
+      }
+    }
+
+    const allowed = Array.isArray(data.currencies_allowed)
+      ? data.currencies_allowed.map(c => String(c).toUpperCase()).filter(Boolean)
+      : null;
+    const def = data.currency_default ? String(data.currency_default).toUpperCase() : null;
+
+    if (typeof setAllowedCurrencies === 'function') {
+      setAllowedCurrencies(allowed, def);
+    }
+  } catch (err) {
+    console.warn('No se pudo cargar currencies_allowed:', err.message);
   }
 }
 

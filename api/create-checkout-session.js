@@ -10,7 +10,15 @@
  * - STRIPE_SECRET_KEY (required)
  */
 
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripeFactory = require('stripe');
+
+let _stripe = null;
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error('Stripe not configured. Set STRIPE_SECRET_KEY environment variable.');
+  if (!_stripe) _stripe = stripeFactory(key);
+  return _stripe;
+}
 
 // Precios base (MXN)
 const PLAN_PRICE_MXN = {
@@ -52,9 +60,8 @@ module.exports = async (req, res) => {
   }
 
   try {
-    if (!process.env.STRIPE_SECRET_KEY) {
-      return res.status(500).json({ error: 'Stripe not configured. Set STRIPE_SECRET_KEY environment variable.' });
-    }
+    // Ensure Stripe is configured before doing anything else.
+    const stripe = getStripe();
 
     const origin = req.headers.origin || req.headers.referer || 'https://streamly-alpha.vercel.app';
     const baseUrl = String(origin).replace(/\/$/, '');

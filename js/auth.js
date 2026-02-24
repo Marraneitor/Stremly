@@ -55,6 +55,15 @@ async function showApp(user) {
   // Actualizar fecha del header
   updateHeaderDate();
 
+  // Configurar selector de moneda según el usuario
+  try {
+    if (typeof loadUserCurrencySettings === 'function') {
+      await loadUserCurrencySettings();
+    }
+  } catch (e) {
+    console.warn('No se pudo cargar settings de moneda:', e.message);
+  }
+
   // Cargar datos del dashboard (con guard para Firestore)
   try {
     await loadAllData();
@@ -129,6 +138,8 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
         email: email,
         nombre_negocio: businessName,
         plan: 'free',
+        currency_default: 'COP',
+        currencies_allowed: ['COP', 'USD', 'EUR', 'MXN', 'ARS', 'BRL', 'PEN', 'CLP'],
         creado_en: firebase.firestore.FieldValue.serverTimestamp()
       });
     } catch (firestoreError) {
@@ -184,6 +195,8 @@ async function signInWithGoogle() {
           email: user.email,
           nombre_negocio: user.displayName || 'Mi Negocio',
           plan: 'free',
+          currency_default: 'COP',
+          currencies_allowed: ['COP', 'USD', 'EUR', 'MXN', 'ARS', 'BRL', 'PEN', 'CLP'],
           creado_en: firebase.firestore.FieldValue.serverTimestamp()
         });
       } catch (firestoreError) {

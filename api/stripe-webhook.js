@@ -11,8 +11,16 @@
  * - FIREBASE_SERVICE_ACCOUNT (JSON string)
  */
 
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripeFactory = require('stripe');
 const admin = require('firebase-admin');
+
+let _stripe = null;
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error('Stripe not configured');
+  if (!_stripe) _stripe = stripeFactory(key);
+  return _stripe;
+}
 
 function getRawBody(req) {
   return new Promise((resolve, reject) => {
@@ -57,6 +65,7 @@ module.exports = async (req, res) => {
 
   let event;
   try {
+    const stripe = getStripe();
     const rawBody = await getRawBody(req);
     const sig = req.headers['stripe-signature'];
     event = stripe.webhooks.constructEvent(rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);

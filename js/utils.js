@@ -3,7 +3,7 @@
    ============================================================ */
 
 // Build ID (debug): útil para confirmar qué versión está cargando el navegador
-window.STREAMLY_BUILD_ID = '2026-02-24-micuenta';
+window.STREAMLY_BUILD_ID = '2026-02-24-checkoutfix';
 console.log('⚡ Streamly build:', window.STREAMLY_BUILD_ID);
 
 // ── Formateo de fechas ──────────────────────────────────────
@@ -82,8 +82,61 @@ const CURRENCY_MAP = {
   CLP: { locale: 'es-CL', currency: 'CLP', fractions: 0 }
 };
 
+const DEFAULT_CURRENCY_LIST = ['COP', 'USD', 'EUR', 'MXN', 'ARS', 'BRL', 'PEN', 'CLP'];
+const CURRENCY_LABELS = {
+  COP: 'COP $',
+  USD: 'USD $',
+  EUR: 'EUR €',
+  MXN: 'MXN $',
+  ARS: 'ARS $',
+  BRL: 'BRL R$',
+  PEN: 'PEN S/',
+  CLP: 'CLP $'
+};
+
+function getCurrencyOptionsList() {
+  const allowed = window.STREAMLY_ALLOWED_CURRENCIES;
+  if (Array.isArray(allowed) && allowed.length) return allowed;
+  return DEFAULT_CURRENCY_LIST;
+}
+
+function renderCurrencySelectOptions(codes) {
+  const sel = document.getElementById('currencySelect');
+  if (!sel) return;
+  sel.innerHTML = '';
+  (codes || []).forEach((code) => {
+    const c = String(code || '').toUpperCase();
+    if (!CURRENCY_MAP[c]) return;
+    const opt = document.createElement('option');
+    opt.value = c;
+    opt.textContent = CURRENCY_LABELS[c] || c;
+    sel.appendChild(opt);
+  });
+}
+
+function setAllowedCurrencies(codes, defaultCode) {
+  const normalized = Array.isArray(codes)
+    ? codes.map(c => String(c).toUpperCase()).filter(c => CURRENCY_MAP[c])
+    : null;
+
+  window.STREAMLY_ALLOWED_CURRENCIES = (normalized && normalized.length) ? normalized : null;
+  const def = defaultCode ? String(defaultCode).toUpperCase() : null;
+  window.STREAMLY_DEFAULT_CURRENCY = (def && window.STREAMLY_ALLOWED_CURRENCIES && window.STREAMLY_ALLOWED_CURRENCIES.includes(def)) ? def : null;
+
+  renderCurrencySelectOptions(getCurrencyOptionsList());
+  setCurrency(getSelectedCurrency());
+}
+
 function getSelectedCurrency() {
-  return localStorage.getItem('streamly_currency') || 'COP';
+  const stored = (localStorage.getItem('streamly_currency') || '').toUpperCase();
+  const allowed = window.STREAMLY_ALLOWED_CURRENCIES;
+  if (Array.isArray(allowed) && allowed.length) {
+    if (stored && allowed.includes(stored)) return stored;
+    const def = window.STREAMLY_DEFAULT_CURRENCY;
+    if (def && allowed.includes(def)) return def;
+    return allowed[0];
+  }
+  return stored || 'COP';
 }
 
 function setCurrency(code) {
@@ -452,7 +505,10 @@ function initTheme() {
   }
   // Init currency selector
   const sel = document.getElementById('currencySelect');
-  if (sel) sel.value = getSelectedCurrency();
+  if (sel) {
+    renderCurrencySelectOptions(getCurrencyOptionsList());
+    sel.value = getSelectedCurrency();
+  }
 }
 
 // ── CSV Export ───────────────────────────────────────────────
