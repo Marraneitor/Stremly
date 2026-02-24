@@ -11,6 +11,118 @@ let movementsData  = [];
 // ── Plan / Suscripción ──────────────────────────────────────
 let currentPlan = 'free'; // 'free' | 'lite' | 'premium'
 
+// ── Precios de planes (base en MXN) ─────────────────────────
+// Nota: las tasas son aproximadas (similar a la landing).
+const PLAN_PRICE_MXN = {
+  free: 0,
+  lite: 50,
+  premium: 100
+};
+
+// Conversión aproximada desde MXN -> moneda seleccionada
+const PLAN_CURRENCIES = {
+  MXN: { symbol: '$',  rate: 1,      displayDecimals: 0, minorUnits: 2 },
+  USD: { symbol: '$',  rate: 0.057,  displayDecimals: 2, minorUnits: 2 },
+  EUR: { symbol: '€',  rate: 0.052,  displayDecimals: 2, minorUnits: 2 },
+  BRL: { symbol: 'R$', rate: 0.29,   displayDecimals: 2, minorUnits: 2 },
+  COP: { symbol: '$',  rate: 236,    displayDecimals: 0, minorUnits: 0 },
+  ARS: { symbol: '$',  rate: 60,     displayDecimals: 0, minorUnits: 2 },
+  PEN: { symbol: 'S/', rate: 0.21,   displayDecimals: 2, minorUnits: 2 },
+  CLP: { symbol: '$',  rate: 54,     displayDecimals: 0, minorUnits: 0 }
+};
+
+function getPlanCurrencyCfg() {
+  const code = (typeof getSelectedCurrency === 'function') ? getSelectedCurrency() : 'COP';
+  return { code, ...(PLAN_CURRENCIES[code] || PLAN_CURRENCIES.COP) };
+}
+
+function formatPlanPrice(plan) {
+  const cfg = getPlanCurrencyCfg();
+  const base = PLAN_PRICE_MXN[plan] ?? 0;
+  const converted = base * cfg.rate;
+  const val = cfg.displayDecimals === 0 ? Math.round(converted) : Number(converted.toFixed(cfg.displayDecimals));
+  const formatted = cfg.displayDecimals === 0 ? String(val) : val.toFixed(cfg.displayDecimals);
+  return `${cfg.symbol}${formatted}`;
+}
+
+function updatePlanPricingUI() {
+  const ids = {
+    free: document.getElementById('planPriceFree'),
+    lite: document.getElementById('planPriceLite'),
+    premium: document.getElementById('planPricePremium')
+  };
+  Object.keys(ids).forEach(plan => {
+    const el = ids[plan];
+    if (el) el.textContent = formatPlanPrice(plan);
+  });
+}
+
+async function startPlanCheckout(plan) {
+  if (!currentUser) return;
+  const btn = document.getElementById('btnSelect' + plan.charAt(0).toUpperCase() + plan.slice(1));
+  const original = btn ? btn.innerHTML : null;
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Procesando...';
+  }
+
+  try {
+    const currencyCode = (typeof getSelectedCurrency === 'function') ? getSelectedCurrency() : 'COP';
+    const res = await fetch('/api/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        plan,
+        currency: String(currencyCode).toLowerCase(),
+        uid: currentUser.uid,
+        email: currentUser.email || null
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Error creando sesión de pago');
+    }
+
+    const data = await res.json();
+    if (!data.url) throw new Error('No se recibió URL de Stripe');
+    window.location.href = data.url;
+  } catch (err) {
+    console.error('Checkout error:', err);
+    showToast(err.message || 'Error al procesar el pago', 'error');
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = original;
+    }
+  }
+}
+
+function handleCheckoutReturn() {
+  const url = new URL(window.location.href);
+  const status = url.searchParams.get('checkout');
+  if (!status) return;
+
+  if (status === 'success') {
+    showToast('Pago recibido. Activando plan...', 'success');
+    // Reintentar cargar plan algunas veces (webhook puede tardar)
+    let tries = 0;
+    const timer = setInterval(async () => {
+      tries += 1;
+      await loadUserPlan();
+      applyPlanRestrictions();
+      if (currentPlan !== 'free' || tries >= 6) {
+        clearInterval(timer);
+      }
+    }, 1500);
+  } else if (status === 'cancelled') {
+    showToast('Pago cancelado', 'warning');
+  }
+
+  // Limpiar query param para no repetir el toast
+  url.searchParams.delete('checkout');
+  window.history.replaceState({}, document.title, url.toString());
+}
+
 const PLAN_CONFIG = {
   free:    { maxClients: 20,       label: 'Free',    allow: [] },
   lite:    { maxClients: 49,       label: 'Lite',    allow: ['reportes', 'calendario'] },
@@ -251,6 +363,9 @@ function updatePlanPage() {
       }
     }
   });
+
+  // Update plan pricing according to selected currency
+  updatePlanPricingUI();
 }
 
 /**
@@ -297,21 +412,32 @@ async function selectPlan(plan) {
   }
 
   try {
-    // Usar set+merge para no fallar si el doc aún no existe
-    await db.collection('usuarios').doc(currentUser.uid).set({
-      email: currentUser.email || null,
-      plan: plan,
-      actualizado_en: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true });
-    currentPlan = plan;
-    applyPlanRestrictions();
-    showToast(`¡Plan cambiado a ${newCfg.label}!`, 'success');
-    if (typeof logActivity === 'function') logActivity('plan', `Plan cambiado a ${newCfg.label}`);
+    if (plan === 'free') {
+      // Free no requiere pago
+      await db.collection('usuarios').doc(currentUser.uid).set({
+        email: currentUser.email || null,
+        plan: plan,
+        actualizado_en: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+      currentPlan = plan;
+      applyPlanRestrictions();
+      showToast(`¡Plan cambiado a ${newCfg.label}!`, 'success');
+      if (typeof logActivity === 'function') logActivity('plan', `Plan cambiado a ${newCfg.label}`);
+    } else {
+      // Lite/Premium → Stripe Checkout
+      await startPlanCheckout(plan);
+    }
   } catch (err) {
     console.error('Error cambiando plan:', err);
     showToast('Error al cambiar de plan', 'error');
   }
 }
+
+// Manejar retorno de Stripe (si aplica)
+document.addEventListener('DOMContentLoaded', () => {
+  try { updatePlanPricingUI(); } catch (_) {}
+  try { handleCheckoutReturn(); } catch (_) {}
+});
 
 /* ============================================================
    CUENTAS — CRUD

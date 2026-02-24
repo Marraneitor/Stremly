@@ -22,6 +22,9 @@
     },
     "api/create-checkout-session.js": {
       "maxDuration": 15
+    },
+    "api/stripe-webhook.js": {
+      "maxDuration": 15
     }
   },
   "headers": [

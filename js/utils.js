@@ -95,6 +95,7 @@ function setCurrency(code) {
   if (typeof renderClientsTable === 'function') renderClientsTable();
   if (typeof renderMovementsTable === 'function') renderMovementsTable();
   if (typeof updateReports === 'function') updateReports();
+  if (typeof updatePlanPage === 'function') updatePlanPage();
 }
 
 function formatCurrency(amount) {
