@@ -1453,9 +1453,14 @@ textarea.form-control {
 
 /* ====== Config Wizard Styles ====== */
 #configWizardChat .chat-test-messages {
-  max-height: 450px;
+  max-height: 700px;
   min-height: 200px;
   scroll-behavior: smooth;
+  overflow-y: auto;
+}
+
+#configWizardChat .wizard-config-review {
+  max-width: 100%;
 }
 
 .wizard-typing {
