@@ -565,10 +565,12 @@ select.form-control {
 /* ── Sections / Tabs ─────────────────────────────────────── */
 .section {
   display: none;
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn 0.2s ease;
 }
 .section.active {
   display: block;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
 }
 
 @keyframes fadeIn {

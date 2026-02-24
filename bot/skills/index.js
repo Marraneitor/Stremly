@@ -9,12 +9,14 @@
 const CodeAnalyzer = require('./codeAnalyzer');
 const CodeFixer = require('./codeFixer');
 const CodeOptimizer = require('./codeOptimizer');
+const WebPerformanceAnalyzer = require('./webPerformance');
 
 class SkillManager {
   constructor(geminiApiKey) {
     this.analyzer = new CodeAnalyzer();
     this.fixer = new CodeFixer(geminiApiKey);
     this.optimizer = new CodeOptimizer(geminiApiKey);
+    this.perfAnalyzer = new WebPerformanceAnalyzer(geminiApiKey);
     this.geminiApiKey = geminiApiKey;
 
     // Pre-compilar todas las regex de detección (se usan en cada mensaje)
@@ -61,6 +63,18 @@ class SkillManager {
       /refactori[zs]a/i, /código\s+muerto/i, /dead\s*code/i,
       /performance/i, /rendimiento/i
     ];
+    this._perfPatterns = [
+      /rendimiento\s*(web|p[aá]gina|sitio|frontend)/i,
+      /performance\s*(web|page|site|audit)/i,
+      /web\s*vitals/i, /core\s*web/i,
+      /velocidad\s*(de\s*)?(carga|p[aá]gina|web|sitio)/i,
+      /page\s*speed/i, /lighthouse/i,
+      /carga\s*(r[aá]pido|lento|pesad)/i,
+      /optimi[zs]a(r)?\s*(la\s+)?(web|p[aá]gina|html|css|carga)/i,
+      /pesa\s*(mucho|demasiado)/i, /muy\s*(lent|pesad)/i,
+      /audit(or[ií]a)?\s*(de\s+)?(rendimiento|performance)/i,
+      /lcp|fcp|cls|fid|inp|tti|tbt/i
+    ];
   }
 
   /**
@@ -99,13 +113,15 @@ class SkillManager {
 
     const wantsFix = this._fixPatterns.some(p => p.test(lowerText));
     const wantsOptimize = this._optimizePatterns.some(p => p.test(lowerText));
-    const wantsAnalysis = wantsFix || wantsOptimize || this._analyzePatterns.some(p => p.test(lowerText));
+    const wantsPerformance = this._perfPatterns.some(p => p.test(lowerText));
+    const wantsAnalysis = wantsFix || wantsOptimize || wantsPerformance || this._analyzePatterns.some(p => p.test(lowerText));
 
     return {
       wantsAnalysis,
       wantsFix,
       wantsOptimize,
-      wantsAnalysisOnly: wantsAnalysis && !wantsFix && !wantsOptimize
+      wantsPerformance,
+      wantsAnalysisOnly: wantsAnalysis && !wantsFix && !wantsOptimize && !wantsPerformance
     };
   }
 
@@ -131,7 +147,11 @@ class SkillManager {
     if (codeDetection) {
       const { code, language } = codeDetection;
 
-      if (intent.wantsOptimize) {
+      if (intent.wantsPerformance) {
+        // Web performance audit
+        const perfResult = await this.perfAnalyzer.deepAudit(code, language);
+        return { handled: true, response: perfResult.summary, perfResult };
+      } else if (intent.wantsOptimize) {
         // Optimizar código
         const optResult = await this.optimizer.fullOptimize(code, language, true);
         const optSummary = this.optimizer.buildOptimizeSummary(optResult);

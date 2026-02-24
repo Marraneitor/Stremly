@@ -6,16 +6,20 @@
   <title>Streamly — Iniciar Sesión</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📺</text></svg>">
 
-  <!-- Fuentes -->
+  <!-- Fuentes (swap para carga instantánea) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
 
   <!-- Lucide Icons -->
-  <link rel="stylesheet" href="https://unpkg.com/lucide-static@latest/font/lucide.css" />
+  <link rel="stylesheet" href="https://unpkg.com/lucide-static@latest/font/lucide.css" media="print" onload="this.media='all'" />
 
   <!-- Font Awesome (para iconos de plataformas y WhatsApp) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <!-- DNS Prefetch para APIs -->
+  <link rel="dns-prefetch" href="https://www.gstatic.com" />
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
 
   <!-- Estilos -->
   <link rel="stylesheet" href="css/styles.css" />
@@ -1687,8 +1691,20 @@
   <!-- ============================================================
        SCRIPTS
        ============================================================ -->
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- Chart.js (lazy — se carga después del render inicial) -->
+  <script>
+    // Lazy load Chart.js solo cuando se necesite
+    window._chartLoaded = false;
+    function loadChartJS() {
+      if (window._chartLoaded) return Promise.resolve();
+      return new Promise(r => {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
+        s.onload = () => { window._chartLoaded = true; r(); };
+        document.head.appendChild(s);
+      });
+    }
+  </script>
 
   <!-- Firebase SDK (v9 compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>

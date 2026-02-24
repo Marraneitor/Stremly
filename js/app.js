@@ -3338,7 +3338,13 @@ async function deleteOrder(id) {
 let chartIncome = null, chartClients = null, chartPlatforms = null;
 
 function renderDashboardCharts() {
-  if (typeof Chart === 'undefined') return;
+  // Lazy load Chart.js — only when dashboard is visible
+  if (typeof Chart === 'undefined') {
+    if (typeof loadChartJS === 'function') {
+      loadChartJS().then(() => renderDashboardCharts());
+    }
+    return;
+  }
 
   const accentColor = '#7c3aed';
   const successColor = '#22c55e';
@@ -3947,27 +3953,12 @@ function clearActivityLogs() {
 }
 
 /* ============================================================
-   SECTION NAVIGATION HOOKS (extended)
-   ============================================================ */
-const _originalNavigateTo = typeof navigateTo === 'function' ? navigateTo : null;
-
-// Patch: render additional sections when navigating
-(function patchNavigation() {
-  const obs = new MutationObserver(() => {
-    const active = document.querySelector('.section.active');
-    if (!active) return;
-    const id = active.id;
-    if (id === 'section-calendario') renderCalendar();
-    else if (id === 'section-deudores') renderDebtorsTable();
-    else if (id === 'section-plantillas') renderTemplates();
-    else if (id === 'section-logs') renderActivityLogs();
-  });
-  const content = document.querySelector('.page-content');
-  if (content) obs.observe(content, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
-})();
-
-/* ============================================================
    INIT HOOKS — Theme + Currency on load
+   ============================================================
+   NOTE: MutationObserver was removed — it caused infinite loops
+   when renderCalendar() wrote innerHTML (triggering DOM mutations
+   → observer → renderCalendar → innerHTML → observer…).
+   Navigation hooks in utils.js navigateTo() handle everything.
    ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof initTheme === 'function') initTheme();
