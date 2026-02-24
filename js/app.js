@@ -1769,20 +1769,42 @@ function showCurrentConfigSummary() {
 }
 
 /**
- * Reiniciar el wizard
+ * Reiniciar el wizard — carga config existente si la hay
  */
 function resetConfigWizard() {
+  const hasConfig = document.getElementById('botBusinessName').value.trim();
+
   wizardState.step = 0;
   wizardState.history = [];
-  wizardState.collected = {};
   wizardState.active = true;
+
+  // Cargar config existente del formulario
+  if (hasConfig) {
+    wizardState.collected = {
+      businessName: document.getElementById('botBusinessName').value.trim(),
+      schedule: document.getElementById('botSchedule').value.trim(),
+      personality: document.getElementById('botPersonality').value.trim(),
+      context: document.getElementById('botContext').value.trim(),
+      welcomeMsg: document.getElementById('botWelcomeMsg').value.trim(),
+      fallbackMsg: document.getElementById('botFallbackMsg').value.trim()
+    };
+  } else {
+    wizardState.collected = {};
+  }
 
   const messagesDiv = document.getElementById('wizardMessages');
   messagesDiv.innerHTML = '';
   clearQuickReplies();
   document.querySelectorAll('.wizard-done-actions').forEach(el => el.remove());
+  document.querySelectorAll('.wizard-config-review').forEach(el => el.remove());
 
-  sendWizardBotMessage('greeting');
+  if (hasConfig) {
+    // Ya tiene config — ir directo a modo edición
+    editConfigField();
+  } else {
+    // Sin config — iniciar wizard desde cero
+    sendWizardBotMessage('greeting');
+  }
 }
 
 /**
