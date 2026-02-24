@@ -144,6 +144,34 @@ async function adminLogin() {
   }
 }
 
+// ── Login with Google ──────────────────────────────────────
+async function adminLoginGoogle() {
+  const error = document.getElementById('gateError');
+  error.classList.remove('show');
+
+  try {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+
+    const cred = await auth.signInWithPopup(provider);
+    adminUser = cred.user;
+    document.getElementById('adminGate').classList.add('hidden');
+    document.getElementById('adminLayout').classList.add('active');
+    initAdmin();
+  } catch (err) {
+    console.error('Admin Google login error:', err);
+    const messages = {
+      'auth/popup-blocked': 'Popup bloqueado por el navegador. Permite ventanas emergentes e inténtalo de nuevo.',
+      'auth/popup-closed-by-user': 'Inicio de sesión cancelado.',
+      'auth/cancelled-popup-request': 'Inicio de sesión cancelado.',
+      'auth/operation-not-allowed': 'Google Sign-In no está habilitado en Firebase Auth.',
+      'auth/unauthorized-domain': 'Dominio no autorizado para iniciar sesión con Google.'
+    };
+    error.textContent = messages[err.code] || `Error: ${err.message}`;
+    error.classList.add('show');
+  }
+}
+
 // Allow Enter key on password input
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !document.getElementById('adminGate').classList.contains('hidden')) {
