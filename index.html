@@ -109,31 +109,32 @@
           <i class="fa-solid fa-bolt"></i>
         </div>
         <h1>Streamly</h1>
-        <p>Gestión de cuentas de streaming</p>
+        <p data-i18n="login.subtitle">Gestión de cuentas de streaming</p>
       </div>
 
       <!-- Error message -->
       <div class="login-error" id="loginError">
         <i class="fa-solid fa-circle-exclamation"></i>
-        <span id="loginErrorMsg">Credenciales incorrectas</span>
+        <span id="loginErrorMsg" data-i18n="login.error">Credenciales incorrectas</span>
       </div>
 
       <!-- Login Form -->
       <form id="loginForm" autocomplete="off">
         <div class="form-group">
-          <label for="loginEmail">Correo electrónico</label>
+          <label for="loginEmail" data-i18n="login.email">Correo electrónico</label>
           <input
             type="email"
             id="loginEmail"
             class="form-control"
             placeholder="tu@email.com"
+            data-i18n-ph="login.email_ph"
             autocomplete="username"
             required
           />
         </div>
 
         <div class="form-group">
-          <label for="loginPassword">Contraseña</label>
+          <label for="loginPassword" data-i18n="login.password">Contraseña</label>
           <div class="form-group-password">
             <input
               type="password"
@@ -149,21 +150,21 @@
           </div>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-block btn-lg" id="loginBtn">
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="loginBtn" data-i18n="login.submit">
           <i class="fa-solid fa-right-to-bracket"></i>
           Iniciar Sesión
         </button>
       </form>
 
-      <div class="login-divider">o</div>
+      <div class="login-divider" data-i18n="login.divider">o</div>
 
-      <button type="button" class="btn-google" id="googleLoginBtn" onclick="signInWithGoogle()">
+      <button type="button" class="btn-google" id="googleLoginBtn" onclick="signInWithGoogle()" data-i18n="login.google">
         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
         Continuar con Google
       </button>
 
       <div class="login-footer">
-        ¿No tienes cuenta? <a href="#" id="showRegister">Regístrate aquí</a>
+        <span data-i18n="login.no_account">¿No tienes cuenta?</span> <a href="#" id="showRegister" data-i18n="login.register_link">Regístrate aquí</a>
       </div>
     </div>
   </div>
@@ -177,8 +178,8 @@
         <div class="login-icon">
           <i class="fa-solid fa-user-plus"></i>
         </div>
-        <h1>Crear Cuenta</h1>
-        <p>Configura tu negocio de streaming</p>
+        <h1 data-i18n="register.title">Crear Cuenta</h1>
+        <p data-i18n="register.subtitle">Configura tu negocio de streaming</p>
       </div>
 
       <div class="login-error" id="registerError">
@@ -188,36 +189,39 @@
 
       <form id="registerForm" autocomplete="off">
         <div class="form-group">
-          <label for="regBusinessName">Nombre del negocio</label>
+          <label for="regBusinessName" data-i18n="register.business">Nombre del negocio</label>
           <input
             type="text"
             id="regBusinessName"
             class="form-control"
             placeholder="Ej: StreamPlus"
+            data-i18n-ph="register.business_ph"
             required
           />
         </div>
 
         <div class="form-group">
-          <label for="regEmail">Correo electrónico</label>
+          <label for="regEmail" data-i18n="login.email">Correo electrónico</label>
           <input
             type="email"
             id="regEmail"
             class="form-control"
             placeholder="tu@email.com"
+            data-i18n-ph="login.email_ph"
             autocomplete="username"
             required
           />
         </div>
 
         <div class="form-group">
-          <label for="regPassword">Contraseña</label>
+          <label for="regPassword" data-i18n="login.password">Contraseña</label>
           <div class="form-group-password">
             <input
               type="password"
               id="regPassword"
               class="form-control"
               placeholder="Mínimo 6 caracteres"
+              data-i18n-ph="register.password_ph"
               required
               minlength="6"
               autocomplete="new-password"
@@ -228,21 +232,21 @@
           </div>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-block btn-lg" id="registerBtn">
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="registerBtn" data-i18n="register.submit">
           <i class="fa-solid fa-user-plus"></i>
           Crear Cuenta
         </button>
       </form>
 
-      <div class="login-divider">o</div>
+      <div class="login-divider" data-i18n="login.divider">o</div>
 
-      <button type="button" class="btn-google" id="googleRegisterBtn" onclick="signInWithGoogle()">
+      <button type="button" class="btn-google" id="googleRegisterBtn" onclick="signInWithGoogle()" data-i18n="register.google">
         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
         Registrarse con Google
       </button>
 
       <div class="login-footer">
-        ¿Ya tienes cuenta? <a href="#" id="showLogin">Inicia sesión</a>
+        <span data-i18n="register.has_account">¿Ya tienes cuenta?</span> <a href="#" id="showLogin" data-i18n="register.login_link">Inicia sesión</a>
       </div>
     </div>
   </div>
@@ -258,35 +262,35 @@
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <h1><i class="fa-solid fa-bolt"></i> Streamly</h1>
-        <span>Gestión Streaming</span>
+        <span data-i18n="sidebar.subtitle">Gestión Streaming</span>
       </div>
 
       <nav class="sidebar-nav">
-        <div class="nav-section-title">Principal</div>
-        <button class="nav-item active" data-section="dashboard" onclick="navigateTo('dashboard')">
+        <div class="nav-section-title" data-i18n="sidebar.main">Principal</div>
+        <button class="nav-item active" data-section="dashboard" onclick="navigateTo('dashboard')" data-i18n="sidebar.dashboard">
           <i class="fa-solid fa-chart-pie"></i>
           Dashboard
         </button>
-        <button class="nav-item" data-section="cuentas" onclick="navigateTo('cuentas')">
+        <button class="nav-item" data-section="cuentas" onclick="navigateTo('cuentas')" data-i18n="sidebar.accounts">
           <i class="fa-solid fa-tv"></i>
           Cuentas
         </button>
-        <button class="nav-item" data-section="clientes" onclick="navigateTo('clientes')">
+        <button class="nav-item" data-section="clientes" onclick="navigateTo('clientes')" data-i18n="sidebar.clients">
           <i class="fa-solid fa-users"></i>
           Clientes
           <span class="badge badge-warning" id="navOrdersBadge" style="margin-left: auto; display: none; font-size: 0.65rem; padding: 2px 6px;"></span>
         </button>
-        <button class="nav-item" data-section="movimientos" onclick="navigateTo('movimientos')">
+        <button class="nav-item" data-section="movimientos" onclick="navigateTo('movimientos')" data-i18n="sidebar.movements">
           <i class="fa-solid fa-money-bill-transfer"></i>
           Movimientos
         </button>
 
-        <div class="nav-section-title" style="margin-top: 16px;">Herramientas</div>
-        <button class="nav-item" data-section="reportes" onclick="navigateTo('reportes')">
+        <div class="nav-section-title" style="margin-top: 16px;" data-i18n="sidebar.tools">Herramientas</div>
+        <button class="nav-item" data-section="reportes" onclick="navigateTo('reportes')" data-i18n="sidebar.reports">
           <i class="fa-solid fa-chart-bar"></i>
           Reportes
         </button>
-        <button class="nav-item" data-section="chatbot" onclick="navigateTo('chatbot')">
+        <button class="nav-item" data-section="chatbot" onclick="navigateTo('chatbot')" data-i18n="sidebar.chatbot">
           <i class="fa-brands fa-whatsapp"></i>
           Chatbot IA
         </button>
@@ -300,7 +304,7 @@
             <div class="sidebar-user-email" id="userEmail">admin@email.com</div>
           </div>
         </div>
-        <button class="btn-signout" onclick="signOut()">
+        <button class="btn-signout" onclick="signOut()" data-i18n="sidebar.logout">
           <i class="fa-solid fa-arrow-right-from-bracket"></i>
           Cerrar Sesión
         </button>
@@ -318,8 +322,30 @@
           <h2 class="page-title" id="pageTitle">Dashboard</h2>
         </div>
         <div class="header-right">
+          <!-- Language Selector -->
+          <div class="lang-selector">
+            <button class="lang-toggle-btn" id="langToggleBtn" onclick="toggleLangDropdown()">
+              <i class="fa-solid fa-globe"></i>
+              <span id="langCurrentLabel">ES</span>
+              <i class="fa-solid fa-chevron-down" style="font-size:0.6rem;"></i>
+            </button>
+            <div id="langDropdown" class="lang-dropdown">
+              <button class="lang-option active" data-lang="es" onclick="setLanguage('es')">
+                🇲🇽 Español
+              </button>
+              <button class="lang-option" data-lang="en" onclick="setLanguage('en')">
+                🇺🇸 English
+              </button>
+              <button class="lang-option" data-lang="pt" onclick="setLanguage('pt')">
+                🇧🇷 Português
+              </button>
+              <button class="lang-option" data-lang="fr" onclick="setLanguage('fr')">
+                🇫🇷 Français
+              </button>
+            </div>
+          </div>
           <span class="header-date" id="headerDate"></span>
-          <button class="btn btn-primary btn-sm" id="headerAddBtn" onclick="openQuickAdd()">
+          <button class="btn btn-primary btn-sm" id="headerAddBtn" onclick="openQuickAdd()" data-i18n="header.new">
             <i class="fa-solid fa-plus"></i>
             Nuevo
           </button>
@@ -339,7 +365,7 @@
                 </div>
               </div>
               <div class="stat-card-value" id="statBalance">$0.00</div>
-              <div class="stat-card-label">Balance Total del Mes</div>
+              <div class="stat-card-label" data-i18n="dash.balance">Balance Total del Mes</div>
             </div>
 
             <div class="stat-card">
@@ -349,7 +375,7 @@
                 </div>
               </div>
               <div class="stat-card-value" id="statActiveClients">0</div>
-              <div class="stat-card-label">Clientes Activos</div>
+              <div class="stat-card-label" data-i18n="dash.active_clients">Clientes Activos</div>
             </div>
 
             <div class="stat-card">
@@ -359,7 +385,7 @@
                 </div>
               </div>
               <div class="stat-card-value" id="statExpiredClients">0</div>
-              <div class="stat-card-label">Clientes Vencidos</div>
+              <div class="stat-card-label" data-i18n="dash.expired_clients">Clientes Vencidos</div>
             </div>
 
             <div class="stat-card">
@@ -369,7 +395,7 @@
                 </div>
               </div>
               <div class="stat-card-value" id="statTotalAccounts">0</div>
-              <div class="stat-card-label">Cuentas Registradas</div>
+              <div class="stat-card-label" data-i18n="dash.total_accounts">Cuentas Registradas</div>
             </div>
 
             <div class="stat-card">
@@ -379,21 +405,21 @@
                 </div>
               </div>
               <div class="stat-card-value" id="statExpiringSoon">0</div>
-              <div class="stat-card-label">Vence en ≤ 3 días</div>
+              <div class="stat-card-label" data-i18n="dash.expiring_soon">Vence en ≤ 3 días</div>
             </div>
           </div>
 
           <!-- Quick Actions -->
           <div class="quick-actions">
-            <button class="quick-action-btn" onclick="openModal('accountModal')">
+            <button class="quick-action-btn" onclick="openModal('accountModal')" data-i18n="dash.new_account">
               <i class="fa-solid fa-plus-circle"></i>
               Nueva Cuenta
             </button>
-            <button class="quick-action-btn" onclick="openNewClientModal()">
+            <button class="quick-action-btn" onclick="openNewClientModal()" data-i18n="dash.add_client">
               <i class="fa-solid fa-user-plus"></i>
               Agregar Cliente
             </button>
-            <button class="quick-action-btn" onclick="openModal('movementModal')">
+            <button class="quick-action-btn" onclick="openModal('movementModal')" data-i18n="dash.register_payment">
               <i class="fa-solid fa-receipt"></i>
               Registrar Pago
             </button>
@@ -402,26 +428,26 @@
           <!-- Recent Clients Table -->
           <div class="table-container">
             <div class="table-header">
-              <h3><i class="fa-solid fa-clock-rotate-left"></i> Clientes Próximos a Vencer</h3>
+              <h3 data-i18n="dash.expiring_title"><i class="fa-solid fa-clock-rotate-left"></i> Clientes Próximos a Vencer</h3>
             </div>
             <div class="table-wrapper">
               <table>
                 <thead>
                   <tr>
-                    <th>Cliente</th>
-                    <th>Plataforma</th>
-                    <th>Perfil</th>
-                    <th>Vencimiento</th>
-                    <th>Días Rest.</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
+                    <th data-i18n="th.client">Cliente</th>
+                    <th data-i18n="th.platform">Plataforma</th>
+                    <th data-i18n="th.profile">Perfil</th>
+                    <th data-i18n="th.expiry">Vencimiento</th>
+                    <th data-i18n="th.days_left">Días Rest.</th>
+                    <th data-i18n="th.status">Estado</th>
+                    <th data-i18n="th.actions">Acciones</th>
                   </tr>
                 </thead>
                 <tbody id="dashboardClientsBody">
                   <tr>
                     <td colspan="7" class="table-empty">
                       <i class="fa-solid fa-inbox"></i>
-                      <p>No hay clientes registrados aún</p>
+                      <p data-i18n="dash.no_clients">No hay clientes registrados aún</p>
                     </td>
                   </tr>
                 </tbody>
@@ -434,13 +460,13 @@
         <div class="section" id="section-cuentas">
           <div class="table-container">
             <div class="table-header">
-              <h3><i class="fa-solid fa-tv"></i> Cuentas de Streaming</h3>
+              <h3 data-i18n="accounts.title"><i class="fa-solid fa-tv"></i> Cuentas de Streaming</h3>
               <div class="table-actions">
                 <div class="search-input-wrapper">
                   <i class="fa-solid fa-search"></i>
-                  <input type="text" class="search-input" placeholder="Buscar cuenta..." id="searchAccounts" oninput="debouncedFilterAccounts()" />
+                  <input type="text" class="search-input" placeholder="Buscar cuenta..." data-i18n-ph="accounts.search_ph" id="searchAccounts" oninput="debouncedFilterAccounts()" />
                 </div>
-                <button class="btn btn-primary btn-sm" onclick="openModal('accountModal')">
+                <button class="btn btn-primary btn-sm" onclick="openModal('accountModal')" data-i18n="accounts.new">
                   <i class="fa-solid fa-plus"></i>
                   Nueva Cuenta
                 </button>
@@ -450,20 +476,20 @@
               <table>
                 <thead>
                   <tr>
-                    <th>Plataforma</th>
-                    <th>Credenciales</th>
-                    <th>Perfiles</th>
-                    <th>Vencimiento Máster</th>
-                    <th>Días Rest.</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
+                    <th data-i18n="th.platform">Plataforma</th>
+                    <th data-i18n="th.credentials">Credenciales</th>
+                    <th data-i18n="th.profiles">Perfiles</th>
+                    <th data-i18n="th.master_expiry">Vencimiento Máster</th>
+                    <th data-i18n="th.days_left">Días Rest.</th>
+                    <th data-i18n="th.status">Estado</th>
+                    <th data-i18n="th.actions">Acciones</th>
                   </tr>
                 </thead>
                 <tbody id="accountsTableBody">
                   <tr>
                     <td colspan="7" class="table-empty">
                       <i class="fa-solid fa-tv"></i>
-                      <p>Agrega tu primera cuenta de streaming</p>
+                      <p data-i18n="accounts.empty">Agrega tu primera cuenta de streaming</p>
                     </td>
                   </tr>
                 </tbody>
@@ -478,27 +504,27 @@
           <!-- Pedidos Pendientes (desde el chatbot) -->
           <div class="table-container" id="pendingOrdersContainer" style="display:none; margin-bottom: 24px;">
             <div class="table-header">
-              <h3><i class="fa-solid fa-bell" style="color: var(--warning);"></i> Pedidos Pendientes <span class="badge badge-warning" id="pendingOrdersCount" style="margin-left: 8px;">0</span></h3>
+              <h3 data-i18n="clients.pending_orders"><i class="fa-solid fa-bell" style="color: var(--warning);"></i> Pedidos Pendientes <span class="badge badge-warning" id="pendingOrdersCount" style="margin-left: 8px;">0</span></h3>
             </div>
             <div class="table-wrapper">
               <table>
                 <thead>
                   <tr>
-                    <th>#</th>
-                    <th>Cliente</th>
-                    <th>Teléfono</th>
-                    <th>Plataforma</th>
-                    <th>Cant.</th>
-                    <th>Fecha</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
+                    <th data-i18n="th.number">#</th>
+                    <th data-i18n="th.client">Cliente</th>
+                    <th data-i18n="th.phone">Teléfono</th>
+                    <th data-i18n="th.platform">Plataforma</th>
+                    <th data-i18n="th.qty">Cant.</th>
+                    <th data-i18n="th.date">Fecha</th>
+                    <th data-i18n="th.status">Estado</th>
+                    <th data-i18n="th.actions">Acciones</th>
                   </tr>
                 </thead>
                 <tbody id="pendingOrdersBody">
                   <tr>
                     <td colspan="8" class="table-empty">
                       <i class="fa-solid fa-inbox"></i>
-                      <p>No hay pedidos pendientes</p>
+                      <p data-i18n="clients.no_pending">No hay pedidos pendientes</p>
                     </td>
                   </tr>
                 </tbody>
@@ -508,13 +534,13 @@
 
           <div class="table-container">
             <div class="table-header">
-              <h3><i class="fa-solid fa-users"></i> Clientes</h3>
+              <h3 data-i18n="clients.title"><i class="fa-solid fa-users"></i> Clientes</h3>
               <div class="table-actions">
                 <div class="search-input-wrapper">
                   <i class="fa-solid fa-search"></i>
-                  <input type="text" class="search-input" placeholder="Buscar cliente..." id="searchClients" oninput="debouncedFilterClients()" />
+                  <input type="text" class="search-input" placeholder="Buscar cliente..." data-i18n-ph="clients.search_ph" id="searchClients" oninput="debouncedFilterClients()" />
                 </div>
-                <button class="btn btn-primary btn-sm" onclick="openNewClientModal()">
+                <button class="btn btn-primary btn-sm" onclick="openNewClientModal()" data-i18n="clients.new">
                   <i class="fa-solid fa-user-plus"></i>
                   Nuevo Cliente
                 </button>
@@ -524,23 +550,23 @@
               <table>
                 <thead>
                   <tr>
-                    <th>Cliente</th>
-                    <th>WhatsApp</th>
-                    <th>Plataforma</th>
-                    <th>Perfil / PIN</th>
-                    <th>Precio</th>
-                    <th>Inicio</th>
-                    <th>Fin</th>
-                    <th>Días Rest.</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
+                    <th data-i18n="th.client">Cliente</th>
+                    <th data-i18n="th.whatsapp">WhatsApp</th>
+                    <th data-i18n="th.platform">Plataforma</th>
+                    <th data-i18n="th.profile_pin">Perfil / PIN</th>
+                    <th data-i18n="th.price">Precio</th>
+                    <th data-i18n="th.start">Inicio</th>
+                    <th data-i18n="th.end">Fin</th>
+                    <th data-i18n="th.days_left">Días Rest.</th>
+                    <th data-i18n="th.status">Estado</th>
+                    <th data-i18n="th.actions">Acciones</th>
                   </tr>
                 </thead>
                 <tbody id="clientsTableBody">
                   <tr>
                     <td colspan="10" class="table-empty">
                       <i class="fa-solid fa-users"></i>
-                      <p>Agrega tu primer cliente</p>
+                      <p data-i18n="clients.empty">Agrega tu primer cliente</p>
                     </td>
                   </tr>
                 </tbody>
@@ -553,13 +579,13 @@
         <div class="section" id="section-movimientos">
           <div class="table-container">
             <div class="table-header">
-              <h3><i class="fa-solid fa-money-bill-transfer"></i> Movimientos</h3>
+              <h3 data-i18n="movements.title"><i class="fa-solid fa-money-bill-transfer"></i> Movimientos</h3>
               <div class="table-actions">
                 <div class="search-input-wrapper">
                   <i class="fa-solid fa-search"></i>
-                  <input type="text" class="search-input" placeholder="Buscar movimiento..." id="searchMovements" oninput="debouncedFilterMovements()" />
+                  <input type="text" class="search-input" placeholder="Buscar movimiento..." data-i18n-ph="movements.search_ph" id="searchMovements" oninput="debouncedFilterMovements()" />
                 </div>
-                <button class="btn btn-primary btn-sm" onclick="openModal('movementModal')">
+                <button class="btn btn-primary btn-sm" onclick="openModal('movementModal')" data-i18n="movements.new">
                   <i class="fa-solid fa-plus"></i>
                   Nuevo Movimiento
                 </button>
@@ -569,19 +595,19 @@
               <table>
                 <thead>
                   <tr>
-                    <th>Fecha</th>
-                    <th>Cliente</th>
-                    <th>Monto</th>
-                    <th>Método</th>
-                    <th>Nota</th>
-                    <th>Acciones</th>
+                    <th data-i18n="th.date">Fecha</th>
+                    <th data-i18n="th.client">Cliente</th>
+                    <th data-i18n="th.amount">Monto</th>
+                    <th data-i18n="th.method">Método</th>
+                    <th data-i18n="th.note">Nota</th>
+                    <th data-i18n="th.actions">Acciones</th>
                   </tr>
                 </thead>
                 <tbody id="movementsTableBody">
                   <tr>
                     <td colspan="6" class="table-empty">
                       <i class="fa-solid fa-receipt"></i>
-                      <p>No hay movimientos registrados</p>
+                      <p data-i18n="movements.empty">No hay movimientos registrados</p>
                     </td>
                   </tr>
                 </tbody>
@@ -600,7 +626,7 @@
                 </div>
               </div>
               <div class="stat-card-value" id="reportMonthlyIncome">$0.00</div>
-              <div class="stat-card-label">Ingresos del Mes</div>
+              <div class="stat-card-label" data-i18n="reports.monthly_income">Ingresos del Mes</div>
             </div>
             <div class="stat-card">
               <div class="stat-card-header">
@@ -609,7 +635,7 @@
                 </div>
               </div>
               <div class="stat-card-value" id="reportOccupancy">0%</div>
-              <div class="stat-card-label">Ocupación de Perfiles</div>
+              <div class="stat-card-label" data-i18n="reports.occupancy">Ocupación de Perfiles</div>
             </div>
             <div class="stat-card">
               <div class="stat-card-header">
@@ -618,32 +644,32 @@
                 </div>
               </div>
               <div class="stat-card-value" id="reportTopPlatform">—</div>
-              <div class="stat-card-label">Plataforma Top</div>
+              <div class="stat-card-label" data-i18n="reports.top_platform">Plataforma Top</div>
             </div>
           </div>
 
           <!-- Tabla de resumen por plataforma -->
           <div class="table-container">
             <div class="table-header">
-              <h3><i class="fa-solid fa-chart-bar"></i> Resumen por Plataforma</h3>
+              <h3 data-i18n="reports.summary"><i class="fa-solid fa-chart-bar"></i> Resumen por Plataforma</h3>
             </div>
             <div class="table-wrapper">
               <table>
                 <thead>
                   <tr>
-                    <th>Plataforma</th>
-                    <th>Cuentas</th>
-                    <th>Perfiles Totales</th>
-                    <th>Perfiles Ocupados</th>
-                    <th>Disponibles</th>
-                    <th>Ocupación</th>
+                    <th data-i18n="th.platform">Plataforma</th>
+                    <th data-i18n="th.accounts">Cuentas</th>
+                    <th data-i18n="th.total_profiles">Perfiles Totales</th>
+                    <th data-i18n="th.occupied">Perfiles Ocupados</th>
+                    <th data-i18n="th.available">Disponibles</th>
+                    <th data-i18n="th.occupancy">Ocupación</th>
                   </tr>
                 </thead>
                 <tbody id="reportTableBody">
                   <tr>
                     <td colspan="6" class="table-empty">
                       <i class="fa-solid fa-chart-bar"></i>
-                      <p>Agrega cuentas y clientes para ver reportes</p>
+                      <p data-i18n="reports.empty">Agrega cuentas y clientes para ver reportes</p>
                     </td>
                   </tr>
                 </tbody>
@@ -662,8 +688,8 @@
                   <i class="fa-brands fa-whatsapp"></i>
                 </div>
               </div>
-              <div class="stat-card-value" id="botStatus">Desconectado</div>
-              <div class="stat-card-label">Estado del Bot</div>
+              <div class="stat-card-value" id="botStatus" data-i18n="bot.disconnected">Desconectado</div>
+              <div class="stat-card-label" data-i18n="bot.status">Estado del Bot</div>
             </div>
             <div class="stat-card">
               <div class="stat-card-header">
@@ -672,7 +698,7 @@
                 </div>
               </div>
               <div class="stat-card-value" id="botMessagesCount">0</div>
-              <div class="stat-card-label">Mensajes Hoy</div>
+              <div class="stat-card-label" data-i18n="bot.messages_today">Mensajes Hoy</div>
             </div>
             <div class="stat-card">
               <div class="stat-card-header">
@@ -681,19 +707,19 @@
                 </div>
               </div>
               <div class="stat-card-value" id="botModelName">Gemini 1.5</div>
-              <div class="stat-card-label">Modelo IA</div>
+              <div class="stat-card-label" data-i18n="bot.ai_model">Modelo IA</div>
             </div>
           </div>
 
           <!-- Configuración del Contexto -->
           <div class="table-container">
             <div class="table-header">
-              <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Configuración del Chatbot</h3>
+              <h3 data-i18n="bot.config_title"><i class="fa-solid fa-wand-magic-sparkles"></i> Configuración del Chatbot</h3>
               <div style="display: flex; gap: 8px;">
-                <button class="btn btn-secondary btn-sm" onclick="toggleManualConfig()" id="btnToggleManual">
+                <button class="btn btn-secondary btn-sm" onclick="toggleManualConfig()" id="btnToggleManual" data-i18n="bot.manual_mode">
                   <i class="fa-solid fa-sliders"></i> Modo Manual
                 </button>
-                <button class="btn btn-secondary btn-sm" onclick="resetConfigWizard()">
+                <button class="btn btn-secondary btn-sm" onclick="resetConfigWizard()" data-i18n="bot.restart">
                   <i class="fa-solid fa-rotate-right"></i> Reiniciar
                 </button>
               </div>
@@ -704,7 +730,7 @@
                 <div id="wizardMessages" class="chat-test-messages"></div>
                 <div id="wizardQuickReplies" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;"></div>
                 <div style="display: flex; gap: 8px; margin-top: 12px;">
-                  <input type="text" id="wizardInput" class="form-control" placeholder="Escribe tu respuesta..." style="flex:1;" onkeydown="if(event.key==='Enter')sendWizardMessage()" />
+                  <input type="text" id="wizardInput" class="form-control" placeholder="Escribe tu respuesta..." data-i18n-ph="bot.write_response_ph" style="flex:1;" onkeydown="if(event.key==='Enter')sendWizardMessage()" />
                   <button class="btn btn-primary" onclick="sendWizardMessage()">
                     <i class="fa-solid fa-paper-plane"></i>
                   </button>
@@ -716,58 +742,58 @@
 
                 <div class="form-row">
                   <div class="form-group">
-                    <label for="botBusinessName"><i class="fa-solid fa-store"></i> Nombre del Negocio</label>
-                    <input type="text" id="botBusinessName" class="form-control" placeholder="Ej: StreamPlus" />
+                    <label for="botBusinessName" data-i18n="bot.business_name"><i class="fa-solid fa-store"></i> Nombre del Negocio</label>
+                    <input type="text" id="botBusinessName" class="form-control" placeholder="Ej: StreamPlus" data-i18n-ph="bot.business_name_ph" />
                   </div>
                   <div class="form-group">
-                    <label for="botSchedule"><i class="fa-solid fa-clock"></i> Horarios de Atención</label>
-                    <input type="text" id="botSchedule" class="form-control" placeholder="Ej: Lun-Vie 9am-6pm, Sáb 10am-2pm" />
+                    <label for="botSchedule" data-i18n="bot.schedule"><i class="fa-solid fa-clock"></i> Horarios de Atención</label>
+                    <input type="text" id="botSchedule" class="form-control" placeholder="Ej: Lun-Vie 9am-6pm, Sáb 10am-2pm" data-i18n-ph="bot.schedule_ph" />
                   </div>
                 </div>
 
                 <div class="form-group">
-                  <label for="botPersonality"><i class="fa-solid fa-masks-theater"></i> Personalidad del Bot</label>
-                  <textarea id="botPersonality" class="form-control" rows="3" placeholder="Ej: Amable, profesional, usa emojis moderadamente."></textarea>
+                  <label for="botPersonality" data-i18n="bot.personality"><i class="fa-solid fa-masks-theater"></i> Personalidad del Bot</label>
+                  <textarea id="botPersonality" class="form-control" rows="3" placeholder="Ej: Amable, profesional, usa emojis moderadamente." data-i18n-ph="bot.personality_ph"></textarea>
                 </div>
 
                 <div class="form-group">
-                  <label for="botContext"><i class="fa-solid fa-book"></i> Contexto General del Negocio</label>
-                  <textarea id="botContext" class="form-control" rows="5" placeholder="Describe tu negocio, servicios, precios, promociones, etc."></textarea>
+                  <label for="botContext" data-i18n="bot.context"><i class="fa-solid fa-book"></i> Contexto General del Negocio</label>
+                  <textarea id="botContext" class="form-control" rows="5" placeholder="Describe tu negocio, servicios, precios, promociones, etc." data-i18n-ph="bot.context_ph"></textarea>
                 </div>
 
                 <div class="form-group">
-                  <label for="botWelcomeMsg"><i class="fa-solid fa-hand-wave"></i> Mensaje de Bienvenida</label>
-                  <textarea id="botWelcomeMsg" class="form-control" rows="2" placeholder="Ej: ¡Hola! 👋 Bienvenido a StreamPlus."></textarea>
+                  <label for="botWelcomeMsg" data-i18n="bot.welcome_msg"><i class="fa-solid fa-hand-wave"></i> Mensaje de Bienvenida</label>
+                  <textarea id="botWelcomeMsg" class="form-control" rows="2" placeholder="Ej: ¡Hola! 👋 Bienvenido a StreamPlus." data-i18n-ph="bot.welcome_msg_ph"></textarea>
                 </div>
 
                 <div class="form-group">
-                  <label for="botFallbackMsg"><i class="fa-solid fa-circle-exclamation"></i> Mensaje cuando no sabe responder</label>
-                  <input type="text" id="botFallbackMsg" class="form-control" placeholder="Ej: Lo siento, no tengo esa información." />
+                  <label for="botFallbackMsg" data-i18n="bot.fallback_msg"><i class="fa-solid fa-circle-exclamation"></i> Mensaje cuando no sabe responder</label>
+                  <input type="text" id="botFallbackMsg" class="form-control" placeholder="Ej: Lo siento, no tengo esa información." data-i18n-ph="bot.fallback_msg_ph" />
                 </div>
 
                 <div class="form-row">
                   <div class="form-group">
-                    <label for="botEnabled"><i class="fa-solid fa-power-off"></i> Estado del Bot</label>
+                    <label for="botEnabled" data-i18n="bot.enabled"><i class="fa-solid fa-power-off"></i> Estado del Bot</label>
                     <select id="botEnabled" class="form-control">
-                      <option value="true">Activado</option>
-                      <option value="false">Desactivado</option>
+                      <option value="true" data-i18n="bot.enabled_on">Activado</option>
+                      <option value="false" data-i18n="bot.enabled_off">Desactivado</option>
                     </select>
                   </div>
                   <div class="form-group">
-                    <label for="botMaxTokens"><i class="fa-solid fa-gauge"></i> Largo máximo de respuesta</label>
+                    <label for="botMaxTokens" data-i18n="bot.max_tokens"><i class="fa-solid fa-gauge"></i> Largo máximo de respuesta</label>
                     <select id="botMaxTokens" class="form-control">
-                      <option value="256">Corta (256 tokens)</option>
-                      <option value="512" selected>Media (512 tokens)</option>
-                      <option value="1024">Larga (1024 tokens)</option>
+                      <option value="256" data-i18n="bot.tokens_short">Corta (256 tokens)</option>
+                      <option value="512" selected data-i18n="bot.tokens_medium">Media (512 tokens)</option>
+                      <option value="1024" data-i18n="bot.tokens_long">Larga (1024 tokens)</option>
                     </select>
                   </div>
                 </div>
 
                 <div style="display: flex; gap: 12px; margin-top: 16px;">
-                  <button type="submit" class="btn btn-primary">
+                  <button type="submit" class="btn btn-primary" data-i18n="bot.save_config">
                     <i class="fa-solid fa-floppy-disk"></i> Guardar Configuración
                   </button>
-                  <button type="button" class="btn btn-secondary" onclick="testChatbot()">
+                  <button type="button" class="btn btn-secondary" onclick="testChatbot()" data-i18n="bot.test_bot">
                     <i class="fa-solid fa-flask"></i> Probar Bot
                   </button>
                 </div>
@@ -778,11 +804,11 @@
           <!-- Conexión WhatsApp -->
           <div class="table-container" style="margin-top: 20px;">
             <div class="table-header">
-              <h3><i class="fa-brands fa-whatsapp"></i> Conexión WhatsApp</h3>
+              <h3 data-i18n="wa.title"><i class="fa-brands fa-whatsapp"></i> Conexión WhatsApp</h3>
               <div class="table-actions">
                 <div class="bot-status-bar-mini">
                   <div class="bot-status-indicator disconnected" id="botStatusDot"></div>
-                  <span id="botConnectionStatus">Desconectado</span>
+                  <span id="botConnectionStatus" data-i18n="bot.disconnected">Desconectado</span>
                 </div>
               </div>
             </div>
@@ -792,27 +818,27 @@
                 <!-- Estado inicial: conectando automáticamente -->
                 <div class="bot-auto-connecting" id="botAutoConnecting" style="display:none;">
                   <div class="bot-loading-spinner"><i class="fa-solid fa-spinner fa-spin-pulse" style="font-size:2rem; color:var(--accent-light);"></i></div>
-                  <p style="color:var(--text-muted); margin:12px 0 0; text-align:center;">Conectando al servidor del bot...</p>
+                  <p style="color:var(--text-muted); margin:12px 0 0; text-align:center;" data-i18n="wa.connecting">Conectando al servidor del bot...</p>
                 </div>
 
                 <!-- Estado inactivo: esperando conexión -->
                 <div class="bot-connection-error" id="botConnectionError">
                   <div style="text-align:center; padding:20px;">
                     <i class="fa-brands fa-whatsapp" style="font-size:2.5rem; color:var(--text-muted); margin-bottom:12px;"></i>
-                    <h4 style="color:var(--text-primary); margin:0 0 8px;">Bot de WhatsApp</h4>
-                    <p style="color:var(--text-muted); font-size:0.85rem; margin:0 0 16px;">Conecta al servidor para vincular tu WhatsApp</p>
-                    <button class="btn btn-primary btn-sm" onclick="connectBotServer()" id="botRetryBtn">
+                    <h4 style="color:var(--text-primary); margin:0 0 8px;" data-i18n="wa.bot_title">Bot de WhatsApp</h4>
+                    <p style="color:var(--text-muted); font-size:0.85rem; margin:0 0 16px;" data-i18n="wa.bot_desc">Conecta al servidor para vincular tu WhatsApp</p>
+                    <button class="btn btn-primary btn-sm" onclick="connectBotServer()" id="botRetryBtn" data-i18n="wa.connect">
                       <i class="fa-solid fa-plug"></i> Conectar
                     </button>
                   </div>
                   <!-- URL avanzada -->
                   <details class="bot-advanced-settings">
-                    <summary><i class="fa-solid fa-gear"></i> Ajustes avanzados</summary>
+                    <summary data-i18n="wa.advanced"><i class="fa-solid fa-gear"></i> Ajustes avanzados</summary>
                     <div style="padding:12px 0 0;">
-                      <label style="font-size:0.8rem; color:var(--text-muted); margin-bottom:4px; display:block;">URL del servidor del bot</label>
+                      <label style="font-size:0.8rem; color:var(--text-muted); margin-bottom:4px; display:block;" data-i18n="wa.url_label">URL del servidor del bot</label>
                       <div style="display:flex; gap:8px;">
                         <input type="text" id="botServerUrl" class="form-control" placeholder="https://tu-bot.up.railway.app" value="" style="flex:1;" />
-                        <button class="btn btn-primary btn-sm" onclick="saveBotUrl(); connectBotServer()">
+                        <button class="btn btn-primary btn-sm" onclick="saveBotUrl(); connectBotServer()" data-i18n="wa.connect">
                           <i class="fa-solid fa-plug"></i> Conectar
                         </button>
                       </div>
@@ -825,17 +851,17 @@
                   <div class="bot-qr-header">
                     <i class="fa-brands fa-whatsapp" style="font-size:1.5rem; color:var(--whatsapp);"></i>
                     <div>
-                      <h4 style="margin:0; color:var(--text-primary); font-size:1rem;">Vincula tu WhatsApp</h4>
-                      <p style="margin:0; color:var(--text-muted); font-size:0.8rem;">Escanea el código QR para activar el bot</p>
+                      <h4 style="margin:0; color:var(--text-primary); font-size:1rem;" data-i18n="wa.link_title">Vincula tu WhatsApp</h4>
+                      <p style="margin:0; color:var(--text-muted); font-size:0.8rem;" data-i18n="wa.link_desc">Escanea el código QR para activar el bot</p>
                     </div>
                   </div>
                   <div class="bot-qr-code" id="botQrCode"></div>
                   <div class="bot-qr-steps">
-                    <div class="bot-qr-step"><span>1</span> Abre <strong>WhatsApp</strong> en tu teléfono</div>
-                    <div class="bot-qr-step"><span>2</span> Toca <strong>Dispositivos vinculados</strong></div>
-                    <div class="bot-qr-step"><span>3</span> Escanea este <strong>código QR</strong></div>
+                    <div class="bot-qr-step" data-i18n="wa.step1" data-i18n-html><span>1</span> Abre <strong>WhatsApp</strong> en tu teléfono</div>
+                    <div class="bot-qr-step" data-i18n="wa.step2" data-i18n-html><span>2</span> Toca <strong>Dispositivos vinculados</strong></div>
+                    <div class="bot-qr-step" data-i18n="wa.step3" data-i18n-html><span>3</span> Escanea este <strong>código QR</strong></div>
                   </div>
-                  <button class="btn btn-sm" onclick="resetBotSession()" id="botResetQrBtn" style="margin-top:12px; background: var(--bg-secondary); color: var(--text-muted); border: 1px solid var(--border-color);">
+                  <button class="btn btn-sm" onclick="resetBotSession()" id="botResetQrBtn" style="margin-top:12px; background: var(--bg-secondary); color: var(--text-muted); border: 1px solid var(--border-color);" data-i18n="wa.new_qr">
                     <i class="fa-solid fa-rotate"></i> Generar nuevo QR
                   </button>
                 </div>
@@ -845,16 +871,16 @@
                   <div class="bot-connected-icon">
                     <i class="fa-brands fa-whatsapp"></i>
                   </div>
-                  <h4>Bot conectado y activo</h4>
-                  <p id="botPhoneNumber">Respondiendo mensajes automáticamente</p>
+                  <h4 data-i18n="wa.connected_title">Bot conectado y activo</h4>
+                  <p id="botPhoneNumber" data-i18n="wa.connected_desc">Respondiendo mensajes automáticamente</p>
                   <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
-                    <button class="btn btn-sm" id="botPauseBtn" onclick="toggleGlobalPause()" style="background: var(--warning); color: #000;">
+                    <button class="btn btn-sm" id="botPauseBtn" onclick="toggleGlobalPause()" style="background: var(--warning); color: #000;" data-i18n="wa.pause">
                       <i class="fa-solid fa-pause"></i> Pausar Respuestas
                     </button>
-                    <button class="btn btn-sm" onclick="resetBotSession()" id="botResetBtn" style="background: var(--bg-secondary); color: var(--text-muted); border: 1px solid var(--border-color);">
+                    <button class="btn btn-sm" onclick="resetBotSession()" id="botResetBtn" style="background: var(--bg-secondary); color: var(--text-muted); border: 1px solid var(--border-color);" data-i18n="wa.new_qr_btn">
                       <i class="fa-solid fa-rotate"></i> Nuevo QR
                     </button>
-                    <button class="btn btn-secondary btn-sm" onclick="disconnectBotServer()" id="botDisconnectBtn">
+                    <button class="btn btn-secondary btn-sm" onclick="disconnectBotServer()" id="botDisconnectBtn" data-i18n="wa.disconnect">
                       <i class="fa-solid fa-stop"></i> Desconectar
                     </button>
                   </div>
@@ -862,7 +888,7 @@
 
                 <!-- Logs (colapsable) -->
                 <details class="bot-logs-details" id="botLogs" style="display:none;">
-                  <summary style="cursor:pointer; font-size:0.8rem; color:var(--text-muted); padding:8px 0;"><i class="fa-solid fa-terminal"></i> Ver logs del bot</summary>
+                  <summary style="cursor:pointer; font-size:0.8rem; color:var(--text-muted); padding:8px 0;" data-i18n="wa.view_logs"><i class="fa-solid fa-terminal"></i> Ver logs del bot</summary>
                   <div class="bot-logs-content" id="botLogsContent"></div>
                 </details>
               </div>
@@ -872,7 +898,7 @@
           <!-- Ajustes de Mensajería -->
           <div class="table-container" style="margin-top: 20px;">
             <div class="table-header">
-              <h3><i class="fa-solid fa-filter"></i> Filtros de Mensajería</h3>
+              <h3 data-i18n="filters.title"><i class="fa-solid fa-filter"></i> Filtros de Mensajería</h3>
             </div>
             <div style="padding: 20px;">
               <div class="bot-settings-grid">
@@ -880,8 +906,8 @@
                   <div class="bot-toggle-info">
                     <i class="fa-solid fa-people-group"></i>
                     <div>
-                      <strong>Grupos de WhatsApp</strong>
-                      <small>Responder automáticamente en grupos</small>
+                      <strong data-i18n="filters.groups">Grupos de WhatsApp</strong>
+                      <small data-i18n="filters.groups_desc">Responder automáticamente en grupos</small>
                     </div>
                   </div>
                   <label class="switch">
@@ -893,8 +919,8 @@
                   <div class="bot-toggle-info">
                     <i class="fa-solid fa-address-book"></i>
                     <div>
-                      <strong>Contactos Guardados</strong>
-                      <small>Responder a contactos con nombre</small>
+                      <strong data-i18n="filters.saved">Contactos Guardados</strong>
+                      <small data-i18n="filters.saved_desc">Responder a contactos con nombre</small>
                     </div>
                   </div>
                   <label class="switch">
@@ -906,8 +932,8 @@
                   <div class="bot-toggle-info">
                     <i class="fa-solid fa-user-question"></i>
                     <div>
-                      <strong>Contactos No Guardados</strong>
-                      <small>Responder a números desconocidos</small>
+                      <strong data-i18n="filters.unsaved">Contactos No Guardados</strong>
+                      <small data-i18n="filters.unsaved_desc">Responder a números desconocidos</small>
                     </div>
                   </div>
                   <label class="switch">
@@ -922,18 +948,18 @@
           <!-- Cuentas Disponibles -->
           <div class="table-container" style="margin-top: 20px;">
             <div class="table-header">
-              <h3><i class="fa-solid fa-shop"></i> Inventario para Venta (Bot)</h3>
-              <button class="btn btn-secondary btn-sm" onclick="loadAvailableAccounts()">
+              <h3 data-i18n="inventory.title"><i class="fa-solid fa-shop"></i> Inventario para Venta (Bot)</h3>
+              <button class="btn btn-secondary btn-sm" onclick="loadAvailableAccounts()" data-i18n="common.update">
                 <i class="fa-solid fa-rotate"></i> Actualizar
               </button>
             </div>
             <div style="padding: 20px;">
-              <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 12px;">
+              <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 12px;" data-i18n="inventory.desc">
                 El bot ofrecerá automáticamente solo las plataformas con disponibilidad. No compartirá credenciales hasta confirmar pago.
               </p>
               <div id="availableAccountsList" class="available-accounts-grid">
                 <div style="text-align: center; color: var(--text-muted); padding: 20px;">
-                  <i class="fa-solid fa-spinner fa-spin"></i> Cargando inventario...
+                  <i class="fa-solid fa-spinner fa-spin"></i> <span data-i18n="inventory.loading">Cargando inventario...</span>
                 </div>
               </div>
             </div>
@@ -942,68 +968,73 @@
           <!-- Mensajes Programados -->
           <div class="table-container" id="scheduledSection" style="margin-top: 20px; display:none;">
             <div class="table-header">
-              <h3><i class="fa-solid fa-clock"></i> Mensajes Programados</h3>
-              <button class="btn btn-secondary btn-sm" onclick="loadScheduledMessages()">
+              <h3 data-i18n="sched.title"><i class="fa-solid fa-clock"></i> Mensajes Programados</h3>
+              <button class="btn btn-secondary btn-sm" onclick="loadScheduledMessages()" data-i18n="common.update">
                 <i class="fa-solid fa-rotate"></i> Actualizar
               </button>
             </div>
             <div style="padding: 20px;">
-              <!-- Formulario para crear mensaje programado -->
-              <div class="scheduled-form">
-                <div class="scheduled-form-row">
-                  <div class="scheduled-form-field" style="flex:1;">
-                    <label>Grupo</label>
-                    <select id="scheduledGroupSelect">
-                      <option value="">Cargando grupos...</option>
-                    </select>
-                  </div>
-                  <div class="scheduled-form-field" style="flex:0 0 auto;">
-                    <label>&nbsp;</label>
-                    <button class="btn btn-sm" onclick="loadGroups()" title="Recargar grupos" style="background:var(--bg-secondary);color:var(--text-muted);border:1px solid var(--border-color);">
-                      <i class="fa-solid fa-rotate"></i>
-                    </button>
-                  </div>
+              <!-- Formulario mejorado -->
+              <div class="scheduled-form-card">
+                <div class="scheduled-form-card-header">
+                  <i class="fa-solid fa-calendar-plus"></i>
+                  <span data-i18n="sched.create">Programar Mensaje</span>
                 </div>
-                <div class="scheduled-form-field">
-                  <label>Mensaje</label>
-                  <textarea id="scheduledMessageText" rows="3" placeholder="Escribe el mensaje a enviar al grupo..."></textarea>
+                <div class="scheduled-form">
+                  <div class="scheduled-form-row">
+                    <div class="scheduled-form-field" style="flex:1;">
+                      <label data-i18n="sched.group"><i class="fa-solid fa-people-group"></i> Grupo de WhatsApp</label>
+                      <div style="display:flex;gap:8px;">
+                        <select id="scheduledGroupSelect" style="flex:1;">
+                          <option value="" data-i18n="sched.loading_groups">Cargando grupos...</option>
+                        </select>
+                        <button class="btn btn-sm scheduled-refresh-btn" onclick="loadGroups()" title="Recargar grupos">
+                          <i class="fa-solid fa-rotate"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="scheduled-form-field">
+                    <label data-i18n="sched.message"><i class="fa-solid fa-message"></i> Mensaje</label>
+                    <textarea id="scheduledMessageText" rows="3" placeholder="Escribe el mensaje a enviar al grupo..." data-i18n-ph="sched.message_ph"></textarea>
+                  </div>
+                  <div class="scheduled-form-row">
+                    <div class="scheduled-form-field" style="flex:1;">
+                      <label data-i18n="sched.datetime"><i class="fa-regular fa-calendar"></i> Fecha y hora de envío</label>
+                      <input type="datetime-local" id="scheduledDateTime" />
+                    </div>
+                    <div class="scheduled-form-field" style="flex:1;">
+                      <label data-i18n="sched.send_type"><i class="fa-solid fa-repeat"></i> Tipo de envío</label>
+                      <select id="scheduledType" onchange="toggleRecurringOptions()">
+                        <option value="once" data-i18n="sched.once">Una sola vez</option>
+                        <option value="recurring" data-i18n="sched.recurring">Repetir cada X tiempo</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="scheduled-form-row" id="recurringOptions" style="display:none;">
+                    <div class="scheduled-form-field" style="flex:1;">
+                      <label data-i18n="sched.repeat_every"><i class="fa-solid fa-clock-rotate-left"></i> Repetir cada</label>
+                      <input type="number" id="scheduledInterval" min="1" value="60" />
+                    </div>
+                    <div class="scheduled-form-field" style="flex:1;">
+                      <label data-i18n="sched.unit">Unidad</label>
+                      <select id="scheduledIntervalUnit">
+                        <option value="minutes" data-i18n="sched.minutes">Minutos</option>
+                        <option value="hours" data-i18n="sched.hours">Horas</option>
+                        <option value="days" data-i18n="sched.days">Días</option>
+                      </select>
+                    </div>
+                  </div>
+                  <button class="btn scheduled-create-btn" onclick="createScheduledMessage()">
+                    <i class="fa-solid fa-paper-plane"></i> <span data-i18n="sched.create">Programar Mensaje</span>
+                  </button>
                 </div>
-                <div class="scheduled-form-row">
-                  <div class="scheduled-form-field" style="flex:1;">
-                    <label>Fecha y hora de envío</label>
-                    <input type="datetime-local" id="scheduledDateTime" />
-                  </div>
-                  <div class="scheduled-form-field" style="flex:1;">
-                    <label>Tipo de envío</label>
-                    <select id="scheduledType" onchange="toggleRecurringOptions()">
-                      <option value="once">Una sola vez</option>
-                      <option value="recurring">Repetir cada X tiempo</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="scheduled-form-row" id="recurringOptions" style="display:none;">
-                  <div class="scheduled-form-field" style="flex:1;">
-                    <label>Repetir cada</label>
-                    <input type="number" id="scheduledInterval" min="1" value="60" />
-                  </div>
-                  <div class="scheduled-form-field" style="flex:1;">
-                    <label>Unidad</label>
-                    <select id="scheduledIntervalUnit">
-                      <option value="minutes">Minutos</option>
-                      <option value="hours">Horas</option>
-                      <option value="days">Días</option>
-                    </select>
-                  </div>
-                </div>
-                <button class="btn" onclick="createScheduledMessage()" style="margin-top:12px;">
-                  <i class="fa-solid fa-calendar-plus"></i> Programar Mensaje
-                </button>
               </div>
               <!-- Lista de mensajes programados -->
               <div id="scheduledList" style="margin-top: 20px;">
                 <div style="text-align: center; color: var(--text-muted); padding: 20px;">
                   <i class="fa-solid fa-calendar-xmark"></i>
-                  <p>Sin mensajes programados</p>
+                  <p data-i18n="sched.empty">Sin mensajes programados</p>
                 </div>
               </div>
             </div>
@@ -1012,8 +1043,8 @@
           <!-- Conversaciones Activas -->
           <div class="table-container" style="margin-top: 20px;">
             <div class="table-header">
-              <h3><i class="fa-solid fa-comments"></i> Conversaciones Activas</h3>
-              <button class="btn btn-secondary btn-sm" onclick="loadConversations()">
+              <h3 data-i18n="conv.title"><i class="fa-solid fa-comments"></i> Conversaciones Activas</h3>
+              <button class="btn btn-secondary btn-sm" onclick="loadConversations()" data-i18n="common.update">
                 <i class="fa-solid fa-rotate"></i> Actualizar
               </button>
             </div>
@@ -1022,16 +1053,16 @@
               <div class="conv-list" id="convList">
                 <div class="conv-list-empty">
                   <i class="fa-solid fa-inbox"></i>
-                  <p>Sin conversaciones aún</p>
-                  <small>Los chats aparecerán aquí cuando lleguen mensajes</small>
+                  <p data-i18n="conv.empty">Sin conversaciones aún</p>
+                  <small data-i18n="conv.empty_desc">Los chats aparecerán aquí cuando lleguen mensajes</small>
                 </div>
               </div>
               <!-- Vista del chat -->
               <div class="conv-chat" id="convChat">
                 <div class="conv-chat-placeholder">
                   <i class="fa-solid fa-message"></i>
-                  <p>Selecciona una conversación</p>
-                  <small>Haz clic en un chat para ver los mensajes y responder</small>
+                  <p data-i18n="conv.select">Selecciona una conversación</p>
+                  <small data-i18n="conv.select_desc">Haz clic en un chat para ver los mensajes y responder</small>
                 </div>
                 <!-- Header del chat (oculto inicialmente) -->
                 <div class="conv-chat-header" id="convChatHeader" style="display:none;">
@@ -1046,7 +1077,7 @@
                   </div>
                   <div class="conv-chat-header-actions">
                     <button class="btn btn-secondary btn-sm" id="convPauseBtn" onclick="toggleConvPause()" title="Pausar/Reanudar bot">
-                      <i class="fa-solid fa-pause"></i> <span id="convPauseLabel">Pausar</span>
+                      <i class="fa-solid fa-pause"></i> <span id="convPauseLabel" data-i18n="conv.pause">Pausar</span>
                     </button>
                   </div>
                 </div>
@@ -1054,7 +1085,7 @@
                 <div class="conv-messages" id="convMessages" style="display:none;"></div>
                 <!-- Input de respuesta -->
                 <div class="conv-reply" id="convReply" style="display:none;">
-                  <input type="text" id="convReplyInput" class="form-control" placeholder="Escribe una respuesta..." onkeydown="if(event.key==='Enter')sendConvReply()" />
+                  <input type="text" id="convReplyInput" class="form-control" placeholder="Escribe una respuesta..." data-i18n-ph="conv.reply_ph" onkeydown="if(event.key==='Enter')sendConvReply()" />
                   <button class="btn btn-primary" onclick="sendConvReply()">
                     <i class="fa-solid fa-paper-plane"></i>
                   </button>
@@ -1066,12 +1097,12 @@
           <!-- Test del bot -->
           <div class="table-container" style="margin-top: 20px;" id="chatbotTestSection" hidden>
             <div class="table-header">
-              <h3><i class="fa-solid fa-flask"></i> Probar Chatbot</h3>
+              <h3 data-i18n="test.title"><i class="fa-solid fa-flask"></i> Probar Chatbot</h3>
             </div>
             <div style="padding: 20px;">
               <div id="chatTestMessages" class="chat-test-messages"></div>
               <div style="display: flex; gap: 8px; margin-top: 12px;">
-                <input type="text" id="chatTestInput" class="form-control" placeholder="Escribe un mensaje de prueba..." style="flex:1;" onkeydown="if(event.key==='Enter')sendTestMessage()" />
+                <input type="text" id="chatTestInput" class="form-control" placeholder="Escribe un mensaje de prueba..." data-i18n-ph="test.ph" style="flex:1;" onkeydown="if(event.key==='Enter')sendTestMessage()" />
                 <button class="btn btn-primary" onclick="sendTestMessage()">
                   <i class="fa-solid fa-paper-plane"></i>
                 </button>
@@ -1092,7 +1123,7 @@
   <div class="modal-overlay" id="accountModal">
     <div class="modal">
       <div class="modal-header">
-        <h3 id="accountModalTitle"><i class="fa-solid fa-tv"></i> Nueva Cuenta</h3>
+        <h3 id="accountModalTitle" data-i18n="modal.new_account"><i class="fa-solid fa-tv"></i> Nueva Cuenta</h3>
         <button class="modal-close" onclick="closeModal('accountModal')">
           <i class="fa-solid fa-xmark"></i>
         </button>
@@ -1102,9 +1133,9 @@
           <input type="hidden" id="accountId" />
 
           <div class="form-group">
-            <label for="accountPlatform">Plataforma</label>
+            <label for="accountPlatform" data-i18n="modal.platform">Plataforma</label>
             <select id="accountPlatform" class="form-control" required onchange="toggleCustomPlatform()">
-              <option value="">Seleccionar plataforma</option>
+              <option value="" data-i18n="modal.select_platform">Seleccionar plataforma</option>
               <option value="Netflix">Netflix</option>
               <option value="Disney+">Disney+</option>
               <option value="HBO Max">HBO Max</option>
@@ -1115,42 +1146,42 @@
               <option value="Paramount+">Paramount+</option>
               <option value="Apple TV+">Apple TV+</option>
               <option value="Star+">Star+</option>
-              <option value="__custom__">Otro (escribir manualmente)</option>
+              <option value="__custom__" data-i18n="modal.other_manual">Otro (escribir manualmente)</option>
             </select>
-            <input type="text" id="accountPlatformCustom" class="form-control" placeholder="Nombre de la plataforma" style="display:none; margin-top:8px;" />
+            <input type="text" id="accountPlatformCustom" class="form-control" placeholder="Nombre de la plataforma" data-i18n-ph="modal.platform_name_ph" style="display:none; margin-top:8px;" />
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <label for="accountEmail">Correo de la cuenta</label>
-              <input type="email" id="accountEmail" class="form-control" placeholder="cuenta@email.com" required />
+              <label for="accountEmail" data-i18n="modal.account_email">Correo de la cuenta</label>
+              <input type="email" id="accountEmail" class="form-control" placeholder="cuenta@email.com" data-i18n-ph="modal.account_email_ph" required />
             </div>
             <div class="form-group">
-              <label for="accountPassword">Contraseña</label>
-              <input type="text" id="accountPassword" class="form-control" placeholder="contraseña123" required />
+              <label for="accountPassword" data-i18n="modal.account_password">Contraseña</label>
+              <input type="text" id="accountPassword" class="form-control" placeholder="contraseña123" data-i18n-ph="modal.account_password_ph" required />
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <label for="accountProfiles">Perfiles totales</label>
+              <label for="accountProfiles" data-i18n="modal.total_profiles">Perfiles totales</label>
               <input type="number" id="accountProfiles" class="form-control" placeholder="5" min="1" max="10" required />
             </div>
             <div class="form-group">
-              <label for="accountExpiry">Vencimiento máster</label>
+              <label for="accountExpiry" data-i18n="modal.master_expiry">Vencimiento máster</label>
               <input type="date" id="accountExpiry" class="form-control" required />
             </div>
           </div>
 
           <div class="form-group">
-            <label for="accountNotes">Notas (opcional)</label>
-            <input type="text" id="accountNotes" class="form-control" placeholder="Ej: Plan familiar, compartido..." />
+            <label for="accountNotes" data-i18n="modal.notes">Notas (opcional)</label>
+            <input type="text" id="accountNotes" class="form-control" placeholder="Ej: Plan familiar, compartido..." data-i18n-ph="modal.notes_ph" />
           </div>
         </form>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeModal('accountModal')">Cancelar</button>
-        <button class="btn btn-primary" onclick="document.getElementById('accountForm').requestSubmit()">
+        <button class="btn btn-secondary" onclick="closeModal('accountModal')" data-i18n="modal.cancel">Cancelar</button>
+        <button class="btn btn-primary" onclick="document.getElementById('accountForm').requestSubmit()" data-i18n="modal.save">
           <i class="fa-solid fa-floppy-disk"></i>
           Guardar
         </button>
@@ -1162,7 +1193,7 @@
   <div class="modal-overlay" id="clientModal">
     <div class="modal">
       <div class="modal-header">
-        <h3 id="clientModalTitle"><i class="fa-solid fa-user-plus"></i> Nuevo Cliente</h3>
+        <h3 id="clientModalTitle" data-i18n="modal.new_client"><i class="fa-solid fa-user-plus"></i> Nuevo Cliente</h3>
         <button class="modal-close" onclick="closeModal('clientModal')">
           <i class="fa-solid fa-xmark"></i>
         </button>
@@ -1173,8 +1204,8 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label for="clientName">Nombre completo</label>
-              <input type="text" id="clientName" class="form-control" placeholder="Juan Pérez" required />
+              <label for="clientName" data-i18n="modal.full_name">Nombre completo</label>
+              <input type="text" id="clientName" class="form-control" placeholder="Juan Pérez" data-i18n-ph="modal.full_name_ph" required />
             </div>
             <div class="form-group">
               <label for="clientWhatsapp">WhatsApp</label>
@@ -1183,16 +1214,16 @@
           </div>
 
           <div class="form-group">
-            <label for="clientAccount">Cuenta asignada</label>
+            <label for="clientAccount" data-i18n="modal.assigned_account">Cuenta asignada</label>
             <select id="clientAccount" class="form-control" required onchange="updateProfileOptions()">
-              <option value="">Seleccionar cuenta...</option>
+              <option value="" data-i18n="modal.select_account">Seleccionar cuenta...</option>
             </select>
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <label for="clientProfile">Perfil asignado</label>
-              <input type="text" id="clientProfile" class="form-control" placeholder="Perfil 1" required />
+              <label for="clientProfile" data-i18n="modal.assigned_profile">Perfil asignado</label>
+              <input type="text" id="clientProfile" class="form-control" placeholder="Perfil 1" data-i18n-ph="modal.assigned_profile_ph" required />
             </div>
             <div class="form-group">
               <label for="clientPin">PIN</label>
@@ -1202,37 +1233,37 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label for="clientStart">Fecha inicio</label>
+              <label for="clientStart" data-i18n="modal.start_date">Fecha inicio</label>
               <input type="date" id="clientStart" class="form-control" required />
             </div>
             <div class="form-group">
-              <label for="clientEnd">Fecha fin</label>
+              <label for="clientEnd" data-i18n="modal.end_date">Fecha fin</label>
               <input type="date" id="clientEnd" class="form-control" required />
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <label for="clientPrice">Precio</label>
+              <label for="clientPrice" data-i18n="modal.price">Precio</label>
               <input type="number" id="clientPrice" class="form-control" placeholder="0" min="0" step="1" />
             </div>
             <div class="form-group">
-              <label for="clientPaymentStatus">Estado de pago</label>
+              <label for="clientPaymentStatus" data-i18n="modal.payment_status">Estado de pago</label>
               <select id="clientPaymentStatus" class="form-control">
-                <option value="pagado">Pagado</option>
-                <option value="pendiente">Pendiente</option>
+                <option value="pagado" data-i18n="modal.paid">Pagado</option>
+                <option value="pendiente" data-i18n="modal.pending">Pendiente</option>
               </select>
             </div>
           </div>
         </form>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeModal('clientModal')">Cancelar</button>
-        <button class="btn btn-primary" onclick="document.getElementById('clientForm').requestSubmit()">
+        <button class="btn btn-secondary" onclick="closeModal('clientModal')" data-i18n="modal.cancel">Cancelar</button>
+        <button class="btn btn-primary" onclick="document.getElementById('clientForm').requestSubmit()" data-i18n="modal.save">
           <i class="fa-solid fa-floppy-disk"></i>
           Guardar
         </button>
-        <button class="btn" id="btnSaveAndSendCreds" style="background: var(--whatsapp); color: #fff; display: none;" onclick="saveAndSendCredentials()">
+        <button class="btn" id="btnSaveAndSendCreds" style="background: var(--whatsapp); color: #fff; display: none;" onclick="saveAndSendCredentials()" data-i18n="modal.save_send_creds">
           <i class="fa-brands fa-whatsapp"></i>
           Guardar y Enviar Credenciales
         </button>
@@ -1244,7 +1275,7 @@
   <div class="modal-overlay" id="movementModal">
     <div class="modal">
       <div class="modal-header">
-        <h3 id="movementModalTitle"><i class="fa-solid fa-receipt"></i> Nuevo Movimiento</h3>
+        <h3 id="movementModalTitle" data-i18n="modal.new_movement"><i class="fa-solid fa-receipt"></i> Nuevo Movimiento</h3>
         <button class="modal-close" onclick="closeModal('movementModal')">
           <i class="fa-solid fa-xmark"></i>
         </button>
@@ -1254,45 +1285,45 @@
           <input type="hidden" id="movementId" />
 
           <div class="form-group">
-            <label for="movementClient">Cliente</label>
+            <label for="movementClient" data-i18n="th.client">Cliente</label>
             <select id="movementClient" class="form-control" required>
-              <option value="">Seleccionar cliente...</option>
+              <option value="" data-i18n="modal.select_client">Seleccionar cliente...</option>
             </select>
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <label for="movementAmount">Monto</label>
+              <label for="movementAmount" data-i18n="modal.amount">Monto</label>
               <input type="number" id="movementAmount" class="form-control" placeholder="0.00" step="0.01" min="0" required />
             </div>
             <div class="form-group">
-              <label for="movementDate">Fecha de pago</label>
+              <label for="movementDate" data-i18n="modal.payment_date">Fecha de pago</label>
               <input type="date" id="movementDate" class="form-control" required />
             </div>
           </div>
 
           <div class="form-group">
-            <label for="movementMethod">Método de pago</label>
+            <label for="movementMethod" data-i18n="modal.payment_method">Método de pago</label>
             <select id="movementMethod" class="form-control" required>
-              <option value="">Seleccionar método...</option>
-              <option value="Efectivo">Efectivo</option>
-              <option value="Transferencia">Transferencia</option>
+              <option value="" data-i18n="modal.select_method">Seleccionar método...</option>
+              <option value="Efectivo" data-i18n="modal.cash">Efectivo</option>
+              <option value="Transferencia" data-i18n="modal.transfer">Transferencia</option>
               <option value="Nequi">Nequi</option>
               <option value="Daviplata">Daviplata</option>
               <option value="PayPal">PayPal</option>
-              <option value="Otro">Otro</option>
+              <option value="Otro" data-i18n="modal.other">Otro</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label for="movementNote">Nota (opcional)</label>
-            <input type="text" id="movementNote" class="form-control" placeholder="Ej: Pago mes de febrero" />
+            <label for="movementNote" data-i18n="modal.notes">Nota (opcional)</label>
+            <input type="text" id="movementNote" class="form-control" placeholder="Ej: Pago mes de febrero" data-i18n-ph="modal.note_ph" />
           </div>
         </form>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeModal('movementModal')">Cancelar</button>
-        <button class="btn btn-primary" onclick="document.getElementById('movementForm').requestSubmit()">
+        <button class="btn btn-secondary" onclick="closeModal('movementModal')" data-i18n="modal.cancel">Cancelar</button>
+        <button class="btn btn-primary" onclick="document.getElementById('movementForm').requestSubmit()" data-i18n="modal.save">
           <i class="fa-solid fa-floppy-disk"></i>
           Guardar
         </button>
@@ -1304,7 +1335,7 @@
   <div class="modal-overlay" id="confirmModal">
     <div class="modal" style="max-width: 400px;">
       <div class="modal-header">
-        <h3><i class="fa-solid fa-triangle-exclamation" style="color: var(--danger);"></i> Confirmar</h3>
+        <h3 data-i18n="modal.confirm"><i class="fa-solid fa-triangle-exclamation" style="color: var(--danger);"></i> Confirmar</h3>
         <button class="modal-close" onclick="closeModal('confirmModal')">
           <i class="fa-solid fa-xmark"></i>
         </button>
@@ -1312,13 +1343,13 @@
       <div class="modal-body">
         <div class="confirm-dialog">
           <i class="fa-solid fa-trash-can"></i>
-          <h4 id="confirmTitle">¿Eliminar este registro?</h4>
-          <p id="confirmMessage">Esta acción no se puede deshacer.</p>
+          <h4 id="confirmTitle" data-i18n="modal.confirm_delete">¿Eliminar este registro?</h4>
+          <p id="confirmMessage" data-i18n="modal.confirm_msg">Esta acción no se puede deshacer.</p>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeModal('confirmModal')">Cancelar</button>
-        <button class="btn btn-danger" id="confirmDeleteBtn">
+        <button class="btn btn-secondary" onclick="closeModal('confirmModal')" data-i18n="modal.cancel">Cancelar</button>
+        <button class="btn btn-danger" id="confirmDeleteBtn" data-i18n="modal.delete">
           <i class="fa-solid fa-trash-can"></i>
           Eliminar
         </button>
@@ -1339,6 +1370,7 @@
 
   <!-- App Scripts -->
   <script src="js/firebase-config.js"></script>
+  <script src="js/i18n.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/app.js"></script>

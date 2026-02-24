@@ -2203,9 +2203,30 @@ async function loadGroups() {
 }
 
 /**
+ * Set default datetime to Mexico timezone (America/Mexico_City)
+ */
+function setDefaultMexicoDateTime() {
+  const dtInput = document.getElementById('scheduledDateTime');
+  if (!dtInput || dtInput.value) return; // Don't overwrite if already has value
+  // Get current time in Mexico City timezone formatted as YYYY-MM-DDTHH:MM
+  const now = new Date();
+  const mxDate = new Date(now.toLocaleString('en-US', { timeZone: 'America/Mexico_City' }));
+  // Add 1 hour as default (schedule for one hour from now)
+  mxDate.setHours(mxDate.getHours() + 1);
+  mxDate.setMinutes(0, 0, 0);
+  const year = mxDate.getFullYear();
+  const month = String(mxDate.getMonth() + 1).padStart(2, '0');
+  const day = String(mxDate.getDate()).padStart(2, '0');
+  const hours = String(mxDate.getHours()).padStart(2, '0');
+  const mins = String(mxDate.getMinutes()).padStart(2, '0');
+  dtInput.value = `${year}-${month}-${day}T${hours}:${mins}`;
+}
+
+/**
  * Cargar mensajes programados existentes
  */
 async function loadScheduledMessages() {
+  setDefaultMexicoDateTime();
   const url = getBotUrl();
   if (!url) return;
   const container = document.getElementById('scheduledList');
@@ -2216,12 +2237,12 @@ async function loadScheduledMessages() {
     const data = await res.json();
     const msgs = data.scheduled || [];
     if (msgs.length === 0) {
-      container.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:20px;"><i class="fa-solid fa-calendar-xmark"></i><p>Sin mensajes programados</p></div>`;
+      container.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:20px;"><i class="fa-solid fa-calendar-xmark"></i><p>${t('sched.no_messages', 'Sin mensajes programados')}</p></div>`;
       return;
     }
     container.innerHTML = msgs.map(m => renderScheduledCard(m)).join('');
   } catch (err) {
-    container.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:20px;"><i class="fa-solid fa-triangle-exclamation"></i><p>Error al cargar mensajes</p></div>`;
+    container.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:20px;"><i class="fa-solid fa-triangle-exclamation"></i><p>${t('sched.load_error', 'Error al cargar mensajes')}</p></div>`;
   }
 }
 
@@ -2235,8 +2256,8 @@ function renderScheduledCard(m) {
   const iconClass = isActive ? 'active' : 'paused-sched';
   const iconName = isActive ? 'fa-clock' : 'fa-pause';
   const recurringLabel = m.recurring
-    ? `Cada ${m.intervalMinutes >= 1440 ? (m.intervalMinutes / 1440) + ' día(s)' : m.intervalMinutes >= 60 ? (m.intervalMinutes / 60) + ' hora(s)' : m.intervalMinutes + ' min'}`
-    : 'Una sola vez';
+    ? `${t('sched.every', 'Cada')} ${m.intervalMinutes >= 1440 ? (m.intervalMinutes / 1440) + ' ' + t('sched.days', 'día(s)') : m.intervalMinutes >= 60 ? (m.intervalMinutes / 60) + ' ' + t('sched.hours_label', 'hora(s)') : m.intervalMinutes + ' min'}`
+    : t('sched.once', 'Una sola vez');
   
   return `<div class="scheduled-card">
     <div class="scheduled-card-icon ${iconClass}">
@@ -2278,9 +2299,9 @@ async function createScheduledMessage() {
   const interval = parseInt(document.getElementById('scheduledInterval')?.value || '60', 10);
   const unit = document.getElementById('scheduledIntervalUnit')?.value || 'minutes';
 
-  if (!jid) return showToast('Selecciona un grupo', 'warning');
-  if (!message) return showToast('Escribe un mensaje', 'warning');
-  if (!dateTimeStr) return showToast('Selecciona fecha y hora', 'warning');
+  if (!jid) return showToast(t('sched.select_group', 'Selecciona un grupo'), 'warning');
+  if (!message) return showToast(t('sched.write_message', 'Escribe un mensaje'), 'warning');
+  if (!dateTimeStr) return showToast(t('sched.select_datetime', 'Selecciona fecha y hora'), 'warning');
 
   const scheduledTime = new Date(dateTimeStr).toISOString();
   const recurring = type === 'recurring';
@@ -2295,11 +2316,12 @@ async function createScheduledMessage() {
       body: JSON.stringify({ jid, groupName, message, scheduledTime, recurring, intervalMinutes })
     });
     if (!res.ok) throw new Error('Error al crear mensaje programado');
-    showToast('Mensaje programado creado', 'success');
-    addBotLog(`📅 Mensaje programado para ${groupName}`);
+    showToast(t('sched.created', 'Mensaje programado creado'), 'success');
+    addBotLog('📅 ' + t('sched.log_created', 'Mensaje programado para') + ' ' + groupName);
     // Limpiar formulario
     if (document.getElementById('scheduledMessageText')) document.getElementById('scheduledMessageText').value = '';
     if (document.getElementById('scheduledDateTime')) document.getElementById('scheduledDateTime').value = '';
+    setDefaultMexicoDateTime();
     loadScheduledMessages();
   } catch (err) {
     showToast('Error al programar mensaje', 'error');
@@ -2316,7 +2338,7 @@ async function deleteScheduledMessage(id) {
   try {
     const res = await fetch(`${url}/scheduled/${id}`, { method: 'DELETE' });
     if (!res.ok) throw new Error('Error');
-    showToast('Mensaje eliminado', 'success');
+    showToast(t('sched.deleted', 'Mensaje eliminado'), 'success');
     loadScheduledMessages();
   } catch (err) {
     showToast('Error al eliminar', 'error');
@@ -2333,7 +2355,7 @@ async function toggleScheduledMessage(id) {
     const res = await fetch(`${url}/scheduled/${id}/toggle`, { method: 'POST' });
     if (!res.ok) throw new Error('Error');
     const data = await res.json();
-    showToast(data.active ? 'Mensaje activado' : 'Mensaje pausado', 'success');
+    showToast(data.active ? t('sched.toggled_on', 'Mensaje activado') : t('sched.toggled_off', 'Mensaje pausado'), 'success');
     loadScheduledMessages();
   } catch (err) {
     showToast('Error al cambiar estado', 'error');
