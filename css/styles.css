@@ -3408,6 +3408,8 @@ input:checked + .slider::before {
 }
 .sidebar-account-card:hover {
   background: rgba(99,102,241,0.14);
+  border-color: rgba(99,102,241,0.4);
+}
 
 /* ── Dashboard Account Card (Mi Cuenta arriba del dashboard) ── */
 .dashboard-account-card {
@@ -3537,8 +3539,7 @@ input:checked + .slider::before {
     display: none;
   }
 }
-  border-color: rgba(99,102,241,0.4);
-}
+
 .sidebar-account-plan {
   display: flex;
   align-items: center;
