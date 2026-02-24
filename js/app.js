@@ -337,6 +337,12 @@ function renderClientsTable(data = null) {
             <button class="btn-icon btn-send-creds" onclick="window.open('${credLink}', '_blank')" title="Enviar credenciales">
               <i class="fa-solid fa-paper-plane" style="color: var(--accent-light);"></i>
             </button>
+            <button class="btn-icon" onclick="renewClient('${cl.id}')" title="Renovar (+30 días)">
+              <i class="fa-solid fa-rotate-right" style="color: var(--success);"></i>
+            </button>
+            <button class="btn-icon" onclick="showClientHistory('${cl.id}')" title="Historial de pagos">
+              <i class="fa-solid fa-clock-rotate-left" style="color: var(--info);"></i>
+            </button>
             <button class="btn-icon" onclick="editClient('${cl.id}')" title="Editar">
               <i class="fa-solid fa-pen-to-square"></i>
             </button>
@@ -382,6 +388,7 @@ async function saveClient(e) {
 
       await db.collection('clientes').doc(id).update(data);
       showToast('Cliente actualizado', 'success');
+      if (typeof logActivity === 'function') logActivity('edit', `Cliente editado: ${data.nombre}`);
 
       // Auto-registrar movimiento si cambió a pagado
       if (switchedToPaid) {
@@ -414,6 +421,7 @@ async function saveClient(e) {
       data.creado_en = firebase.firestore.FieldValue.serverTimestamp();
       const newRef = await db.collection('clientes').add(data);
       showToast('Cliente agregado exitosamente', 'success');
+      if (typeof logActivity === 'function') logActivity('create', `Cliente creado: ${data.nombre}`);
 
       // Auto-registrar movimiento si el cliente pagó y tiene precio
       if (precio > 0 && data.estado_pago === 'pagado') {
@@ -537,6 +545,7 @@ async function deleteClient(id) {
   try {
     await db.collection('clientes').doc(id).delete();
     showToast('Cliente eliminado', 'success');
+    if (typeof logActivity === 'function') logActivity('delete', 'Cliente eliminado');
     await loadAllData();
   } catch (error) {
     console.error('Error eliminando cliente:', error);
@@ -902,6 +911,10 @@ function updateDashboard() {
 
   // Tabla de clientes próximos a vencer en dashboard
   renderDashboardClients();
+
+  // Charts & profit calculator
+  renderDashboardCharts();
+  updateProfitCalculator();
 }
 
 /**
@@ -3318,3 +3331,666 @@ async function deleteOrder(id) {
     showToast('Error eliminando pedido: ' + err.message, 'error');
   }
 }
+
+/* ============================================================
+   DASHBOARD CHARTS (Chart.js)
+   ============================================================ */
+let chartIncome = null, chartClients = null, chartPlatforms = null;
+
+function renderDashboardCharts() {
+  if (typeof Chart === 'undefined') return;
+
+  const accentColor = '#7c3aed';
+  const successColor = '#22c55e';
+  const dangerColor = '#ef4444';
+  const warningColor = '#f59e0b';
+  const infoColor = '#3b82f6';
+
+  // ── 1. Monthly Income (last 6 months bar chart) ──
+  const now = new Date();
+  const monthLabels = [];
+  const monthValues = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+    monthLabels.push(d.toLocaleString('es', { month: 'short', year: '2-digit' }));
+
+    // Sum from movements
+    let sum = movementsData.filter(m => {
+      if (!m.fecha_pago) return false;
+      const md = m.fecha_pago instanceof Date ? m.fecha_pago : (m.fecha_pago.toDate ? m.fecha_pago.toDate() : new Date(m.fecha_pago));
+      return md >= d && md <= end;
+    }).reduce((s, m) => s + (parseFloat(m.monto) || 0), 0);
+
+    // Also from paid clients
+    const clientSum = clientsData.filter(c => {
+      if (!c.precio || c.estado_pago !== 'pagado') return false;
+      const cd = c.fecha_inicio instanceof Date ? c.fecha_inicio : (c.fecha_inicio?.toDate ? c.fecha_inicio.toDate() : new Date(c.fecha_inicio));
+      return cd >= d && cd <= end;
+    }).reduce((s, c) => s + (c.precio || 0), 0);
+
+    monthValues.push(Math.max(sum, clientSum));
+  }
+
+  const ctxIncome = document.getElementById('chartIncome');
+  if (ctxIncome) {
+    if (chartIncome) chartIncome.destroy();
+    chartIncome = new Chart(ctxIncome.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: monthLabels,
+        datasets: [{
+          label: 'Ingresos',
+          data: monthValues,
+          backgroundColor: accentColor + '88',
+          borderColor: accentColor,
+          borderWidth: 2,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af' } },
+          x: { grid: { display: false }, ticks: { color: '#9ca3af' } }
+        }
+      }
+    });
+  }
+
+  // ── 2. Active vs Expired (doughnut) ──
+  const active = clientsData.filter(c => daysRemaining(c.fecha_fin) > 0).length;
+  const expired = clientsData.filter(c => daysRemaining(c.fecha_fin) <= 0).length;
+  const expiring = clientsData.filter(c => { const d = daysRemaining(c.fecha_fin); return d > 0 && d <= 3; }).length;
+
+  const ctxClients = document.getElementById('chartClients');
+  if (ctxClients) {
+    if (chartClients) chartClients.destroy();
+    chartClients = new Chart(ctxClients.getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Activos', 'Por vencer', 'Vencidos'],
+        datasets: [{
+          data: [active - expiring, expiring, expired],
+          backgroundColor: [successColor, warningColor, dangerColor],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'bottom', labels: { color: '#9ca3af', padding: 12 } }
+        }
+      }
+    });
+  }
+
+  // ── 3. Platform Occupancy (horizontal bar) ──
+  const platformData = {};
+  accountsData.forEach(a => {
+    const p = a.plataforma || 'Otra';
+    if (!platformData[p]) platformData[p] = { total: 0, occupied: 0 };
+    platformData[p].total += (a.perfiles_totales || 0);
+  });
+  clientsData.forEach(c => {
+    const p = c.plataforma || 'Otra';
+    if (!platformData[p]) platformData[p] = { total: 0, occupied: 0 };
+    if (daysRemaining(c.fecha_fin) > 0) platformData[p].occupied++;
+  });
+
+  const platLabels = Object.keys(platformData);
+  const platOccupied = platLabels.map(p => platformData[p].occupied);
+  const platFree = platLabels.map(p => Math.max(0, platformData[p].total - platformData[p].occupied));
+
+  const ctxPlatforms = document.getElementById('chartPlatforms');
+  if (ctxPlatforms) {
+    if (chartPlatforms) chartPlatforms.destroy();
+    chartPlatforms = new Chart(ctxPlatforms.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: platLabels,
+        datasets: [
+          { label: 'Ocupados', data: platOccupied, backgroundColor: accentColor + '99', borderRadius: 4 },
+          { label: 'Libres', data: platFree, backgroundColor: '#374151', borderRadius: 4 }
+        ]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: { legend: { labels: { color: '#9ca3af' } } },
+        scales: {
+          x: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af' } },
+          y: { stacked: true, grid: { display: false }, ticks: { color: '#9ca3af' } }
+        }
+      }
+    });
+  }
+}
+
+/* ============================================================
+   PROFIT CALCULATOR
+   ============================================================ */
+function updateProfitCalculator() {
+  // Gross income = sum of all active/paid client prices
+  const gross = clientsData
+    .filter(c => c.estado_pago === 'pagado' || daysRemaining(c.fecha_fin) > 0)
+    .reduce((s, c) => s + (parseFloat(c.precio) || 0), 0);
+
+  // Cost = sum of account costs (use costo field if exists)
+  const cost = accountsData.reduce((s, a) => s + (parseFloat(a.costo) || parseFloat(a.precio_total) || 0), 0);
+
+  const net = gross - cost;
+
+  const elGross = document.getElementById('profitGross');
+  const elCost = document.getElementById('profitCost');
+  const elNet = document.getElementById('profitNet');
+
+  if (elGross) elGross.textContent = formatCurrency(gross);
+  if (elCost) elCost.textContent = formatCurrency(cost);
+  if (elNet) elNet.textContent = formatCurrency(net);
+}
+
+/* ============================================================
+   RENEW CLIENT — 1-click +30 days
+   ============================================================ */
+async function renewClient(clientId) {
+  const client = clientsData.find(c => c.id === clientId);
+  if (!client) return showToast('Cliente no encontrado', 'error');
+
+  try {
+    // Calculate new end date (+30 days from current end or from today if expired)
+    let base = client.fecha_fin;
+    if (base?.toDate) base = base.toDate();
+    else if (typeof base === 'string') base = new Date(base);
+    else base = new Date(base);
+
+    if (base < new Date()) base = new Date(); // If expired, start from today
+    const newEnd = new Date(base);
+    newEnd.setDate(newEnd.getDate() + 30);
+
+    const newEndStr = newEnd.toISOString().split('T')[0];
+
+    // Update client
+    await db.collection('clientes').doc(clientId).update({
+      fecha_fin: newEndStr,
+      estado_pago: 'pagado',
+      fecha_inicio: new Date().toISOString().split('T')[0]
+    });
+
+    // Create movement
+    await db.collection('movimientos').add({
+      cliente_id: clientId,
+      monto: client.precio || 0,
+      fecha_pago: firebase.firestore.Timestamp.fromDate(new Date()),
+      fecha: new Date().toISOString().split('T')[0],
+      metodo: 'Renovación automática',
+      nota: `Renovación +30 días → ${formatDate(newEndStr)}`,
+      created_at: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    logActivity('renew', `Renovación: ${client.nombre} → ${formatDate(newEndStr)}`);
+    showToast(`${client.nombre} renovado hasta ${formatDate(newEndStr)}`, 'success');
+
+    await loadClients();
+    await loadMovements();
+    updateDashboard();
+    updateReports();
+  } catch (err) {
+    showToast('Error al renovar: ' + err.message, 'error');
+  }
+}
+
+/* ============================================================
+   CLIENT PAYMENT HISTORY
+   ============================================================ */
+function showClientHistory(clientId) {
+  const client = clientsData.find(c => c.id === clientId);
+  if (!client) return;
+
+  const nameEl = document.getElementById('historyClientName');
+  const tbody = document.getElementById('historyTableBody');
+  const totalEl = document.getElementById('historyTotal');
+
+  nameEl.textContent = client.nombre;
+
+  // Find all movements for this client
+  const clientMoves = movementsData.filter(m => m.cliente_id === clientId);
+
+  if (clientMoves.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="table-empty">No hay pagos registrados para este cliente</td></tr>';
+    totalEl.textContent = '';
+  } else {
+    const sorted = [...clientMoves].sort((a, b) => {
+      const da = a.fecha_pago?.toDate ? a.fecha_pago.toDate() : new Date(a.fecha_pago || a.fecha);
+      const db2 = b.fecha_pago?.toDate ? b.fecha_pago.toDate() : new Date(b.fecha_pago || b.fecha);
+      return db2 - da;
+    });
+
+    tbody.innerHTML = sorted.map(m => `
+      <tr>
+        <td>${formatDate(m.fecha_pago || m.fecha)}</td>
+        <td style="color:var(--success);font-weight:600;">${formatCurrency(m.monto)}</td>
+        <td>${m.metodo || '—'}</td>
+        <td>${m.nota || '—'}</td>
+      </tr>
+    `).join('');
+
+    const total = sorted.reduce((s, m) => s + (parseFloat(m.monto) || 0), 0);
+    totalEl.innerHTML = `<strong>Total: ${formatCurrency(total)}</strong>`;
+  }
+
+  openModal('historyModal');
+}
+
+/* ============================================================
+   DEBTORS — Expired unpaid clients
+   ============================================================ */
+function renderDebtorsTable() {
+  const tbody = document.getElementById('debtorsTableBody');
+  if (!tbody) return;
+
+  // Clients expired (days <= 0) and not paid
+  const debtors = clientsData.filter(c => {
+    const d = daysRemaining(c.fecha_fin);
+    return d <= 0 && c.estado_pago !== 'pagado';
+  }).sort((a, b) => daysRemaining(a.fecha_fin) - daysRemaining(b.fecha_fin));
+
+  if (debtors.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" class="table-empty">
+          <i class="fa-solid fa-face-smile"></i>
+          <p>¡No hay deudores! Todos al día</p>
+        </td>
+      </tr>`;
+    return;
+  }
+
+  tbody.innerHTML = debtors.map(cl => {
+    const days = Math.abs(daysRemaining(cl.fecha_fin));
+    const account = accountsData.find(a => a.id === cl.cuenta_id);
+    return `
+      <tr>
+        <td><strong>${escapeAttr(cl.nombre)}</strong></td>
+        <td>${renderPlatformTag(cl.plataforma || account?.plataforma || '—')}</td>
+        <td>${formatDate(cl.fecha_fin)}</td>
+        <td><span class="overdue-badge">${days} días</span></td>
+        <td style="color:var(--success);font-weight:600;">${cl.precio ? formatCurrency(cl.precio) : '—'}</td>
+        <td>${cl.estado_pago === 'pagado' 
+          ? '<span class="badge" style="background:var(--success);color:#fff;">Pagado</span>' 
+          : '<span class="badge" style="background:var(--warning);color:#000;">Pendiente</span>'}</td>
+        <td>
+          <div class="row-actions">
+            <button class="btn-icon" onclick="sendDebtReminder('${cl.id}')" title="Enviar cobro WhatsApp">
+              <i class="fa-brands fa-whatsapp" style="color:var(--whatsapp);"></i>
+            </button>
+            <button class="btn-icon" onclick="renewClient('${cl.id}')" title="Renovar">
+              <i class="fa-solid fa-rotate-right" style="color:var(--success);"></i>
+            </button>
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+function sendDebtReminder(clientId) {
+  const client = clientsData.find(c => c.id === clientId);
+  if (!client) return;
+
+  const days = Math.abs(daysRemaining(client.fecha_fin));
+  const templates = JSON.parse(localStorage.getItem('streamly_templates') || '[]');
+  const cobroTpl = templates.find(t => t.type === 'cobro');
+
+  let message;
+  if (cobroTpl) {
+    message = applyTemplateVars(cobroTpl.message, client);
+  } else {
+    message = `Hola ${client.nombre} 👋\n\nTe escribo para recordarte que tu suscripción de *${client.plataforma || ''}* venció hace *${days} días*.\n\nEl precio de renovación es *${client.precio ? formatCurrency(client.precio) : ''}*.\n\n¿Deseas renovar? 😊`;
+  }
+
+  const phone = (client.whatsapp || '').replace(/[^0-9]/g, '');
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+  logActivity('payment', `Cobro enviado a ${client.nombre}`);
+}
+
+function sendBulkReminders() {
+  const debtors = clientsData.filter(c => daysRemaining(c.fecha_fin) <= 0 && c.estado_pago !== 'pagado');
+  if (debtors.length === 0) return showToast('No hay deudores', 'info');
+
+  debtors.forEach((cl, i) => {
+    setTimeout(() => sendDebtReminder(cl.id), i * 1500);
+  });
+  showToast(`Enviando cobro a ${debtors.length} clientes...`, 'info');
+}
+
+/* ============================================================
+   WHATSAPP NOTIFICATIONS — Auto reminders
+   ============================================================ */
+async function sendExpiryNotifications() {
+  const url = getBotUrl();
+  if (!url) return;
+
+  // Clients expiring in 1 day
+  const expiring = clientsData.filter(c => {
+    const d = daysRemaining(c.fecha_fin);
+    return d === 1;
+  });
+
+  for (const cl of expiring) {
+    const phone = (cl.whatsapp || '').replace(/[^0-9]/g, '');
+    if (!phone) continue;
+
+    const message = `⏰ Hola ${cl.nombre}, tu suscripción de *${cl.plataforma || ''}* vence *mañana*.\n\nRenueva por ${cl.precio ? formatCurrency(cl.precio) : ''} para no perder acceso.\n\n¿Deseas renovar? Escríbeme aquí 👇`;
+
+    try {
+      await fetch(`${url}/send-message`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, message })
+      });
+    } catch (e) {
+      console.error('Error sending notification:', e);
+    }
+  }
+
+  if (expiring.length > 0) {
+    showToast(`Recordatorios enviados a ${expiring.length} clientes`, 'success');
+    logActivity('payment', `Recordatorios de vencimiento enviados a ${expiring.length} clientes`);
+  }
+}
+
+/* ============================================================
+   CALENDAR — Visual expiry calendar
+   ============================================================ */
+let calendarDate = new Date();
+
+function calendarPrev() {
+  calendarDate.setMonth(calendarDate.getMonth() - 1);
+  renderCalendar();
+}
+function calendarNext() {
+  calendarDate.setMonth(calendarDate.getMonth() + 1);
+  renderCalendar();
+}
+function calendarToday() {
+  calendarDate = new Date();
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const grid = document.getElementById('calendarGrid');
+  const label = document.getElementById('calendarMonthLabel');
+  if (!grid) return;
+
+  const year = calendarDate.getFullYear();
+  const month = calendarDate.getMonth();
+  label.textContent = calendarDate.toLocaleString('es', { month: 'long', year: 'numeric' });
+
+  const firstDay = new Date(year, month, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = new Date();
+
+  // Build map of events by day
+  const dayEvents = {};
+  clientsData.forEach(c => {
+    let end = c.fecha_fin;
+    if (end?.toDate) end = end.toDate();
+    else if (typeof end === 'string') end = new Date(end);
+    else end = new Date(end);
+
+    if (end.getFullYear() === year && end.getMonth() === month) {
+      const day = end.getDate();
+      if (!dayEvents[day]) dayEvents[day] = [];
+      const d = daysRemaining(c.fecha_fin);
+      dayEvents[day].push({
+        name: c.nombre,
+        status: d <= 0 ? 'expired' : d <= 3 ? 'expiring' : 'active'
+      });
+    }
+  });
+
+  // Day headers
+  const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+  let html = dayNames.map(d => `<div class="calendar-day-header">${d}</div>`).join('');
+
+  // Empty cells before first day
+  for (let i = 0; i < firstDay; i++) {
+    html += '<div class="calendar-day empty"></div>';
+  }
+
+  // Day cells
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+    const events = dayEvents[d] || [];
+    const dots = events.map(e => `<div class="cal-dot ${e.status}" title="${e.name}"></div>`).join('');
+
+    html += `<div class="calendar-day${isToday ? ' today' : ''}">
+      <span class="day-number">${d}</span>
+      <div class="cal-dots">${dots}</div>
+    </div>`;
+  }
+
+  grid.innerHTML = html;
+}
+
+/* ============================================================
+   TEMPLATES — Message templates with variables
+   ============================================================ */
+function getTemplates() {
+  return JSON.parse(localStorage.getItem('streamly_templates') || '[]');
+}
+function saveTemplates(templates) {
+  localStorage.setItem('streamly_templates', JSON.stringify(templates));
+}
+
+function renderTemplates() {
+  const container = document.getElementById('templatesList');
+  if (!container) return;
+
+  const templates = getTemplates();
+  if (templates.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:40px;color:var(--text-muted);">
+        <i class="fa-solid fa-envelope-open-text" style="font-size:2rem;margin-bottom:8px;"></i>
+        <p>No hay plantillas creadas</p>
+      </div>`;
+    return;
+  }
+
+  const typeLabels = { cobro: 'Cobro', bienvenida: 'Bienvenida', renovacion: 'Renovación', custom: 'Personalizado' };
+  const typeColors = { cobro: 'var(--warning)', bienvenida: 'var(--success)', renovacion: 'var(--info)', custom: 'var(--accent)' };
+
+  container.innerHTML = templates.map((t, i) => `
+    <div class="template-card">
+      <div class="template-card-header">
+        <h4><i class="fa-solid fa-envelope"></i> ${escapeAttr(t.name)}</h4>
+        <span class="badge" style="background:${typeColors[t.type] || 'var(--accent)'};color:#fff;">${typeLabels[t.type] || t.type}</span>
+      </div>
+      <div class="template-card-body">${escapeAttr(t.message)}</div>
+      <div class="template-card-actions">
+        <button class="btn btn-secondary btn-sm" onclick="editTemplate(${i})">
+          <i class="fa-solid fa-pen-to-square"></i> Editar
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="deleteTemplate(${i})">
+          <i class="fa-solid fa-trash-can"></i> Eliminar
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addTemplate() {
+  document.getElementById('templateId').value = '';
+  document.getElementById('templateName').value = '';
+  document.getElementById('templateType').value = 'cobro';
+  document.getElementById('templateMessage').value = '';
+  document.getElementById('templateModalTitle').textContent = 'Nueva Plantilla';
+  openModal('templateModal');
+}
+
+function editTemplate(index) {
+  const templates = getTemplates();
+  const t = templates[index];
+  if (!t) return;
+
+  document.getElementById('templateId').value = index;
+  document.getElementById('templateName').value = t.name;
+  document.getElementById('templateType').value = t.type;
+  document.getElementById('templateMessage').value = t.message;
+  document.getElementById('templateModalTitle').textContent = 'Editar Plantilla';
+  openModal('templateModal');
+}
+
+function saveTemplate() {
+  const id = document.getElementById('templateId').value;
+  const name = document.getElementById('templateName').value.trim();
+  const type = document.getElementById('templateType').value;
+  const message = document.getElementById('templateMessage').value.trim();
+
+  if (!name || !message) return showToast('Completa nombre y mensaje', 'warning');
+
+  const templates = getTemplates();
+  const tpl = { name, type, message };
+
+  if (id !== '') {
+    templates[parseInt(id)] = tpl;
+  } else {
+    templates.push(tpl);
+  }
+
+  saveTemplates(templates);
+  closeModal('templateModal');
+  renderTemplates();
+  logActivity('edit', `Plantilla guardada: ${name}`);
+  showToast('Plantilla guardada', 'success');
+}
+
+function deleteTemplate(index) {
+  const templates = getTemplates();
+  templates.splice(index, 1);
+  saveTemplates(templates);
+  renderTemplates();
+  showToast('Plantilla eliminada', 'success');
+}
+
+function applyTemplateVars(text, client) {
+  const days = Math.abs(daysRemaining(client.fecha_fin));
+  return text
+    .replace(/{nombre}/g, client.nombre || '')
+    .replace(/{plataforma}/g, client.plataforma || '')
+    .replace(/{perfil}/g, client.perfil_asignado || '')
+    .replace(/{precio}/g, client.precio ? formatCurrency(client.precio) : '')
+    .replace(/{vencimiento}/g, formatDate(client.fecha_fin))
+    .replace(/{dias_mora}/g, String(days));
+}
+
+/* ============================================================
+   ACTIVITY LOG
+   ============================================================ */
+function logActivity(type, text) {
+  const logs = JSON.parse(localStorage.getItem('streamly_logs') || '[]');
+  logs.unshift({
+    type,
+    text,
+    time: new Date().toISOString()
+  });
+  // Keep max 200 entries
+  if (logs.length > 200) logs.length = 200;
+  localStorage.setItem('streamly_logs', JSON.stringify(logs));
+}
+
+function renderActivityLogs() {
+  const container = document.getElementById('activityLogsList');
+  if (!container) return;
+
+  const logs = JSON.parse(localStorage.getItem('streamly_logs') || '[]');
+
+  if (logs.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:40px;color:var(--text-muted);">
+        <i class="fa-solid fa-clipboard-list" style="font-size:2rem;margin-bottom:8px;"></i>
+        <p>No hay actividad registrada</p>
+      </div>`;
+    return;
+  }
+
+  const iconMap = {
+    create: 'fa-solid fa-plus',
+    edit: 'fa-solid fa-pen-to-square',
+    delete: 'fa-solid fa-trash-can',
+    renew: 'fa-solid fa-rotate-right',
+    payment: 'fa-solid fa-hand-holding-dollar',
+    export: 'fa-solid fa-download'
+  };
+
+  container.innerHTML = logs.map(l => {
+    const icon = iconMap[l.type] || 'fa-solid fa-circle-info';
+    const timeStr = new Date(l.time).toLocaleString('es-ES', { 
+      day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' 
+    });
+    return `
+      <div class="log-entry">
+        <div class="log-icon ${l.type}"><i class="${icon}"></i></div>
+        <div class="log-body">
+          <div class="log-text">${escapeAttr(l.text)}</div>
+          <div class="log-time">${timeStr}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function clearActivityLogs() {
+  localStorage.removeItem('streamly_logs');
+  renderActivityLogs();
+  showToast('Registro de actividad limpiado', 'success');
+}
+
+/* ============================================================
+   SECTION NAVIGATION HOOKS (extended)
+   ============================================================ */
+const _originalNavigateTo = typeof navigateTo === 'function' ? navigateTo : null;
+
+// Patch: render additional sections when navigating
+(function patchNavigation() {
+  const obs = new MutationObserver(() => {
+    const active = document.querySelector('.section.active');
+    if (!active) return;
+    const id = active.id;
+    if (id === 'section-calendario') renderCalendar();
+    else if (id === 'section-deudores') renderDebtorsTable();
+    else if (id === 'section-plantillas') renderTemplates();
+    else if (id === 'section-logs') renderActivityLogs();
+  });
+  const content = document.querySelector('.page-content');
+  if (content) obs.observe(content, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+})();
+
+/* ============================================================
+   INIT HOOKS — Theme + Currency on load
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof initTheme === 'function') initTheme();
+
+  // Load default templates if none exist
+  const templates = getTemplates();
+  if (templates.length === 0) {
+    saveTemplates([
+      {
+        name: 'Cobro mensual',
+        type: 'cobro',
+        message: 'Hola {nombre} 👋\n\nTe escribo para recordarte que tu suscripción de *{plataforma}* venció hace *{dias_mora} días*.\n\nEl precio de renovación es *{precio}*.\n\n¿Deseas renovar? 😊'
+      },
+      {
+        name: 'Bienvenida',
+        type: 'bienvenida',
+        message: '¡Hola {nombre}! 🎉\n\nBienvenido/a a *{plataforma}*.\n\nTu perfil asignado es: *{perfil}*\nVencimiento: *{vencimiento}*\n\n¡Que lo disfrutes! 🎬'
+      },
+      {
+        name: 'Renovación exitosa',
+        type: 'renovacion',
+        message: 'Hola {nombre} ✅\n\nTu renovación de *{plataforma}* ha sido exitosa.\n\nNueva fecha de vencimiento: *{vencimiento}*\nPrecio: *{precio}*\n\n¡Gracias por renovar! 🙏'
+      }
+    ]);
+  }
+});

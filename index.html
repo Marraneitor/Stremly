@@ -290,6 +290,22 @@
           <i class="fa-solid fa-chart-bar"></i>
           Reportes
         </button>
+        <button class="nav-item" data-section="calendario" onclick="navigateTo('calendario')" data-i18n="sidebar.calendar">
+          <i class="fa-solid fa-calendar-days"></i>
+          Calendario
+        </button>
+        <button class="nav-item" data-section="deudores" onclick="navigateTo('deudores')" data-i18n="sidebar.debtors">
+          <i class="fa-solid fa-file-invoice-dollar"></i>
+          Deudores
+        </button>
+        <button class="nav-item" data-section="plantillas" onclick="navigateTo('plantillas')" data-i18n="sidebar.templates">
+          <i class="fa-solid fa-envelope-open-text"></i>
+          Plantillas
+        </button>
+        <button class="nav-item" data-section="logs" onclick="navigateTo('logs')" data-i18n="sidebar.logs">
+          <i class="fa-solid fa-clipboard-list"></i>
+          Actividad
+        </button>
         <button class="nav-item" data-section="chatbot" onclick="navigateTo('chatbot')" data-i18n="sidebar.chatbot">
           <i class="fa-brands fa-whatsapp"></i>
           Chatbot IA
@@ -344,6 +360,23 @@
               </button>
             </div>
           </div>
+          <!-- Currency Selector -->
+          <div class="currency-selector">
+            <select id="currencySelect" onchange="setCurrency(this.value)" class="currency-select">
+              <option value="COP">COP $</option>
+              <option value="USD">USD $</option>
+              <option value="EUR">EUR €</option>
+              <option value="MXN">MXN $</option>
+              <option value="ARS">ARS $</option>
+              <option value="BRL">BRL R$</option>
+              <option value="PEN">PEN S/</option>
+              <option value="CLP">CLP $</option>
+            </select>
+          </div>
+          <!-- Theme Toggle -->
+          <button class="theme-toggle-btn" onclick="toggleTheme()" title="Modo claro/oscuro">
+            <i class="fa-solid fa-sun" id="themeIcon"></i>
+          </button>
           <span class="header-date" id="headerDate"></span>
           <button class="btn btn-primary btn-sm" id="headerAddBtn" onclick="openQuickAdd()" data-i18n="header.new">
             <i class="fa-solid fa-plus"></i>
@@ -406,6 +439,46 @@
               </div>
               <div class="stat-card-value" id="statExpiringSoon">0</div>
               <div class="stat-card-label" data-i18n="dash.expiring_soon">Vence en ≤ 3 días</div>
+            </div>
+          </div>
+
+          <!-- Charts Row -->
+          <div class="charts-row">
+            <div class="chart-card">
+              <h4><i class="fa-solid fa-chart-line"></i> <span data-i18n="dash.income_chart">Ingresos Mensuales</span></h4>
+              <canvas id="chartIncome" height="220"></canvas>
+            </div>
+            <div class="chart-card">
+              <h4><i class="fa-solid fa-users"></i> <span data-i18n="dash.clients_chart">Clientes Activos vs Vencidos</span></h4>
+              <canvas id="chartClients" height="220"></canvas>
+            </div>
+            <div class="chart-card">
+              <h4><i class="fa-solid fa-tv"></i> <span data-i18n="dash.platform_chart">Ocupación por Plataforma</span></h4>
+              <canvas id="chartPlatforms" height="220"></canvas>
+            </div>
+          </div>
+
+          <!-- Profit Calculator -->
+          <div class="table-container" style="margin-bottom: 20px;">
+            <div class="table-header">
+              <h3><i class="fa-solid fa-calculator"></i> <span data-i18n="dash.profit_calc">Calculadora de Ganancias</span></h3>
+            </div>
+            <div class="profit-grid" id="profitGrid">
+              <div class="profit-card income">
+                <i class="fa-solid fa-arrow-trend-up"></i>
+                <span class="profit-label" data-i18n="dash.gross_income">Ingreso Bruto</span>
+                <span class="profit-value" id="profitGross">$0</span>
+              </div>
+              <div class="profit-card expense">
+                <i class="fa-solid fa-arrow-trend-down"></i>
+                <span class="profit-label" data-i18n="dash.total_cost">Costo Cuentas</span>
+                <span class="profit-value" id="profitCost">$0</span>
+              </div>
+              <div class="profit-card net">
+                <i class="fa-solid fa-coins"></i>
+                <span class="profit-label" data-i18n="dash.net_profit">Ganancia Neta</span>
+                <span class="profit-value" id="profitNet">$0</span>
+              </div>
             </div>
           </div>
 
@@ -618,6 +691,109 @@
           </div>
         </div>
 
+        <!-- ==================== CALENDARIO ==================== -->
+        <div class="section" id="section-calendario">
+          <div class="table-container">
+            <div class="table-header">
+              <h3><i class="fa-solid fa-calendar-days"></i> <span data-i18n="calendar.title">Calendario de Vencimientos</span></h3>
+              <div class="table-actions">
+                <button class="btn btn-secondary btn-sm" onclick="calendarPrev()">
+                  <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <span id="calendarMonthLabel" style="font-weight:600;min-width:140px;text-align:center;"></span>
+                <button class="btn btn-secondary btn-sm" onclick="calendarNext()">
+                  <i class="fa-solid fa-chevron-right"></i>
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="calendarToday()" data-i18n="calendar.today" style="margin-left:8px;">
+                  Hoy
+                </button>
+              </div>
+            </div>
+            <div id="calendarGrid" class="calendar-grid"></div>
+            <div class="calendar-legend">
+              <span><i class="fa-solid fa-circle" style="color:var(--success);font-size:8px;"></i> <span data-i18n="calendar.active">Activo</span></span>
+              <span><i class="fa-solid fa-circle" style="color:var(--warning);font-size:8px;"></i> <span data-i18n="calendar.expiring">Por vencer</span></span>
+              <span><i class="fa-solid fa-circle" style="color:var(--danger);font-size:8px;"></i> <span data-i18n="calendar.expired">Vencido</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== DEUDORES ==================== -->
+        <div class="section" id="section-deudores">
+          <div class="table-container">
+            <div class="table-header">
+              <h3><i class="fa-solid fa-file-invoice-dollar"></i> <span data-i18n="debtors.title">Clientes con Cobro Pendiente</span></h3>
+              <div class="table-actions">
+                <button class="btn btn-primary btn-sm" onclick="sendBulkReminders()">
+                  <i class="fa-brands fa-whatsapp"></i>
+                  <span data-i18n="debtors.send_all">Enviar cobro a todos</span>
+                </button>
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th data-i18n="th.client">Cliente</th>
+                    <th data-i18n="th.platform">Plataforma</th>
+                    <th data-i18n="th.expiry">Vencimiento</th>
+                    <th data-i18n="debtors.days_overdue">Días de Mora</th>
+                    <th data-i18n="th.price">Precio</th>
+                    <th data-i18n="th.payment">Pago</th>
+                    <th data-i18n="th.actions">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="debtorsTableBody">
+                  <tr>
+                    <td colspan="7" class="table-empty">
+                      <i class="fa-solid fa-face-smile"></i>
+                      <p data-i18n="debtors.empty">¡No hay deudores! Todos al día</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== PLANTILLAS ==================== -->
+        <div class="section" id="section-plantillas">
+          <div class="table-container">
+            <div class="table-header">
+              <h3><i class="fa-solid fa-envelope-open-text"></i> <span data-i18n="templates.title">Plantillas de Mensajes</span></h3>
+              <button class="btn btn-primary btn-sm" onclick="addTemplate()">
+                <i class="fa-solid fa-plus"></i>
+                <span data-i18n="templates.new">Nueva Plantilla</span>
+              </button>
+            </div>
+            <div class="templates-info" style="padding:12px 20px;color:var(--text-muted);font-size:0.85rem;">
+              <i class="fa-solid fa-info-circle"></i>
+              <span data-i18n="templates.vars_info">Variables disponibles: {nombre}, {plataforma}, {perfil}, {precio}, {vencimiento}, {dias_mora}</span>
+            </div>
+            <div id="templatesList" class="templates-list"></div>
+          </div>
+        </div>
+
+        <!-- ==================== LOGS ==================== -->
+        <div class="section" id="section-logs">
+          <div class="table-container">
+            <div class="table-header">
+              <h3><i class="fa-solid fa-clipboard-list"></i> <span data-i18n="logs.title">Registro de Actividad</span></h3>
+              <div class="table-actions">
+                <button class="btn btn-secondary btn-sm" onclick="clearActivityLogs()">
+                  <i class="fa-solid fa-trash"></i>
+                  <span data-i18n="logs.clear">Limpiar</span>
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="exportBackupJSON()">
+                  <i class="fa-solid fa-download"></i>
+                  <span data-i18n="logs.backup">Descargar Backup</span>
+                </button>
+              </div>
+            </div>
+            <div id="activityLogsList" class="activity-logs-list"></div>
+          </div>
+        </div>
+
         <!-- ==================== REPORTES ==================== -->
         <div class="section" id="section-reportes">
           <div class="stats-grid">
@@ -651,9 +827,20 @@
           </div>
 
           <!-- Tabla de resumen por plataforma -->
-          <div class="table-container">
+          <div class="table-container" style="margin-top:-10px;">
             <div class="table-header">
               <h3 data-i18n="reports.summary"><i class="fa-solid fa-chart-bar"></i> Resumen por Plataforma</h3>
+              <div class="table-actions">
+                <button class="btn btn-secondary btn-sm" onclick="exportCSV('clientes')">
+                  <i class="fa-solid fa-file-csv"></i> Clientes CSV
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="exportCSV('movimientos')">
+                  <i class="fa-solid fa-file-csv"></i> Mov. CSV
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="exportPDF()">
+                  <i class="fa-solid fa-file-pdf"></i> Reporte PDF
+                </button>
+              </div>
             </div>
             <div class="table-wrapper">
               <table>
@@ -1395,6 +1582,79 @@
     </div>
   </div>
 
+  <!-- Modal: Plantilla de mensaje -->
+  <div class="modal-overlay" id="templateModal">
+    <div class="modal" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-envelope-open-text"></i> <span id="templateModalTitle" data-i18n="templates.new">Nueva Plantilla</span></h3>
+        <button class="modal-close" onclick="closeModal('templateModal')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="templateId" />
+        <div class="form-group">
+          <label data-i18n="templates.name_label">Nombre</label>
+          <input type="text" id="templateName" class="form-control" placeholder="Ej: Cobro mensual" />
+        </div>
+        <div class="form-group">
+          <label data-i18n="templates.type_label">Tipo</label>
+          <select id="templateType" class="form-control">
+            <option value="cobro">Cobro / Recordatorio</option>
+            <option value="bienvenida">Bienvenida</option>
+            <option value="renovacion">Renovación</option>
+            <option value="custom">Personalizado</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label data-i18n="templates.message_label">Mensaje</label>
+          <textarea id="templateMessage" class="form-control" rows="5" placeholder="Hola {nombre}, tu suscripción de {plataforma} vence el {vencimiento}..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('templateModal')" data-i18n="modal.cancel">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveTemplate()">
+          <i class="fa-solid fa-floppy-disk"></i>
+          <span data-i18n="modal.save">Guardar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Historial de pagos de cliente -->
+  <div class="modal-overlay" id="historyModal">
+    <div class="modal" style="max-width: 620px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="clients.history">Historial de Pagos</span></h3>
+        <button class="modal-close" onclick="closeModal('historyModal')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="historyClientName" style="font-weight:600;font-size:1.1rem;margin-bottom:12px;"></div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="modal.payment_date">Fecha</th>
+                <th data-i18n="modal.amount">Monto</th>
+                <th data-i18n="modal.payment_method">Método</th>
+                <th data-i18n="modal.notes">Nota</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody">
+              <tr><td colspan="4" class="table-empty">Sin registros</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="historyTotal" style="text-align:right;font-weight:600;margin-top:12px;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('historyModal')" data-i18n="modal.close">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal: Confirmación de eliminación -->
   <div class="modal-overlay" id="confirmModal">
     <div class="modal" style="max-width: 400px;">
@@ -1427,6 +1687,9 @@
   <!-- ============================================================
        SCRIPTS
        ============================================================ -->
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
   <!-- Firebase SDK (v9 compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>

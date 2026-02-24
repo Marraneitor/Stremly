@@ -66,13 +66,41 @@ function renderDaysRemaining(days) {
   return `<span style="color: ${color}; font-weight: 600;">${days}</span>`;
 }
 
-// ── Formateo de moneda ──────────────────────────────────────
+// ── Formateo de moneda (multi-moneda) ───────────────────────
+const CURRENCY_MAP = {
+  COP: { locale: 'es-CO', currency: 'COP', fractions: 0 },
+  USD: { locale: 'en-US', currency: 'USD', fractions: 2 },
+  EUR: { locale: 'de-DE', currency: 'EUR', fractions: 2 },
+  MXN: { locale: 'es-MX', currency: 'MXN', fractions: 0 },
+  ARS: { locale: 'es-AR', currency: 'ARS', fractions: 0 },
+  BRL: { locale: 'pt-BR', currency: 'BRL', fractions: 2 },
+  PEN: { locale: 'es-PE', currency: 'PEN', fractions: 2 },
+  CLP: { locale: 'es-CL', currency: 'CLP', fractions: 0 }
+};
+
+function getSelectedCurrency() {
+  return localStorage.getItem('streamly_currency') || 'COP';
+}
+
+function setCurrency(code) {
+  localStorage.setItem('streamly_currency', code);
+  const sel = document.getElementById('currencySelect');
+  if (sel) sel.value = code;
+  // Refresh UI
+  if (typeof updateDashboard === 'function') updateDashboard();
+  if (typeof renderClientsTable === 'function') renderClientsTable();
+  if (typeof renderMovementsTable === 'function') renderMovementsTable();
+  if (typeof updateReports === 'function') updateReports();
+}
+
 function formatCurrency(amount) {
-  return new Intl.NumberFormat('es-CO', {
+  const code = getSelectedCurrency();
+  const cfg = CURRENCY_MAP[code] || CURRENCY_MAP.COP;
+  return new Intl.NumberFormat(cfg.locale, {
     style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+    currency: cfg.currency,
+    minimumFractionDigits: cfg.fractions,
+    maximumFractionDigits: cfg.fractions
   }).format(amount || 0);
 }
 
@@ -241,6 +269,10 @@ function navigateTo(section) {
     clientes: 'Clientes',
     movimientos: 'Movimientos',
     reportes: 'Reportes',
+    calendario: 'Calendario',
+    deudores: 'Deudores',
+    plantillas: 'Plantillas',
+    logs: 'Actividad',
     chatbot: 'Chatbot IA'
   };
   document.getElementById('pageTitle').textContent = titles[section] || section;
@@ -262,6 +294,20 @@ function navigateTo(section) {
   // Recargar movimientos al visitar la sección
   if (section === 'movimientos' && typeof loadMovements === 'function') {
     setTimeout(() => loadMovements(), 200);
+  }
+
+  // Render new sections on navigation
+  if (section === 'calendario' && typeof renderCalendar === 'function') {
+    setTimeout(() => renderCalendar(), 100);
+  }
+  if (section === 'deudores' && typeof renderDebtorsTable === 'function') {
+    setTimeout(() => renderDebtorsTable(), 100);
+  }
+  if (section === 'plantillas' && typeof renderTemplates === 'function') {
+    setTimeout(() => renderTemplates(), 100);
+  }
+  if (section === 'logs' && typeof renderActivityLogs === 'function') {
+    setTimeout(() => renderActivityLogs(), 100);
   }
 }
 
@@ -355,3 +401,151 @@ function openQuickAdd() {
 }
 
 console.log('🛠️ Utilidades cargadas');
+
+// ── Theme Toggle ────────────────────────────────────────────
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme') || 'dark';
+  const next = current === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('streamly_theme', next);
+  const icon = document.getElementById('themeIcon');
+  if (icon) {
+    icon.className = next === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+  }
+}
+
+function initTheme() {
+  const saved = localStorage.getItem('streamly_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+  const icon = document.getElementById('themeIcon');
+  if (icon) {
+    icon.className = saved === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+  }
+  // Init currency selector
+  const sel = document.getElementById('currencySelect');
+  if (sel) sel.value = getSelectedCurrency();
+}
+
+// ── CSV Export ───────────────────────────────────────────────
+function exportCSV(type) {
+  let rows = [];
+  let filename = '';
+
+  if (type === 'clientes' && typeof clientsData !== 'undefined') {
+    rows.push(['Nombre', 'WhatsApp', 'Plataforma', 'Perfil', 'Precio', 'Inicio', 'Vencimiento', 'Estado Pago']);
+    clientsData.forEach(c => {
+      rows.push([
+        c.nombre, c.whatsapp, c.plataforma || '', c.perfil_asignado,
+        c.precio || 0, c.fecha_inicio, c.fecha_fin, c.estado_pago || 'pendiente'
+      ]);
+    });
+    filename = `streamly_clientes_${new Date().toISOString().slice(0,10)}.csv`;
+  } else if (type === 'movimientos' && typeof movementsData !== 'undefined') {
+    rows.push(['Fecha', 'Cliente', 'Monto', 'Método', 'Nota']);
+    movementsData.forEach(m => {
+      const client = clientsData.find(c => c.id === m.cliente_id);
+      rows.push([
+        m.fecha, client?.nombre || m.cliente_id, m.monto || 0, m.metodo || '', m.nota || ''
+      ]);
+    });
+    filename = `streamly_movimientos_${new Date().toISOString().slice(0,10)}.csv`;
+  }
+
+  if (rows.length <= 1) {
+    showToast('No hay datos para exportar', 'warning');
+    return;
+  }
+
+  const csvContent = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(link.href);
+  if (typeof logActivity === 'function') logActivity('export', `Exportación CSV: ${type}`);
+  showToast('CSV descargado', 'success');
+}
+
+// ── PDF Export (simple HTML print) ──────────────────────────
+function exportPDF() {
+  const win = window.open('', '_blank');
+  const now = new Date().toLocaleDateString('es-ES', { year:'numeric', month:'long', day:'numeric' });
+
+  let html = `<!DOCTYPE html><html><head><title>Reporte Streamly</title>
+  <style>
+    body{font-family:Arial,sans-serif;padding:30px;color:#222;}
+    h1{color:#7c3aed;font-size:1.5rem;}
+    h2{font-size:1.1rem;margin-top:20px;color:#555;}
+    table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.85rem;}
+    th,td{border:1px solid #ddd;padding:6px 10px;text-align:left;}
+    th{background:#f3f3f8;font-weight:600;}
+    .highlight{color:#7c3aed;font-weight:700;}
+    @media print{body{padding:10px;} button{display:none;}}
+  </style></head><body>
+  <h1>📺 Streamly — Reporte</h1>
+  <p>Generado: ${now}</p>
+  <button onclick="window.print()" style="padding:8px 16px;background:#7c3aed;color:#fff;border:none;border-radius:8px;cursor:pointer;margin-bottom:16px;">Imprimir / Guardar PDF</button>`;
+
+  // Stats
+  if (typeof clientsData !== 'undefined') {
+    const active = clientsData.filter(c => daysRemaining(c.fecha_fin) > 0).length;
+    const expired = clientsData.filter(c => daysRemaining(c.fecha_fin) <= 0).length;
+    const income = movementsData.reduce((s, m) => s + (parseFloat(m.monto) || 0), 0);
+    html += `<h2>Resumen</h2><p>Clientes activos: <span class="highlight">${active}</span> | Vencidos: <span class="highlight">${expired}</span> | Ingresos totales: <span class="highlight">${formatCurrency(income)}</span></p>`;
+
+    // Clients table
+    html += `<h2>Clientes</h2><table><tr><th>Nombre</th><th>Plataforma</th><th>Perfil</th><th>Precio</th><th>Vencimiento</th><th>Estado</th></tr>`;
+    clientsData.forEach(c => {
+      const d = daysRemaining(c.fecha_fin);
+      const status = d <= 0 ? 'Vencido' : d <= 3 ? 'Por vencer' : 'Activo';
+      html += `<tr><td>${c.nombre}</td><td>${c.plataforma || ''}</td><td>${c.perfil_asignado || ''}</td><td>${formatCurrency(c.precio)}</td><td>${formatDate(c.fecha_fin)}</td><td>${status}</td></tr>`;
+    });
+    html += '</table>';
+
+    // Platform summary
+    const platforms = {};
+    clientsData.forEach(c => {
+      const p = c.plataforma || 'Otra';
+      if (!platforms[p]) platforms[p] = { total: 0, active: 0, income: 0 };
+      platforms[p].total++;
+      if (daysRemaining(c.fecha_fin) > 0) platforms[p].active++;
+      platforms[p].income += parseFloat(c.precio) || 0;
+    });
+    html += `<h2>Por Plataforma</h2><table><tr><th>Plataforma</th><th>Total</th><th>Activos</th><th>Ingresos</th></tr>`;
+    Object.entries(platforms).forEach(([p, v]) => {
+      html += `<tr><td>${p}</td><td>${v.total}</td><td>${v.active}</td><td>${formatCurrency(v.income)}</td></tr>`;
+    });
+    html += '</table>';
+  }
+
+  html += '</body></html>';
+  win.document.write(html);
+  win.document.close();
+  if (typeof logActivity === 'function') logActivity('export', 'Exportación PDF generada');
+}
+
+// ── Backup JSON ─────────────────────────────────────────────
+function exportBackupJSON() {
+  const backup = {
+    exportDate: new Date().toISOString(),
+    accounts: typeof accountsData !== 'undefined' ? accountsData : [],
+    clients: typeof clientsData !== 'undefined' ? clientsData : [],
+    movements: typeof movementsData !== 'undefined' ? movementsData : [],
+    templates: JSON.parse(localStorage.getItem('streamly_templates') || '[]'),
+    settings: {
+      currency: getSelectedCurrency(),
+      theme: localStorage.getItem('streamly_theme') || 'dark',
+      language: localStorage.getItem('streamly_lang') || 'es'
+    }
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `streamly_backup_${new Date().toISOString().slice(0,10)}.json`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+  if (typeof logActivity === 'function') logActivity('export', 'Backup JSON descargado');
+  showToast('Backup descargado', 'success');
+}
