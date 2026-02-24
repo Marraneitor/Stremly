@@ -117,6 +117,7 @@ En Vercel → tu proyecto → **Settings** → **Environment Variables**, agrega
 - `https://tu-dominio.vercel.app` → Debe mostrar la página de login
 - `https://tu-dominio.vercel.app/admin` → Panel de administración
 - `https://tu-dominio.vercel.app/api/firebase-config` → Debe devolver JSON con la config
+- `https://tu-dominio.vercel.app/api/health` → Debe devolver JSON con `buildId` y env vars (true/false)
 - `https://tu-dominio.vercel.app/api/chatbot` → Debe devolver error 405 (solo acepta POST)
 - `https://tu-dominio.vercel.app/api/create-checkout-session` → Debe devolver 405 (solo acepta POST)
 
