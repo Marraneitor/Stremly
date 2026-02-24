@@ -145,6 +145,49 @@ function updateSidebarAccountCard() {
     statBot.classList.toggle('bot-on', isOn);
     statBot.classList.toggle('bot-off', !isOn);
   }
+
+  // === Actualizar también la tarjeta del dashboard ===
+  updateDashboardAccountCard();
+}
+
+/**
+ * Actualizar tarjeta "Mi Cuenta" arriba del dashboard
+ */
+function updateDashboardAccountCard() {
+  const cfg = PLAN_CONFIG[currentPlan] || PLAN_CONFIG.free;
+
+  // Plan badge
+  const dashBadge = document.getElementById('dashPlanBadge');
+  const dashLabel = document.getElementById('dashPlanLabel');
+  const dashDetail = document.getElementById('dashPlanDetail');
+  if (dashBadge) {
+    dashBadge.className = 'dashboard-account-plan-badge badge-' + currentPlan;
+  }
+  if (dashLabel) dashLabel.textContent = cfg.label;
+  if (dashDetail) {
+    const maxC = cfg.maxClients === Infinity ? 'ilimitados' : cfg.maxClients;
+    dashDetail.textContent = `Plan actual · Hasta ${maxC} clientes`;
+  }
+
+  // Metrics
+  const mAccounts = document.getElementById('dashMetricAccounts');
+  const mProfiles = document.getElementById('dashMetricProfiles');
+  const mClients = document.getElementById('dashMetricClients');
+  const mBot = document.getElementById('dashMetricBot');
+
+  if (mAccounts) mAccounts.textContent = accountsData.length;
+  // Perfiles totales ocupados
+  const totalProfiles = accountsData.reduce((sum, a) => sum + (a.perfiles || 0), 0);
+  if (mProfiles) mProfiles.textContent = totalProfiles;
+  if (mClients) mClients.textContent = clientsData.length;
+
+  if (mBot) {
+    const botEnabledEl = document.getElementById('botEnabled');
+    const isOn = botEnabledEl && botEnabledEl.value === 'true';
+    mBot.textContent = isOn ? 'ON' : 'OFF';
+    mBot.classList.toggle('bot-on', isOn);
+    mBot.classList.toggle('bot-off', !isOn);
+  }
 }
 
 /**

@@ -3408,6 +3408,135 @@ input:checked + .slider::before {
 }
 .sidebar-account-card:hover {
   background: rgba(99,102,241,0.14);
+
+/* ── Dashboard Account Card (Mi Cuenta arriba del dashboard) ── */
+.dashboard-account-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 18px 24px;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, rgba(124,58,237,0.12), rgba(99,102,241,0.08));
+  border: 1px solid rgba(124,58,237,0.25);
+  border-radius: var(--radius-lg);
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.dashboard-account-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), #a855f7, var(--accent-light));
+}
+.dashboard-account-card:hover {
+  border-color: rgba(124,58,237,0.45);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(124,58,237,0.2);
+}
+
+.dashboard-account-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
+}
+.dashboard-account-plan-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: fit-content;
+}
+.dashboard-account-plan-badge.badge-free {
+  background: rgba(148,163,184,0.15);
+  color: #94a3b8;
+}
+.dashboard-account-plan-badge.badge-lite {
+  background: rgba(96,165,250,0.15);
+  color: #60a5fa;
+}
+.dashboard-account-plan-badge.badge-premium {
+  background: rgba(251,191,36,0.15);
+  color: #fbbf24;
+}
+.dashboard-account-detail {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.dashboard-account-right {
+  display: flex;
+  gap: 24px;
+  flex: 1;
+  justify-content: center;
+}
+.dashboard-account-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 60px;
+}
+.dashboard-account-metric-value {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+.dashboard-account-metric-label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-top: 2px;
+}
+
+.dashboard-bot-indicator {
+  font-size: 0.85rem !important;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.3px;
+}
+.dashboard-bot-indicator.bot-on {
+  color: #22c55e;
+  background: rgba(34,197,94,0.15);
+}
+.dashboard-bot-indicator.bot-off {
+  color: #ef4444;
+  background: rgba(239,68,68,0.12);
+}
+
+.dashboard-account-arrow {
+  color: var(--text-muted);
+  font-size: 1rem;
+  transition: transform 0.2s;
+}
+.dashboard-account-card:hover .dashboard-account-arrow {
+  color: var(--accent-light);
+  transform: translateX(3px);
+}
+
+@media (max-width: 768px) {
+  .dashboard-account-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 16px;
+  }
+  .dashboard-account-right {
+    justify-content: space-around;
+  }
+  .dashboard-account-arrow {
+    display: none;
+  }
+}
   border-color: rgba(99,102,241,0.4);
 }
 .sidebar-account-plan {

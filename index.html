@@ -1,12 +1,15 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Streamly — Iniciar Sesión</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📺</text></svg>">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Streamly â€” Iniciar SesiÃ³n</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>ðŸ“º</text></svg>">
 
-  <!-- Fuentes (swap para carga instantánea) -->
+  <!-- Fuentes (swap para carga instantÃ¡nea) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
@@ -22,7 +25,7 @@
   <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
 
   <!-- Estilos -->
-  <link rel="stylesheet" href="css/styles.css?v=2.1" />
+  <link rel="stylesheet" href="css/styles.css?v=2.2" />
 
   <style>
     /* Icono decorativo del login */
@@ -113,7 +116,7 @@
           <i class="fa-solid fa-bolt"></i>
         </div>
         <h1>Streamly</h1>
-        <p data-i18n="login.subtitle">Gestión de cuentas de streaming</p>
+        <p data-i18n="login.subtitle">GestiÃ³n de cuentas de streaming</p>
       </div>
 
       <!-- Error message -->
@@ -125,7 +128,7 @@
       <!-- Login Form -->
       <form id="loginForm" autocomplete="off">
         <div class="form-group">
-          <label for="loginEmail" data-i18n="login.email">Correo electrónico</label>
+          <label for="loginEmail" data-i18n="login.email">Correo electrÃ³nico</label>
           <input
             type="email"
             id="loginEmail"
@@ -138,13 +141,13 @@
         </div>
 
         <div class="form-group">
-          <label for="loginPassword" data-i18n="login.password">Contraseña</label>
+          <label for="loginPassword" data-i18n="login.password">ContraseÃ±a</label>
           <div class="form-group-password">
             <input
               type="password"
               id="loginPassword"
               class="form-control"
-              placeholder="••••••••"
+              placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
               required
               autocomplete="current-password"
             />
@@ -156,7 +159,7 @@
 
         <button type="submit" class="btn btn-primary btn-block btn-lg" id="loginBtn" data-i18n="login.submit">
           <i class="fa-solid fa-right-to-bracket"></i>
-          Iniciar Sesión
+          Iniciar SesiÃ³n
         </button>
       </form>
 
@@ -168,7 +171,7 @@
       </button>
 
       <div class="login-footer">
-        <span data-i18n="login.no_account">¿No tienes cuenta?</span> <a href="#" id="showRegister" data-i18n="login.register_link">Regístrate aquí</a>
+        <span data-i18n="login.no_account">Â¿No tienes cuenta?</span> <a href="#" id="showRegister" data-i18n="login.register_link">RegÃ­strate aquÃ­</a>
       </div>
     </div>
   </div>
@@ -205,7 +208,7 @@
         </div>
 
         <div class="form-group">
-          <label for="regEmail" data-i18n="login.email">Correo electrónico</label>
+          <label for="regEmail" data-i18n="login.email">Correo electrÃ³nico</label>
           <input
             type="email"
             id="regEmail"
@@ -218,13 +221,13 @@
         </div>
 
         <div class="form-group">
-          <label for="regPassword" data-i18n="login.password">Contraseña</label>
+          <label for="regPassword" data-i18n="login.password">ContraseÃ±a</label>
           <div class="form-group-password">
             <input
               type="password"
               id="regPassword"
               class="form-control"
-              placeholder="Mínimo 6 caracteres"
+              placeholder="MÃ­nimo 6 caracteres"
               data-i18n-ph="register.password_ph"
               required
               minlength="6"
@@ -250,7 +253,7 @@
       </button>
 
       <div class="login-footer">
-        <span data-i18n="register.has_account">¿Ya tienes cuenta?</span> <a href="#" id="showLogin" data-i18n="register.login_link">Inicia sesión</a>
+        <span data-i18n="register.has_account">Â¿Ya tienes cuenta?</span> <a href="#" id="showLogin" data-i18n="register.login_link">Inicia sesiÃ³n</a>
       </div>
     </div>
   </div>
@@ -266,7 +269,7 @@
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <h1><i class="fa-solid fa-bolt"></i> Streamly</h1>
-        <span data-i18n="sidebar.subtitle">Gestión Streaming</span>
+        <span data-i18n="sidebar.subtitle">GestiÃ³n Streaming</span>
       </div>
 
       <!-- Mi Cuenta Quick Info -->
@@ -362,7 +365,7 @@
         </div>
         <button class="btn-signout" onclick="signOut()" data-i18n="sidebar.logout">
           <i class="fa-solid fa-arrow-right-from-bracket"></i>
-          Cerrar Sesión
+          Cerrar SesiÃ³n
         </button>
       </div>
     </aside>
@@ -387,16 +390,16 @@
             </button>
             <div id="langDropdown" class="lang-dropdown">
               <button class="lang-option active" data-lang="es" onclick="setLanguage('es')">
-                🇲🇽 Español
+                ðŸ‡²ðŸ‡½ EspaÃ±ol
               </button>
               <button class="lang-option" data-lang="en" onclick="setLanguage('en')">
-                🇺🇸 English
+                ðŸ‡ºðŸ‡¸ English
               </button>
               <button class="lang-option" data-lang="pt" onclick="setLanguage('pt')">
-                🇧🇷 Português
+                ðŸ‡§ðŸ‡· PortuguÃªs
               </button>
               <button class="lang-option" data-lang="fr" onclick="setLanguage('fr')">
-                🇫🇷 Français
+                ðŸ‡«ðŸ‡· FranÃ§ais
               </button>
             </div>
           </div>
@@ -405,7 +408,7 @@
             <select id="currencySelect" onchange="setCurrency(this.value)" class="currency-select">
               <option value="COP">COP $</option>
               <option value="USD">USD $</option>
-              <option value="EUR">EUR €</option>
+              <option value="EUR">EUR â‚¬</option>
               <option value="MXN">MXN $</option>
               <option value="ARS">ARS $</option>
               <option value="BRL">BRL R$</option>
@@ -429,6 +432,39 @@
       <div class="page-content">
         <!-- ==================== DASHBOARD ==================== -->
         <div class="section active" id="section-dashboard">
+
+          <!-- Mi Cuenta - Dashboard Card -->
+          <div class="dashboard-account-card" id="dashboardAccountCard" onclick="navigateTo('plan')" style="cursor:pointer;">
+            <div class="dashboard-account-left">
+              <div class="dashboard-account-plan-badge" id="dashPlanBadge">
+                <i class="fa-solid fa-crown"></i>
+                <span id="dashPlanLabel">Free</span>
+              </div>
+              <div class="dashboard-account-detail" id="dashPlanDetail">Plan actual &middot; Hasta 20 clientes</div>
+            </div>
+            <div class="dashboard-account-right">
+              <div class="dashboard-account-metric">
+                <span class="dashboard-account-metric-value" id="dashMetricAccounts">0</span>
+                <span class="dashboard-account-metric-label">Cuentas</span>
+              </div>
+              <div class="dashboard-account-metric">
+                <span class="dashboard-account-metric-value" id="dashMetricProfiles">0</span>
+                <span class="dashboard-account-metric-label">Perfiles</span>
+              </div>
+              <div class="dashboard-account-metric">
+                <span class="dashboard-account-metric-value" id="dashMetricClients">0</span>
+                <span class="dashboard-account-metric-label">Clientes</span>
+              </div>
+              <div class="dashboard-account-metric">
+                <span class="dashboard-account-metric-value dashboard-bot-indicator" id="dashMetricBot">OFF</span>
+                <span class="dashboard-account-metric-label">Chatbot</span>
+              </div>
+            </div>
+            <div class="dashboard-account-arrow">
+              <i class="fa-solid fa-chevron-right"></i>
+            </div>
+          </div>
+
           <!-- Stats Cards -->
           <div class="stats-grid" id="statsGrid">
             <div class="stat-card">
@@ -478,7 +514,7 @@
                 </div>
               </div>
               <div class="stat-card-value" id="statExpiringSoon">0</div>
-              <div class="stat-card-label" data-i18n="dash.expiring_soon">Vence en ≤ 3 días</div>
+              <div class="stat-card-label" data-i18n="dash.expiring_soon">Vence en â‰¤ 3 dÃ­as</div>
             </div>
           </div>
 
@@ -493,7 +529,7 @@
               <canvas id="chartClients" height="220"></canvas>
             </div>
             <div class="chart-card">
-              <h4><i class="fa-solid fa-tv"></i> <span data-i18n="dash.platform_chart">Ocupación por Plataforma</span></h4>
+              <h4><i class="fa-solid fa-tv"></i> <span data-i18n="dash.platform_chart">OcupaciÃ³n por Plataforma</span></h4>
               <canvas id="chartPlatforms" height="220"></canvas>
             </div>
           </div>
@@ -541,7 +577,7 @@
           <!-- Recent Clients Table -->
           <div class="table-container">
             <div class="table-header">
-              <h3 data-i18n="dash.expiring_title"><i class="fa-solid fa-clock-rotate-left"></i> Clientes Próximos a Vencer</h3>
+              <h3 data-i18n="dash.expiring_title"><i class="fa-solid fa-clock-rotate-left"></i> Clientes PrÃ³ximos a Vencer</h3>
             </div>
             <div class="table-wrapper">
               <table>
@@ -551,7 +587,7 @@
                     <th data-i18n="th.platform">Plataforma</th>
                     <th data-i18n="th.profile">Perfil</th>
                     <th data-i18n="th.expiry">Vencimiento</th>
-                    <th data-i18n="th.days_left">Días Rest.</th>
+                    <th data-i18n="th.days_left">DÃ­as Rest.</th>
                     <th data-i18n="th.status">Estado</th>
                     <th data-i18n="th.actions">Acciones</th>
                   </tr>
@@ -560,7 +596,7 @@
                   <tr>
                     <td colspan="7" class="table-empty">
                       <i class="fa-solid fa-inbox"></i>
-                      <p data-i18n="dash.no_clients">No hay clientes registrados aún</p>
+                      <p data-i18n="dash.no_clients">No hay clientes registrados aÃºn</p>
                     </td>
                   </tr>
                 </tbody>
@@ -593,8 +629,8 @@
                     <th data-i18n="th.credentials">Credenciales</th>
                     <th data-i18n="th.profiles">Perfiles</th>
                     <th data-i18n="th.price_profile">$/Perfil</th>
-                    <th data-i18n="th.master_expiry">Vencimiento Máster</th>
-                    <th data-i18n="th.days_left">Días Rest.</th>
+                    <th data-i18n="th.master_expiry">Vencimiento MÃ¡ster</th>
+                    <th data-i18n="th.days_left">DÃ­as Rest.</th>
                     <th data-i18n="th.status">Estado</th>
                     <th data-i18n="th.actions">Acciones</th>
                   </tr>
@@ -626,7 +662,7 @@
                   <tr>
                     <th data-i18n="th.number">#</th>
                     <th data-i18n="th.client">Cliente</th>
-                    <th data-i18n="th.phone">Teléfono</th>
+                    <th data-i18n="th.phone">TelÃ©fono</th>
                     <th data-i18n="th.platform">Plataforma</th>
                     <th data-i18n="th.qty">Cant.</th>
                     <th data-i18n="th.date">Fecha</th>
@@ -671,7 +707,7 @@
                     <th data-i18n="th.price">Precio</th>
                     <th data-i18n="th.start">Inicio</th>
                     <th data-i18n="th.end">Fin</th>
-                    <th data-i18n="th.days_left">Días Rest.</th>
+                    <th data-i18n="th.days_left">DÃ­as Rest.</th>
                     <th data-i18n="th.status">Estado</th>
                     <th data-i18n="th.payment">Pago</th>
                     <th data-i18n="th.actions">Acciones</th>
@@ -713,7 +749,7 @@
                     <th data-i18n="th.date">Fecha</th>
                     <th data-i18n="th.client">Cliente</th>
                     <th data-i18n="th.amount">Monto</th>
-                    <th data-i18n="th.method">Método</th>
+                    <th data-i18n="th.method">MÃ©todo</th>
                     <th data-i18n="th.note">Nota</th>
                     <th data-i18n="th.actions">Acciones</th>
                   </tr>
@@ -777,7 +813,7 @@
                     <th data-i18n="th.client">Cliente</th>
                     <th data-i18n="th.platform">Plataforma</th>
                     <th data-i18n="th.expiry">Vencimiento</th>
-                    <th data-i18n="debtors.days_overdue">Días de Mora</th>
+                    <th data-i18n="debtors.days_overdue">DÃ­as de Mora</th>
                     <th data-i18n="th.price">Precio</th>
                     <th data-i18n="th.payment">Pago</th>
                     <th data-i18n="th.actions">Acciones</th>
@@ -787,7 +823,7 @@
                   <tr>
                     <td colspan="7" class="table-empty">
                       <i class="fa-solid fa-face-smile"></i>
-                      <p data-i18n="debtors.empty">¡No hay deudores! Todos al día</p>
+                      <p data-i18n="debtors.empty">Â¡No hay deudores! Todos al dÃ­a</p>
                     </td>
                   </tr>
                 </tbody>
@@ -853,7 +889,7 @@
                 </div>
               </div>
               <div class="stat-card-value" id="reportOccupancy">0%</div>
-              <div class="stat-card-label" data-i18n="reports.occupancy">Ocupación de Perfiles</div>
+              <div class="stat-card-label" data-i18n="reports.occupancy">OcupaciÃ³n de Perfiles</div>
             </div>
             <div class="stat-card">
               <div class="stat-card-header">
@@ -861,7 +897,7 @@
                   <i class="fa-solid fa-ranking-star"></i>
                 </div>
               </div>
-              <div class="stat-card-value" id="reportTopPlatform">—</div>
+              <div class="stat-card-value" id="reportTopPlatform">â€”</div>
               <div class="stat-card-label" data-i18n="reports.top_platform">Plataforma Top</div>
             </div>
           </div>
@@ -891,7 +927,7 @@
                     <th data-i18n="th.total_profiles">Perfiles Totales</th>
                     <th data-i18n="th.occupied">Perfiles Ocupados</th>
                     <th data-i18n="th.available">Disponibles</th>
-                    <th data-i18n="th.occupancy">Ocupación</th>
+                    <th data-i18n="th.occupancy">OcupaciÃ³n</th>
                   </tr>
                 </thead>
                 <tbody id="reportTableBody">
@@ -940,10 +976,10 @@
             </div>
           </div>
 
-          <!-- Configuración del Contexto -->
+          <!-- ConfiguraciÃ³n del Contexto -->
           <div class="table-container">
             <div class="table-header">
-              <h3 data-i18n="bot.config_title"><i class="fa-solid fa-wand-magic-sparkles"></i> Configuración del Chatbot</h3>
+              <h3 data-i18n="bot.config_title"><i class="fa-solid fa-wand-magic-sparkles"></i> ConfiguraciÃ³n del Chatbot</h3>
             </div>
             <div style="padding: 20px;">
               <form id="chatbotConfigForm" onsubmit="saveChatbotConfig(event)">
@@ -951,34 +987,34 @@
                 <div class="form-group">
                   <label for="botContext"><i class="fa-solid fa-brain"></i> Contexto del Bot</label>
                   <div class="bot-context-help">
-                    <p><i class="fa-solid fa-circle-info"></i> Escribe aquí TODO lo que el bot necesita saber para atender a tus clientes. Entre más detallado sea, mejor atenderá.</p>
+                    <p><i class="fa-solid fa-circle-info"></i> Escribe aquÃ­ TODO lo que el bot necesita saber para atender a tus clientes. Entre mÃ¡s detallado sea, mejor atenderÃ¡.</p>
                   </div>
                   <textarea id="botContext" class="form-control" rows="14" placeholder="Ejemplo:
 
-🏪 PRESENTACIÓN:
-Soy StreamPlus, un asistente de ventas de cuentas de streaming. Me presento de forma amigable y uso emojis con moderación. Mi horario de atención es 24/7.
+ðŸª PRESENTACIÃ“N:
+Soy StreamPlus, un asistente de ventas de cuentas de streaming. Me presento de forma amigable y uso emojis con moderaciÃ³n. Mi horario de atenciÃ³n es 24/7.
 
-📋 DATOS QUE DEBO PEDIR AL CLIENTE:
+ðŸ“‹ DATOS QUE DEBO PEDIR AL CLIENTE:
 - Nombre completo
-- Número de WhatsApp
-- Qué plataforma/cuenta desea
+- NÃºmero de WhatsApp
+- QuÃ© plataforma/cuenta desea
 
-💰 PRECIOS DE PERFILES:
+ðŸ’° PRECIOS DE PERFILES:
 - Netflix: $50/mes
 - Disney+: $35/mes
 - Spotify: $25/mes
 - HBO Max: $40/mes
 - Amazon Prime: $30/mes
 
-👋 MENSAJE DE BIENVENIDA: 
-¡Hola! 👋 Bienvenido a StreamPlus. Tenemos los mejores precios en cuentas de streaming. ¿En qué te puedo ayudar?
+ðŸ‘‹ MENSAJE DE BIENVENIDA: 
+Â¡Hola! ðŸ‘‹ Bienvenido a StreamPlus. Tenemos los mejores precios en cuentas de streaming. Â¿En quÃ© te puedo ayudar?
 
-⚠️ SI NO SÉ RESPONDER: 
-Disculpa, no tengo esa información. Un agente te atenderá pronto.
+âš ï¸ SI NO SÃ‰ RESPONDER: 
+Disculpa, no tengo esa informaciÃ³n. Un agente te atenderÃ¡ pronto.
 
-📝 INSTRUCCIONES ADICIONALES:
-- No compartir contraseñas ni credenciales
-- Ser breve y directo (máximo 3-4 líneas por mensaje)
+ðŸ“ INSTRUCCIONES ADICIONALES:
+- No compartir contraseÃ±as ni credenciales
+- Ser breve y directo (mÃ¡ximo 3-4 lÃ­neas por mensaje)
 - Si el cliente confirma la compra, pedir sus datos para procesar el pedido"></textarea>
                   <button type="button" class="btn btn-ai-improve" onclick="improveContextWithAI()" id="btnImproveContext">
                     <i class="fa-solid fa-wand-magic-sparkles"></i> Mejorar con IA
@@ -994,7 +1030,7 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
                     </select>
                   </div>
                   <div class="form-group">
-                    <label for="botMaxTokens" data-i18n="bot.max_tokens"><i class="fa-solid fa-gauge"></i> Largo máximo de respuesta</label>
+                    <label for="botMaxTokens" data-i18n="bot.max_tokens"><i class="fa-solid fa-gauge"></i> Largo mÃ¡ximo de respuesta</label>
                     <select id="botMaxTokens" class="form-control">
                       <option value="256" data-i18n="bot.tokens_short">Corta (256 tokens)</option>
                       <option value="512" selected data-i18n="bot.tokens_medium">Media (512 tokens)</option>
@@ -1005,7 +1041,7 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
 
                 <div style="display: flex; gap: 12px; margin-top: 16px;">
                   <button type="submit" class="btn btn-primary" data-i18n="bot.save_config">
-                    <i class="fa-solid fa-floppy-disk"></i> Guardar Configuración
+                    <i class="fa-solid fa-floppy-disk"></i> Guardar ConfiguraciÃ³n
                   </button>
                   <button type="button" class="btn btn-secondary" onclick="testChatbot()" data-i18n="bot.test_bot">
                     <i class="fa-solid fa-flask"></i> Probar Bot
@@ -1015,10 +1051,10 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
             </div>
           </div>
 
-          <!-- Conexión WhatsApp -->
+          <!-- ConexiÃ³n WhatsApp -->
           <div class="table-container" style="margin-top: 20px;">
             <div class="table-header">
-              <h3 data-i18n="wa.title"><i class="fa-brands fa-whatsapp"></i> Conexión WhatsApp</h3>
+              <h3 data-i18n="wa.title"><i class="fa-brands fa-whatsapp"></i> ConexiÃ³n WhatsApp</h3>
               <div class="table-actions">
                 <div class="bot-status-bar-mini">
                   <div class="bot-status-indicator disconnected" id="botStatusDot"></div>
@@ -1029,13 +1065,13 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
             <div style="padding: 20px;">
               <div class="bot-connection-panel">
 
-                <!-- Estado inicial: conectando automáticamente -->
+                <!-- Estado inicial: conectando automÃ¡ticamente -->
                 <div class="bot-auto-connecting" id="botAutoConnecting" style="display:none;">
                   <div class="bot-loading-spinner"><i class="fa-solid fa-spinner fa-spin-pulse" style="font-size:2rem; color:var(--accent-light);"></i></div>
                   <p style="color:var(--text-muted); margin:12px 0 0; text-align:center;" data-i18n="wa.connecting">Conectando al servidor del bot...</p>
                 </div>
 
-                <!-- Estado inactivo: esperando conexión -->
+                <!-- Estado inactivo: esperando conexiÃ³n -->
                 <div class="bot-connection-error" id="botConnectionError">
                   <div style="text-align:center; padding:20px;">
                     <i class="fa-brands fa-whatsapp" style="font-size:2.5rem; color:var(--text-muted); margin-bottom:12px;"></i>
@@ -1066,14 +1102,14 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
                     <i class="fa-brands fa-whatsapp" style="font-size:1.5rem; color:var(--whatsapp);"></i>
                     <div>
                       <h4 style="margin:0; color:var(--text-primary); font-size:1rem;" data-i18n="wa.link_title">Vincula tu WhatsApp</h4>
-                      <p style="margin:0; color:var(--text-muted); font-size:0.8rem;" data-i18n="wa.link_desc">Escanea el código QR para activar el bot</p>
+                      <p style="margin:0; color:var(--text-muted); font-size:0.8rem;" data-i18n="wa.link_desc">Escanea el cÃ³digo QR para activar el bot</p>
                     </div>
                   </div>
                   <div class="bot-qr-code" id="botQrCode"></div>
                   <div class="bot-qr-steps">
-                    <div class="bot-qr-step" data-i18n="wa.step1" data-i18n-html><span>1</span> Abre <strong>WhatsApp</strong> en tu teléfono</div>
+                    <div class="bot-qr-step" data-i18n="wa.step1" data-i18n-html><span>1</span> Abre <strong>WhatsApp</strong> en tu telÃ©fono</div>
                     <div class="bot-qr-step" data-i18n="wa.step2" data-i18n-html><span>2</span> Toca <strong>Dispositivos vinculados</strong></div>
-                    <div class="bot-qr-step" data-i18n="wa.step3" data-i18n-html><span>3</span> Escanea este <strong>código QR</strong></div>
+                    <div class="bot-qr-step" data-i18n="wa.step3" data-i18n-html><span>3</span> Escanea este <strong>cÃ³digo QR</strong></div>
                   </div>
                   <button class="btn btn-sm" onclick="resetBotSession()" id="botResetQrBtn" style="margin-top:12px; background: var(--bg-secondary); color: var(--text-muted); border: 1px solid var(--border-color);" data-i18n="wa.new_qr">
                     <i class="fa-solid fa-rotate"></i> Generar nuevo QR
@@ -1086,7 +1122,7 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
                     <i class="fa-brands fa-whatsapp"></i>
                   </div>
                   <h4 data-i18n="wa.connected_title">Bot conectado y activo</h4>
-                  <p id="botPhoneNumber" data-i18n="wa.connected_desc">Respondiendo mensajes automáticamente</p>
+                  <p id="botPhoneNumber" data-i18n="wa.connected_desc">Respondiendo mensajes automÃ¡ticamente</p>
                   <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
                     <button class="btn btn-sm" id="botPauseBtn" onclick="toggleGlobalPause()" style="background: var(--warning); color: #000;" data-i18n="wa.pause">
                       <i class="fa-solid fa-pause"></i> Pausar Respuestas
@@ -1109,10 +1145,10 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
             </div>
           </div>
 
-          <!-- Ajustes de Mensajería -->
+          <!-- Ajustes de MensajerÃ­a -->
           <div class="table-container" style="margin-top: 20px;">
             <div class="table-header">
-              <h3 data-i18n="filters.title"><i class="fa-solid fa-filter"></i> Filtros de Mensajería</h3>
+              <h3 data-i18n="filters.title"><i class="fa-solid fa-filter"></i> Filtros de MensajerÃ­a</h3>
             </div>
             <div style="padding: 20px;">
               <div class="bot-settings-grid">
@@ -1121,7 +1157,7 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
                     <i class="fa-solid fa-people-group"></i>
                     <div>
                       <strong data-i18n="filters.groups">Grupos de WhatsApp</strong>
-                      <small data-i18n="filters.groups_desc">Responder automáticamente en grupos</small>
+                      <small data-i18n="filters.groups_desc">Responder automÃ¡ticamente en grupos</small>
                     </div>
                   </div>
                   <label class="switch">
@@ -1147,7 +1183,7 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
                     <i class="fa-solid fa-user-question"></i>
                     <div>
                       <strong data-i18n="filters.unsaved">Contactos No Guardados</strong>
-                      <small data-i18n="filters.unsaved_desc">Responder a números desconocidos</small>
+                      <small data-i18n="filters.unsaved_desc">Responder a nÃºmeros desconocidos</small>
                     </div>
                   </div>
                   <label class="switch">
@@ -1169,7 +1205,7 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
             </div>
             <div style="padding: 20px;">
               <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 12px;" data-i18n="inventory.desc">
-                El bot ofrecerá automáticamente solo las plataformas con disponibilidad. No compartirá credenciales hasta confirmar pago.
+                El bot ofrecerÃ¡ automÃ¡ticamente solo las plataformas con disponibilidad. No compartirÃ¡ credenciales hasta confirmar pago.
               </p>
               <div id="availableAccountsList" class="available-accounts-grid">
                 <div style="text-align: center; color: var(--text-muted); padding: 20px;">
@@ -1214,11 +1250,11 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
                   </div>
                   <div class="scheduled-form-row">
                     <div class="scheduled-form-field" style="flex:1;">
-                      <label data-i18n="sched.datetime"><i class="fa-regular fa-calendar"></i> Fecha y hora de envío</label>
+                      <label data-i18n="sched.datetime"><i class="fa-regular fa-calendar"></i> Fecha y hora de envÃ­o</label>
                       <input type="datetime-local" id="scheduledDateTime" />
                     </div>
                     <div class="scheduled-form-field" style="flex:1;">
-                      <label data-i18n="sched.send_type"><i class="fa-solid fa-repeat"></i> Tipo de envío</label>
+                      <label data-i18n="sched.send_type"><i class="fa-solid fa-repeat"></i> Tipo de envÃ­o</label>
                       <select id="scheduledType" onchange="toggleRecurringOptions()">
                         <option value="once" data-i18n="sched.once">Una sola vez</option>
                         <option value="recurring" data-i18n="sched.recurring">Repetir cada X tiempo</option>
@@ -1235,7 +1271,7 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
                       <select id="scheduledIntervalUnit">
                         <option value="minutes" data-i18n="sched.minutes">Minutos</option>
                         <option value="hours" data-i18n="sched.hours">Horas</option>
-                        <option value="days" data-i18n="sched.days">Días</option>
+                        <option value="days" data-i18n="sched.days">DÃ­as</option>
                       </select>
                     </div>
                   </div>
@@ -1267,15 +1303,15 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
               <div class="conv-list" id="convList">
                 <div class="conv-list-empty">
                   <i class="fa-solid fa-inbox"></i>
-                  <p data-i18n="conv.empty">Sin conversaciones aún</p>
-                  <small data-i18n="conv.empty_desc">Los chats aparecerán aquí cuando lleguen mensajes</small>
+                  <p data-i18n="conv.empty">Sin conversaciones aÃºn</p>
+                  <small data-i18n="conv.empty_desc">Los chats aparecerÃ¡n aquÃ­ cuando lleguen mensajes</small>
                 </div>
               </div>
               <!-- Vista del chat -->
               <div class="conv-chat" id="convChat">
                 <div class="conv-chat-placeholder">
                   <i class="fa-solid fa-message"></i>
-                  <p data-i18n="conv.select">Selecciona una conversación</p>
+                  <p data-i18n="conv.select">Selecciona una conversaciÃ³n</p>
                   <small data-i18n="conv.select_desc">Haz clic en un chat para ver los mensajes y responder</small>
                 </div>
                 <!-- Header del chat (oculto inicialmente) -->
@@ -1285,8 +1321,8 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
                       <i class="fa-solid fa-user"></i>
                     </div>
                     <div>
-                      <strong id="convChatName">—</strong>
-                      <small id="convChatPhone">—</small>
+                      <strong id="convChatName">â€”</strong>
+                      <small id="convChatPhone">â€”</small>
                     </div>
                   </div>
                   <div class="conv-chat-header-actions">
@@ -1360,7 +1396,7 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
                 <ul class="pricing-features">
                   <li class="included"><i class="fa-solid fa-check"></i> Hasta 20 clientes</li>
                   <li class="included"><i class="fa-solid fa-check"></i> Dashboard</li>
-                  <li class="included"><i class="fa-solid fa-check"></i> Gestión de cuentas</li>
+                  <li class="included"><i class="fa-solid fa-check"></i> GestiÃ³n de cuentas</li>
                   <li class="included"><i class="fa-solid fa-check"></i> Movimientos</li>
                   <li class="excluded"><i class="fa-solid fa-xmark"></i> Reportes</li>
                   <li class="excluded"><i class="fa-solid fa-xmark"></i> Calendario</li>
@@ -1386,7 +1422,7 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
                 <ul class="pricing-features">
                   <li class="included"><i class="fa-solid fa-check"></i> Hasta 49 clientes</li>
                   <li class="included"><i class="fa-solid fa-check"></i> Dashboard</li>
-                  <li class="included"><i class="fa-solid fa-check"></i> Gestión de cuentas</li>
+                  <li class="included"><i class="fa-solid fa-check"></i> GestiÃ³n de cuentas</li>
                   <li class="included"><i class="fa-solid fa-check"></i> Movimientos</li>
                   <li class="included"><i class="fa-solid fa-check"></i> Reportes</li>
                   <li class="included"><i class="fa-solid fa-check"></i> Calendario</li>
@@ -1413,7 +1449,7 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
                 <ul class="pricing-features">
                   <li class="included"><i class="fa-solid fa-check"></i> Clientes ilimitados (+50)</li>
                   <li class="included"><i class="fa-solid fa-check"></i> Dashboard</li>
-                  <li class="included"><i class="fa-solid fa-check"></i> Gestión de cuentas</li>
+                  <li class="included"><i class="fa-solid fa-check"></i> GestiÃ³n de cuentas</li>
                   <li class="included"><i class="fa-solid fa-check"></i> Movimientos</li>
                   <li class="included"><i class="fa-solid fa-check"></i> Reportes</li>
                   <li class="included"><i class="fa-solid fa-check"></i> Calendario</li>
@@ -1438,7 +1474,7 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
   <div class="modal-overlay" id="upgradePlanModal">
     <div class="modal" style="max-width: 440px;">
       <div class="modal-header">
-        <h3><i class="fa-solid fa-lock"></i> Función Premium</h3>
+        <h3><i class="fa-solid fa-lock"></i> FunciÃ³n Premium</h3>
         <button class="modal-close" onclick="closeModal('upgradePlanModal')">
           <i class="fa-solid fa-xmark"></i>
         </button>
@@ -1448,7 +1484,7 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
           <i class="fa-solid fa-crown" style="color: #f59e0b;"></i>
         </div>
         <h3 id="upgradeModalTitle" style="margin-bottom: 8px;">Mejora tu plan</h3>
-        <p id="upgradeModalMsg" style="color: var(--text-muted); margin-bottom: 20px;">Esta función no está disponible en tu plan actual.</p>
+        <p id="upgradeModalMsg" style="color: var(--text-muted); margin-bottom: 20px;">Esta funciÃ³n no estÃ¡ disponible en tu plan actual.</p>
         <button class="btn pricing-btn pricing-btn-premium" onclick="closeModal('upgradePlanModal'); navigateTo('plan');" style="width: 100%;">
           <i class="fa-solid fa-crown"></i> Ver Planes
         </button>
@@ -1498,8 +1534,8 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
               <input type="email" id="accountEmail" class="form-control" placeholder="cuenta@email.com" data-i18n-ph="modal.account_email_ph" required />
             </div>
             <div class="form-group">
-              <label for="accountPassword" data-i18n="modal.account_password">Contraseña</label>
-              <input type="text" id="accountPassword" class="form-control" placeholder="contraseña123" data-i18n-ph="modal.account_password_ph" required />
+              <label for="accountPassword" data-i18n="modal.account_password">ContraseÃ±a</label>
+              <input type="text" id="accountPassword" class="form-control" placeholder="contraseÃ±a123" data-i18n-ph="modal.account_password_ph" required />
             </div>
           </div>
 
@@ -1509,7 +1545,7 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
               <input type="number" id="accountProfiles" class="form-control" placeholder="5" min="1" max="10" required />
             </div>
             <div class="form-group">
-              <label for="accountExpiry" data-i18n="modal.master_expiry">Vencimiento máster</label>
+              <label for="accountExpiry" data-i18n="modal.master_expiry">Vencimiento mÃ¡ster</label>
               <input type="date" id="accountExpiry" class="form-control" required />
             </div>
           </div>
@@ -1551,7 +1587,7 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
           <div class="form-row">
             <div class="form-group">
               <label for="clientName" data-i18n="modal.full_name">Nombre completo</label>
-              <input type="text" id="clientName" class="form-control" placeholder="Juan Pérez" data-i18n-ph="modal.full_name_ph" required />
+              <input type="text" id="clientName" class="form-control" placeholder="Juan PÃ©rez" data-i18n-ph="modal.full_name_ph" required />
             </div>
             <div class="form-group">
               <label for="clientWhatsapp">WhatsApp</label>
@@ -1649,9 +1685,9 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
           </div>
 
           <div class="form-group">
-            <label for="movementMethod" data-i18n="modal.payment_method">Método de pago</label>
+            <label for="movementMethod" data-i18n="modal.payment_method">MÃ©todo de pago</label>
             <select id="movementMethod" class="form-control" required>
-              <option value="" data-i18n="modal.select_method">Seleccionar método...</option>
+              <option value="" data-i18n="modal.select_method">Seleccionar mÃ©todo...</option>
               <option value="Efectivo" data-i18n="modal.cash">Efectivo</option>
               <option value="Transferencia" data-i18n="modal.transfer">Transferencia</option>
               <option value="Nequi">Nequi</option>
@@ -1702,7 +1738,7 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
             <input type="datetime-local" id="editSchedDateTime" class="form-control" />
           </div>
           <div class="form-group">
-            <label data-i18n="sched.send_type"><i class="fa-solid fa-repeat"></i> Tipo de envío</label>
+            <label data-i18n="sched.send_type"><i class="fa-solid fa-repeat"></i> Tipo de envÃ­o</label>
             <select id="editSchedType" class="form-control" onchange="toggleEditRecurringOptions()">
               <option value="once" data-i18n="sched.once">Una sola vez</option>
               <option value="recurring" data-i18n="sched.recurring">Repetir</option>
@@ -1719,7 +1755,7 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
             <select id="editSchedIntervalUnit" class="form-control">
               <option value="minutes" data-i18n="sched.minutes">Minutos</option>
               <option value="hours" data-i18n="sched.hours">Horas</option>
-              <option value="days" data-i18n="sched.days">Días</option>
+              <option value="days" data-i18n="sched.days">DÃ­as</option>
             </select>
           </div>
         </div>
@@ -1754,13 +1790,13 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
           <select id="templateType" class="form-control">
             <option value="cobro">Cobro / Recordatorio</option>
             <option value="bienvenida">Bienvenida</option>
-            <option value="renovacion">Renovación</option>
+            <option value="renovacion">RenovaciÃ³n</option>
             <option value="custom">Personalizado</option>
           </select>
         </div>
         <div class="form-group">
           <label data-i18n="templates.message_label">Mensaje</label>
-          <textarea id="templateMessage" class="form-control" rows="5" placeholder="Hola {nombre}, tu suscripción de {plataforma} vence el {vencimiento}..."></textarea>
+          <textarea id="templateMessage" class="form-control" rows="5" placeholder="Hola {nombre}, tu suscripciÃ³n de {plataforma} vence el {vencimiento}..."></textarea>
         </div>
       </div>
       <div class="modal-footer">
@@ -1790,7 +1826,7 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
               <tr>
                 <th data-i18n="modal.payment_date">Fecha</th>
                 <th data-i18n="modal.amount">Monto</th>
-                <th data-i18n="modal.payment_method">Método</th>
+                <th data-i18n="modal.payment_method">MÃ©todo</th>
                 <th data-i18n="modal.notes">Nota</th>
               </tr>
             </thead>
@@ -1807,11 +1843,11 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
     </div>
   </div>
 
-  <!-- Modal: Detalle del día del calendario -->
+  <!-- Modal: Detalle del dÃ­a del calendario -->
   <div class="modal-overlay" id="calendarDayModal">
     <div class="modal" style="max-width: 580px;">
       <div class="modal-header">
-        <h3 id="calendarDayModalTitle"><i class="fa-solid fa-calendar-day"></i> Detalle del día</h3>
+        <h3 id="calendarDayModalTitle"><i class="fa-solid fa-calendar-day"></i> Detalle del dÃ­a</h3>
         <button class="modal-close" onclick="closeModal('calendarDayModal')">
           <i class="fa-solid fa-xmark"></i>
         </button>
@@ -1824,7 +1860,7 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
     </div>
   </div>
 
-  <!-- Modal: Confirmación de eliminación -->
+  <!-- Modal: ConfirmaciÃ³n de eliminaciÃ³n -->
   <div class="modal-overlay" id="confirmModal">
     <div class="modal" style="max-width: 400px;">
       <div class="modal-header">
@@ -1836,8 +1872,8 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
       <div class="modal-body">
         <div class="confirm-dialog">
           <i class="fa-solid fa-trash-can"></i>
-          <h4 id="confirmTitle" data-i18n="modal.confirm_delete">¿Eliminar este registro?</h4>
-          <p id="confirmMessage" data-i18n="modal.confirm_msg">Esta acción no se puede deshacer.</p>
+          <h4 id="confirmTitle" data-i18n="modal.confirm_delete">Â¿Eliminar este registro?</h4>
+          <p id="confirmMessage" data-i18n="modal.confirm_msg">Esta acciÃ³n no se puede deshacer.</p>
         </div>
       </div>
       <div class="modal-footer">
@@ -1856,7 +1892,7 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
   <!-- ============================================================
        SCRIPTS
        ============================================================ -->
-  <!-- Chart.js (lazy — se carga después del render inicial) -->
+  <!-- Chart.js (lazy â€” se carga despuÃ©s del render inicial) -->
   <script>
     // Lazy load Chart.js solo cuando se necesite
     window._chartLoaded = false;
@@ -1877,10 +1913,10 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
   <!-- App Scripts -->
-  <script src="js/firebase-config.js?v=2.1"></script>
-  <script src="js/i18n.js?v=2.1"></script>
-  <script src="js/utils.js?v=2.1"></script>
-  <script src="js/auth.js?v=2.1"></script>
-  <script src="js/app.js?v=2.1"></script>
+  <script src="js/firebase-config.js?v=2.2"></script>
+  <script src="js/i18n.js?v=2.2"></script>
+  <script src="js/utils.js?v=2.2"></script>
+  <script src="js/auth.js?v=2.2"></script>
+  <script src="js/app.js?v=2.2"></script>
 </body>
 </html>
