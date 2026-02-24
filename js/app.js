@@ -106,8 +106,45 @@ function applyPlanRestrictions() {
     badge.className = 'plan-badge-sidebar plan-badge-' + currentPlan;
   }
 
+  // Actualizar sidebar account card
+  updateSidebarAccountCard();
+
   // Actualizar página "Mi Plan"
   updatePlanPage();
+}
+
+/**
+ * Actualizar tarjeta "Mi Cuenta" en el sidebar
+ */
+function updateSidebarAccountCard() {
+  const cfg = PLAN_CONFIG[currentPlan] || PLAN_CONFIG.free;
+
+  // Plan label + color
+  const planLabel = document.getElementById('sidebarAccountPlanLabel');
+  const planRow = document.querySelector('.sidebar-account-plan');
+  if (planLabel) planLabel.textContent = cfg.label;
+  if (planRow) {
+    planRow.classList.remove('plan-type-free', 'plan-type-lite', 'plan-type-premium');
+    planRow.classList.add('plan-type-' + currentPlan);
+  }
+
+  // Cuentas activas
+  const statAccounts = document.getElementById('sidebarStatAccounts');
+  if (statAccounts) statAccounts.textContent = accountsData.length;
+
+  // Perfiles vendidos (total de clientes)
+  const statProfiles = document.getElementById('sidebarStatProfiles');
+  if (statProfiles) statProfiles.textContent = clientsData.length;
+
+  // Chatbot status
+  const statBot = document.getElementById('sidebarStatBot');
+  if (statBot) {
+    const botEnabledEl = document.getElementById('botEnabled');
+    const isOn = botEnabledEl && botEnabledEl.value === 'true';
+    statBot.textContent = isOn ? 'ON' : 'OFF';
+    statBot.classList.toggle('bot-on', isOn);
+    statBot.classList.toggle('bot-off', !isOn);
+  }
 }
 
 /**
@@ -1094,6 +1131,9 @@ function updateDashboard() {
   // Charts & profit calculator
   renderDashboardCharts();
   updateProfitCalculator();
+
+  // Actualizar sidebar account card con datos frescos
+  if (typeof updateSidebarAccountCard === 'function') updateSidebarAccountCard();
 }
 
 /**

@@ -269,6 +269,28 @@
         <span data-i18n="sidebar.subtitle">Gestión Streaming</span>
       </div>
 
+      <!-- Mi Cuenta Quick Info -->
+      <div class="sidebar-account-card" onclick="navigateTo('plan')" title="Ver mi plan">
+        <div class="sidebar-account-plan">
+          <i class="fa-solid fa-crown" id="sidebarAccountPlanIcon"></i>
+          <span id="sidebarAccountPlanLabel">Free</span>
+        </div>
+        <div class="sidebar-account-stats">
+          <div class="sidebar-account-stat">
+            <span class="sidebar-account-stat-value" id="sidebarStatAccounts">0</span>
+            <span class="sidebar-account-stat-label">Cuentas</span>
+          </div>
+          <div class="sidebar-account-stat">
+            <span class="sidebar-account-stat-value" id="sidebarStatProfiles">0</span>
+            <span class="sidebar-account-stat-label">Perfiles</span>
+          </div>
+          <div class="sidebar-account-stat">
+            <span class="sidebar-account-stat-value sidebar-bot-status" id="sidebarStatBot">OFF</span>
+            <span class="sidebar-account-stat-label">Chatbot</span>
+          </div>
+        </div>
+      </div>
+
       <nav class="sidebar-nav">
         <div class="nav-section-title" data-i18n="sidebar.main">Principal</div>
         <button class="nav-item active" data-section="dashboard" onclick="navigateTo('dashboard')" data-i18n="sidebar.dashboard">
