@@ -76,6 +76,18 @@ async function loadUserPlan() {
       currentPlan = doc.data().plan;
     } else {
       currentPlan = 'free';
+      // Asegurar doc mínimo (evita errores posteriores con update)
+      if (!doc.exists) {
+        try {
+          await db.collection('usuarios').doc(currentUser.uid).set({
+            email: currentUser.email || null,
+            plan: 'free',
+            creado_en: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+        } catch (createErr) {
+          console.warn('No se pudo crear el doc de usuario:', createErr.message);
+        }
+      }
     }
   } catch (err) {
     console.warn('No se pudo cargar plan, usando free:', err.message);
@@ -285,9 +297,12 @@ async function selectPlan(plan) {
   }
 
   try {
-    await db.collection('usuarios').doc(currentUser.uid).update({
-      plan: plan
-    });
+    // Usar set+merge para no fallar si el doc aún no existe
+    await db.collection('usuarios').doc(currentUser.uid).set({
+      email: currentUser.email || null,
+      plan: plan,
+      actualizado_en: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
     currentPlan = plan;
     applyPlanRestrictions();
     showToast(`¡Plan cambiado a ${newCfg.label}!`, 'success');

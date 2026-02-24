@@ -29,9 +29,25 @@ module.exports = function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET');
   res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=3600');
 
+  // Fallback público (no es secreto). Evita 500s si faltan env vars en Vercel.
+  const fallbackConfig = {
+    apiKey: "AIzaSyBU-GbRvIie3n5jepmRurFjjyRCWQiqN0U",
+    authDomain: "accf-8b065.firebaseapp.com",
+    projectId: "accf-8b065",
+    storageBucket: "accf-8b065.firebasestorage.app",
+    messagingSenderId: "98637958746",
+    appId: "1:98637958746:web:ed4d82044fa3c95f2ad263",
+    measurementId: "G-KD0JN83598"
+  };
+
   // Verificar que las variables existan
   if (!process.env.FIREBASE_API_KEY) {
-    return res.status(500).json({ error: 'Firebase config not set in environment' });
+    // Si no hay env vars, devolver fallback para que el frontend funcione sin ruido en consola.
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    return res.status(200).json({
+      ...fallbackConfig,
+      source: 'fallback'
+    });
   }
 
   return res.status(200).json({
