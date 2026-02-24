@@ -171,6 +171,9 @@
           <i class="fa-solid fa-money-bill-transfer"></i> Movimientos
           <span class="tab-count" id="tabCountMovements">0</span>
         </button>
+        <button class="admin-tab" data-tab="gifts" id="tabGifts" onclick="switchTab('gifts')" style="display:none">
+          <i class="fa-solid fa-gift"></i> Regalos
+        </button>
       </div>
 
       <!-- ==================== PANEL: Overview ==================== -->
@@ -245,6 +248,7 @@
                   <th>Cuentas</th>
                   <th>Clientes</th>
                   <th>Ingresos</th>
+                  <th id="thUserActions" style="display:none">Acciones</th>
                 </tr>
               </thead>
               <tbody id="usersBody">
@@ -365,6 +369,72 @@
             </table>
           </div>
         </div>
+      </div>
+
+      <!-- ==================== PANEL: Gifts ==================== -->
+      <div class="admin-panel" id="panel-gifts">
+
+        <!-- Form: regalar suscripción -->
+        <div class="admin-table-container" style="margin-bottom:24px;">
+          <div class="admin-table-header">
+            <h3><i class="fa-solid fa-gift"></i> Regalar Suscripción Pro</h3>
+          </div>
+          <div style="padding:24px;display:flex;flex-direction:column;gap:20px;max-width:520px;">
+
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <label style="font-size:0.85rem;font-weight:600;color:var(--text-secondary);">Usuario destinatario</label>
+              <select id="giftUserSelect" class="form-control" style="background:var(--bg-secondary);color:var(--text-primary);border:1px solid var(--border);"></select>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <label style="font-size:0.85rem;font-weight:600;color:var(--text-secondary);">Duración del regalo</label>
+              <div style="display:flex;gap:16px;flex-wrap:wrap;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                  <input type="radio" name="giftDuration" value="day" />
+                  <span>1 Día</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                  <input type="radio" name="giftDuration" value="week" checked />
+                  <span>1 Semana</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                  <input type="radio" name="giftDuration" value="month" />
+                  <span>1 Mes</span>
+                </label>
+              </div>
+            </div>
+
+            <button id="giftSubmitBtn" class="btn" onclick="doGiftSubscription()" style="max-width:240px;">
+              <i class="fa-solid fa-gift"></i> Regalar Suscripción
+            </button>
+
+            <p id="giftResult" style="font-size:0.9rem;font-weight:500;"></p>
+          </div>
+        </div>
+
+        <!-- History: usuarios con regalo activo -->
+        <div class="admin-table-container">
+          <div class="admin-table-header">
+            <h3><i class="fa-solid fa-clock-rotate-left"></i> Historial de Regalos</h3>
+          </div>
+          <div class="admin-table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Negocio</th>
+                  <th>Plan</th>
+                  <th>Vence</th>
+                  <th>Regalado por</th>
+                </tr>
+              </thead>
+              <tbody id="giftHistoryBody">
+                <tr><td colspan="5" class="table-empty-admin"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
 
     </div>

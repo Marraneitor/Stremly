@@ -10,6 +10,8 @@ let allClients    = [];
 let allMovements  = [];
 let adminReady    = false;
 let adminUser     = null;  // Firebase Auth user
+const OWNER_EMAIL = 'yoelskygold@gmail.com';
+let isOwnerSession = false;
 
 // ── Utility helpers (standalone) ────────────────────────────
 function escapeHtml(str) {
@@ -157,16 +159,25 @@ async function initAdmin() {
     return;
   }
 
+  isOwnerSession = !!(adminUser.email && adminUser.email.toLowerCase() === OWNER_EMAIL.toLowerCase());
+
   try {
-    await Promise.all([
-      loadAllUsers(),
-      loadAllAccounts(),
-      loadAllClients(),
-      loadAllMovements()
-    ]);
+    if (isOwnerSession) {
+      await loadAllDataAsOwner();
+    } else {
+      await Promise.all([
+        loadAllUsers(),
+        loadAllAccounts(),
+        loadAllClients(),
+        loadAllMovements()
+      ]);
+    }
 
     adminReady = true;
     updateAdminStats();
+    // Show Regalos tab only for owner
+    const giftTab = document.getElementById('tabGifts');
+    if (giftTab) giftTab.style.display = isOwnerSession ? '' : 'none';
     switchTab('overview');
     updateLastRefresh();
   } catch (err) {
@@ -186,6 +197,28 @@ function showLoading(show) {
 function updateLastRefresh() {
   const el = document.getElementById('lastRefresh');
   if (el) el.textContent = `Última actualización: ${new Date().toLocaleTimeString('es-ES')}`;
+}
+
+// ── Owner: Load ALL data via API ────────────────────────────
+async function loadAllDataAsOwner() {
+  const token = await adminUser.getIdToken(true);
+  const res   = await fetch('/api/admin-report', {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || `admin-report returned ${res.status}`);
+  }
+  const json = await res.json();
+  if (!json.ok) throw new Error(json.error || 'API error');
+
+  const data = json.data;
+
+  // Normalize timestamp strings back to Date objects where needed
+  allUsers     = data.usuarios   || [];
+  allAccounts  = data.cuentas    || [];
+  allClients   = data.clientes   || [];
+  allMovements = data.movimientos|| [];
 }
 
 // ── Data Loaders (filtered by authenticated user's UID) ─────
@@ -225,7 +258,11 @@ async function refreshAdmin() {
   if (!db) return;
   showLoading(true);
   try {
-    await Promise.all([loadAllUsers(), loadAllAccounts(), loadAllClients(), loadAllMovements()]);
+    if (isOwnerSession) {
+      await loadAllDataAsOwner();
+    } else {
+      await Promise.all([loadAllUsers(), loadAllAccounts(), loadAllClients(), loadAllMovements()]);
+    }
     updateAdminStats();
     const activeTab = document.querySelector('.admin-tab.active')?.dataset?.tab || 'overview';
     switchTab(activeTab);
@@ -302,6 +339,7 @@ function switchTab(tab) {
     case 'accounts':  renderAccounts();  break;
     case 'clients':   renderClients();   break;
     case 'movements': renderMovements(); break;
+    case 'gifts':     renderGifts();     break;
   }
 }
 
@@ -372,7 +410,12 @@ function renderOverview() {
 
 // ── Render: Users ───────────────────────────────────────────
 function renderUsers(filter = '') {
-  const tbody = document.getElementById('usersBody');
+  const tbody     = document.getElementById('usersBody');
+  const thActions = document.getElementById('thUserActions');
+  const thColspan = isOwnerSession ? 7 : 6;
+
+  if (thActions) thActions.style.display = isOwnerSession ? '' : 'none';
+
   let items = allUsers;
 
   if (filter) {
@@ -380,12 +423,12 @@ function renderUsers(filter = '') {
     items = items.filter(u =>
       (u.email || '').toLowerCase().includes(q) ||
       (u.nombre_negocio || '').toLowerCase().includes(q) ||
-      u.id.toLowerCase().includes(q)
+      (u.id || '').toLowerCase().includes(q)
     );
   }
 
   if (items.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="table-empty-admin"><i class="fa-solid fa-users"></i><br>No se encontraron usuarios</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="${thColspan}" class="table-empty-admin"><i class="fa-solid fa-users"></i><br>No se encontraron usuarios</td></tr>`;
     return;
   }
 
@@ -394,16 +437,31 @@ function renderUsers(filter = '') {
     const userClients  = allClients.filter(c => c.uid === u.id).length;
     const userRevenue  = allMovements.filter(m => m.uid === u.id).reduce((s, m) => s + (m.monto || 0), 0);
 
+    const giftExpiry = u.gift && u.gift_expires_at
+      ? `<br><small style="color:var(--accent);font-size:0.7rem">🎁 regalo hasta ${fmtDate(u.gift_expires_at)}</small>`
+      : '';
+
+    const planBadge = u.plan
+      ? `<span class="badge ${u.plan === 'pro' ? 'badge-active' : 'badge-info'}" style="font-size:0.7rem">${u.plan.toUpperCase()}</span>`
+      : '';
+
+    const actionCell = isOwnerSession
+      ? `<td><button class="btn-sm" onclick="openGiftModal('${escapeHtml(u.id)}','${escapeHtml(u.email || '')}','${escapeHtml(u.nombre_negocio || u.email || '')}')" title="Regalar suscripción"><i class="fa-solid fa-gift"></i> Regalar</button></td>`
+      : '';
+
     return `
       <tr>
         <td>
           <strong>${escapeHtml(u.nombre_negocio || '—')}</strong>
+          ${giftExpiry}
+          ${planBadge}
         </td>
-        <td class="user-email">${escapeHtml(u.email)}</td>
-        <td class="user-uid" title="${escapeHtml(u.id)}">${escapeHtml(u.id)}</td>
+        <td class="user-email">${escapeHtml(u.email || '—')}</td>
+        <td class="user-uid" title="${escapeHtml(u.id || '')}">${escapeHtml(u.id || '')}</td>
         <td>${userAccounts}</td>
         <td>${userClients}</td>
         <td class="money-positive">${fmtCurrency(userRevenue)}</td>
+        ${actionCell}
       </tr>
     `;
   }).join('');
@@ -619,6 +677,101 @@ function exportCSV(type) {
   a.click();
   URL.revokeObjectURL(url);
   showAdminToast(`${filename} descargado`);
+}
+
+// ── Render: Gifts (subscriptions regaladas) ─────────────────
+function renderGifts() {
+  const select  = document.getElementById('giftUserSelect');
+  const history = document.getElementById('giftHistoryBody');
+
+  // Populate user dropdown
+  if (select) {
+    select.innerHTML = '<option value="">— Seleccionar usuario —</option>' +
+      allUsers
+        .filter(u => u.id && u.email)
+        .map(u => `<option value="${escapeHtml(u.id)}">${escapeHtml(u.email)}${u.nombre_negocio ? ' · ' + escapeHtml(u.nombre_negocio) : ''}</option>`)
+        .join('');
+  }
+
+  // Show gift history
+  if (history) {
+    const gifted = allUsers.filter(u => u.gift || u.gift_expires_at);
+    if (gifted.length === 0) {
+      history.innerHTML = '<tr><td colspan="5" class="table-empty-admin"><i class="fa-solid fa-gift"></i><br>No hay regalos registrados</td></tr>';
+      return;
+    }
+    history.innerHTML = gifted.map(u => `
+      <tr>
+        <td>${escapeHtml(u.email || u.id)}</td>
+        <td>${escapeHtml(u.nombre_negocio || '—')}</td>
+        <td><span class="badge badge-active">${(u.plan || '').toUpperCase() || '—'}</span></td>
+        <td>${fmtDate(u.gift_expires_at)}</td>
+        <td>${escapeHtml(u.gift_granted_by || '—')}</td>
+      </tr>
+    `).join('');
+  }
+}
+
+// ── Gift: open modal inline (from Regalos tab) ───────────────
+function openGiftModal(uid, email, name) {
+  // Switch to gifts tab and pre-select user
+  switchTab('gifts');
+  const select = document.getElementById('giftUserSelect');
+  if (select) select.value = uid;
+  showAdminToast(`Seleccionado: ${name || email}`);
+}
+
+// ── Gift: do Regalo ─────────────────────────────────────────
+async function doGiftSubscription() {
+  const select   = document.getElementById('giftUserSelect');
+  const duration = document.querySelector('input[name="giftDuration"]:checked');
+  const btn      = document.getElementById('giftSubmitBtn');
+  const result   = document.getElementById('giftResult');
+
+  if (!select || !select.value) {
+    if (result) { result.textContent = '⚠️ Selecciona un usuario.'; result.style.color = 'var(--warning)'; }
+    return;
+  }
+  if (!duration) {
+    if (result) { result.textContent = '⚠️ Selecciona la duración.'; result.style.color = 'var(--warning)'; }
+    return;
+  }
+
+  const targetUid    = select.value;
+  const durationType = duration.value;
+
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...'; }
+  if (result) result.textContent = '';
+
+  try {
+    const token = await adminUser.getIdToken(true);
+    const res   = await fetch('/api/gift-subscription', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body:    JSON.stringify({ targetUid, durationType }),
+    });
+    const json = await res.json();
+
+    if (!res.ok || !json.ok) {
+      throw new Error(json.error || `Error ${res.status}`);
+    }
+
+    const userEmail = select.options[select.selectedIndex]?.text || targetUid;
+    if (result) {
+      result.textContent = `✅ Suscripción Pro (${json.durationLabel}) regalada a ${userEmail}. Vence: ${new Date(json.expiresAt).toLocaleDateString('es-ES')}`;
+      result.style.color = 'var(--success)';
+    }
+    showAdminToast('🎁 Suscripción regalada');
+
+    // Refresh data so history updates
+    await refreshAdmin();
+    switchTab('gifts');
+  } catch (err) {
+    console.error('gift error:', err);
+    if (result) { result.textContent = `❌ ${err.message}`; result.style.color = 'var(--danger)'; }
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-gift"></i> Regalar Suscripción'; }
+  }
 }
 
 // ── Logout from admin ───────────────────────────────────────
