@@ -9,6 +9,7 @@
     "deploy:rules": "firebase deploy --only firestore:rules"
   },
   "dependencies": {
+    "@vercel/analytics": "^1.6.1",
     "stripe": "^20.3.1"
   }
 }
