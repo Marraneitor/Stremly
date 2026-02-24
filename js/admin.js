@@ -173,6 +173,9 @@ async function initAdmin() {
 
   isOwnerSession = tokenEmail === OWNER_EMAIL.toLowerCase();
 
+  const ownerBadge = document.getElementById('ownerBadge');
+  if (ownerBadge) ownerBadge.style.display = isOwnerSession ? '' : 'none';
+
   // Hide Regalos tab for non-owners; always visible for owner
   const giftTab = document.getElementById('tabGifts');
   if (giftTab && !isOwnerSession) giftTab.style.display = 'none';
