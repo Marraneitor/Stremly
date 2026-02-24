@@ -356,6 +356,7 @@ async function askGemini(message, config, conversationHistory) {
   if (!res.ok) {
     const errText = await res.text();
     console.error('❌ Gemini API error:', errText);
+    addLog(`❌ Gemini error (${res.status}): ${errText.substring(0, 200)}`);
     return currentConfig.fallbackMsg || 'Lo siento, no pude procesar tu mensaje en este momento.';
   }
 
@@ -732,7 +733,10 @@ app.get('/status', (req, res) => {
     logs: getOrderedLogs(30),
     totalConversations: conversations.size,
     firestoreConnected: firestoreAvailable,
-    pendingOrdersCount: pendingOrders.reduce((n, o) => n + (o.estado === 'pendiente' ? 1 : 0), 0)
+    pendingOrdersCount: pendingOrders.reduce((n, o) => n + (o.estado === 'pendiente' ? 1 : 0), 0),
+    geminiModel: GEMINI_MODEL,
+    geminiKeySet: !!GEMINI_API_KEY && GEMINI_API_KEY.length > 5,
+    geminiKeyPrefix: GEMINI_API_KEY ? GEMINI_API_KEY.substring(0, 8) + '...' : 'NOT SET'
   });
 });
 
