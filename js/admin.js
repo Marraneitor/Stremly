@@ -161,9 +161,9 @@ async function initAdmin() {
 
   isOwnerSession = !!(adminUser.email && adminUser.email.toLowerCase() === OWNER_EMAIL.toLowerCase());
 
-  // Show/hide Regalos tab immediately based on owner status
+  // Hide Regalos tab for non-owners; always visible for owner
   const giftTab = document.getElementById('tabGifts');
-  if (giftTab) giftTab.style.display = isOwnerSession ? '' : 'none';
+  if (giftTab && !isOwnerSession) giftTab.style.display = 'none';
 
   try {
     if (isOwnerSession) {
