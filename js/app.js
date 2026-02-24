@@ -1969,6 +1969,11 @@ function disconnectBotServer() {
   if (connError) connError.style.display = '';
   document.getElementById('botStatus').textContent = 'Desconectado';
   addBotLog('🔌 Desconectado del servidor del bot');
+  // Ocultar sección de mensajes programados y resetear flags
+  const schedSection = document.getElementById('scheduledSection');
+  if (schedSection) schedSection.style.display = 'none';
+  groupsLoaded = false;
+  scheduledLoaded = false;
 }
 
 /**
@@ -2036,6 +2041,15 @@ async function pollBotStatus() {
       if (connError) connError.style.display = 'none';
       document.getElementById('botPhoneNumber').textContent = 
         `${data.phone || ''} — ${data.messagesCount} mensajes respondidos`;
+      // Actualizar estado de pausa
+      updatePauseButton(data.globalPaused);
+      // Mostrar sección de mensajes programados y cargar datos
+      const schedSection = document.getElementById('scheduledSection');
+      if (schedSection) {
+        schedSection.style.display = '';
+        if (!groupsLoaded) loadGroups();
+        if (!scheduledLoaded) { loadScheduledMessages(); scheduledLoaded = true; }
+      }
     } else if (data.status === 'qr') {
       statusEl.textContent = 'Esperando escaneo de QR...';
       dotEl.className = 'bot-status-indicator qr';
@@ -2099,6 +2113,231 @@ function addBotLog(msg) {
   if (!logsEl) return;
   logsEl.innerHTML += `<div class="bot-log-entry"><span class="bot-log-time">${new Date().toLocaleTimeString()}</span> ${escapeAttr(msg)}</div>`;
   logsEl.scrollTop = logsEl.scrollHeight;
+}
+
+/* ============================================================
+   CHATBOT — Pausa global del bot
+   ============================================================ */
+
+/**
+ * Actualizar el botón de pausa según el estado actual
+ */
+function updatePauseButton(isPaused) {
+  const btn = document.getElementById('botPauseBtn');
+  if (!btn) return;
+  if (isPaused) {
+    btn.classList.add('paused');
+    btn.innerHTML = '<i class="fa-solid fa-play"></i> Reanudar Respuestas';
+  } else {
+    btn.classList.remove('paused');
+    btn.innerHTML = '<i class="fa-solid fa-pause"></i> Pausar Respuestas';
+  }
+}
+
+/**
+ * Alternar pausa global del bot
+ */
+async function toggleGlobalPause() {
+  const url = getBotUrl();
+  if (!url) return;
+  const btn = document.getElementById('botPauseBtn');
+  if (btn) btn.disabled = true;
+  try {
+    const res = await fetch(`${url}/global-pause`, { method: 'POST' });
+    if (!res.ok) throw new Error('Error al cambiar estado de pausa');
+    const data = await res.json();
+    updatePauseButton(data.globalPaused);
+    addBotLog(data.globalPaused ? '⏸️ Bot pausado — no responderá mensajes' : '▶️ Bot reanudado — respondiendo mensajes');
+    showToast(data.globalPaused ? 'Bot pausado' : 'Bot reanudado', data.globalPaused ? 'warning' : 'success');
+  } catch (err) {
+    showToast('Error al pausar/reanudar', 'error');
+    addBotLog(`❌ Error pausa: ${err.message}`);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+/* ============================================================
+   CHATBOT — Mensajes programados para grupos
+   ============================================================ */
+
+let groupsLoaded = false;
+let scheduledLoaded = false;
+
+/**
+ * Toggle para mostrar opciones de recurrencia
+ */
+function toggleRecurringOptions() {
+  const sel = document.getElementById('scheduledType');
+  const opts = document.getElementById('recurringOptions');
+  if (sel && opts) {
+    opts.style.display = sel.value === 'recurring' ? '' : 'none';
+  }
+}
+
+/**
+ * Cargar lista de grupos de WhatsApp desde el bot
+ */
+async function loadGroups() {
+  const url = getBotUrl();
+  if (!url) return;
+  const select = document.getElementById('scheduledGroupSelect');
+  if (!select) return;
+  select.innerHTML = '<option value="">Cargando grupos...</option>';
+  try {
+    const res = await fetch(`${url}/groups`);
+    if (!res.ok) throw new Error('Error al cargar grupos');
+    const data = await res.json();
+    const groups = data.groups || [];
+    if (groups.length === 0) {
+      select.innerHTML = '<option value="">No se encontraron grupos</option>';
+      return;
+    }
+    select.innerHTML = '<option value="">Selecciona un grupo...</option>' +
+      groups.map(g => `<option value="${escapeAttr(g.jid)}" data-name="${escapeAttr(g.name)}">${escapeAttr(g.name)} (${g.participants} miembros)</option>`).join('');
+    groupsLoaded = true;
+  } catch (err) {
+    select.innerHTML = '<option value="">Error al cargar grupos</option>';
+    addBotLog(`❌ Error cargando grupos: ${err.message}`);
+  }
+}
+
+/**
+ * Cargar mensajes programados existentes
+ */
+async function loadScheduledMessages() {
+  const url = getBotUrl();
+  if (!url) return;
+  const container = document.getElementById('scheduledList');
+  if (!container) return;
+  try {
+    const res = await fetch(`${url}/scheduled`);
+    if (!res.ok) throw new Error('Error al cargar programados');
+    const data = await res.json();
+    const msgs = data.scheduled || [];
+    if (msgs.length === 0) {
+      container.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:20px;"><i class="fa-solid fa-calendar-xmark"></i><p>Sin mensajes programados</p></div>`;
+      return;
+    }
+    container.innerHTML = msgs.map(m => renderScheduledCard(m)).join('');
+  } catch (err) {
+    container.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:20px;"><i class="fa-solid fa-triangle-exclamation"></i><p>Error al cargar mensajes</p></div>`;
+  }
+}
+
+/**
+ * Renderizar tarjeta de mensaje programado
+ */
+function renderScheduledCard(m) {
+  const date = new Date(m.scheduledTime);
+  const dateStr = date.toLocaleString('es', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const isActive = m.active !== false;
+  const iconClass = isActive ? 'active' : 'paused-sched';
+  const iconName = isActive ? 'fa-clock' : 'fa-pause';
+  const recurringLabel = m.recurring
+    ? `Cada ${m.intervalMinutes >= 1440 ? (m.intervalMinutes / 1440) + ' día(s)' : m.intervalMinutes >= 60 ? (m.intervalMinutes / 60) + ' hora(s)' : m.intervalMinutes + ' min'}`
+    : 'Una sola vez';
+  
+  return `<div class="scheduled-card">
+    <div class="scheduled-card-icon ${iconClass}">
+      <i class="fa-solid ${iconName}"></i>
+    </div>
+    <div class="scheduled-card-body">
+      <h5>${escapeAttr(m.groupName || 'Grupo')}</h5>
+      <p>${escapeAttr(m.message)}</p>
+      <div class="scheduled-meta">
+        <span><i class="fa-regular fa-calendar"></i> ${dateStr}</span>
+        <span><i class="fa-solid fa-repeat"></i> ${recurringLabel}</span>
+        <span><i class="fa-solid fa-circle" style="font-size:6px;color:${isActive ? 'var(--success)' : 'var(--warning)'}"></i> ${isActive ? 'Activo' : 'Pausado'}</span>
+      </div>
+    </div>
+    <div class="scheduled-card-actions">
+      <button onclick="toggleScheduledMessage(${m.id})" title="${isActive ? 'Pausar' : 'Activar'}">
+        <i class="fa-solid ${isActive ? 'fa-pause' : 'fa-play'}"></i>
+      </button>
+      <button class="btn-delete" onclick="deleteScheduledMessage(${m.id})" title="Eliminar">
+        <i class="fa-solid fa-trash"></i>
+      </button>
+    </div>
+  </div>`;
+}
+
+/**
+ * Crear nuevo mensaje programado
+ */
+async function createScheduledMessage() {
+  const url = getBotUrl();
+  if (!url) return;
+
+  const select = document.getElementById('scheduledGroupSelect');
+  const jid = select ? select.value : '';
+  const groupName = select && select.selectedOptions[0] ? select.selectedOptions[0].dataset.name || select.selectedOptions[0].textContent : '';
+  const message = (document.getElementById('scheduledMessageText')?.value || '').trim();
+  const dateTimeStr = document.getElementById('scheduledDateTime')?.value || '';
+  const type = document.getElementById('scheduledType')?.value || 'once';
+  const interval = parseInt(document.getElementById('scheduledInterval')?.value || '60', 10);
+  const unit = document.getElementById('scheduledIntervalUnit')?.value || 'minutes';
+
+  if (!jid) return showToast('Selecciona un grupo', 'warning');
+  if (!message) return showToast('Escribe un mensaje', 'warning');
+  if (!dateTimeStr) return showToast('Selecciona fecha y hora', 'warning');
+
+  const scheduledTime = new Date(dateTimeStr).toISOString();
+  const recurring = type === 'recurring';
+  let intervalMinutes = interval;
+  if (unit === 'hours') intervalMinutes = interval * 60;
+  if (unit === 'days') intervalMinutes = interval * 1440;
+
+  try {
+    const res = await fetch(`${url}/scheduled`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jid, groupName, message, scheduledTime, recurring, intervalMinutes })
+    });
+    if (!res.ok) throw new Error('Error al crear mensaje programado');
+    showToast('Mensaje programado creado', 'success');
+    addBotLog(`📅 Mensaje programado para ${groupName}`);
+    // Limpiar formulario
+    if (document.getElementById('scheduledMessageText')) document.getElementById('scheduledMessageText').value = '';
+    if (document.getElementById('scheduledDateTime')) document.getElementById('scheduledDateTime').value = '';
+    loadScheduledMessages();
+  } catch (err) {
+    showToast('Error al programar mensaje', 'error');
+    addBotLog(`❌ Error programando: ${err.message}`);
+  }
+}
+
+/**
+ * Eliminar mensaje programado
+ */
+async function deleteScheduledMessage(id) {
+  const url = getBotUrl();
+  if (!url) return;
+  try {
+    const res = await fetch(`${url}/scheduled/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Error');
+    showToast('Mensaje eliminado', 'success');
+    loadScheduledMessages();
+  } catch (err) {
+    showToast('Error al eliminar', 'error');
+  }
+}
+
+/**
+ * Activar/pausar mensaje programado
+ */
+async function toggleScheduledMessage(id) {
+  const url = getBotUrl();
+  if (!url) return;
+  try {
+    const res = await fetch(`${url}/scheduled/${id}/toggle`, { method: 'POST' });
+    if (!res.ok) throw new Error('Error');
+    const data = await res.json();
+    showToast(data.active ? 'Mensaje activado' : 'Mensaje pausado', 'success');
+    loadScheduledMessages();
+  } catch (err) {
+    showToast('Error al cambiar estado', 'error');
+  }
 }
 
 /* ============================================================

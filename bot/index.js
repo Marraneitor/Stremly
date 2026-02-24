@@ -69,6 +69,46 @@ let botSettings = {
   respondUnsaved: true
 };
 
+// ── Pausa global del bot ────────────────────────────────────
+let botGlobalPaused = false;
+
+// ── Mensajes programados ────────────────────────────────────
+let scheduledMessages = [];
+let scheduledIdCounter = 1;
+let scheduledInterval = null;
+
+function startScheduler() {
+  if (scheduledInterval) return;
+  scheduledInterval = setInterval(async () => {
+    if (!sock || botState.status !== 'connected') return;
+    const now = Date.now();
+    for (const sm of scheduledMessages) {
+      if (!sm.active) continue;
+      if (now >= sm.nextRun) {
+        try {
+          await sock.sendMessage(sm.jid, { text: sm.message });
+          addLog(`📨 Mensaje programado enviado a ${sm.groupName || sm.jid.split('@')[0]}`);
+          sm.lastSent = now;
+          sm.sendCount = (sm.sendCount || 0) + 1;
+          if (sm.recurring && sm.intervalMs > 0) {
+            sm.nextRun = now + sm.intervalMs;
+          } else {
+            sm.active = false;
+            addLog(`   ✅ Mensaje programado #${sm.id} completado (una vez)`);
+          }
+        } catch (err) {
+          addLog(`   ❌ Error enviando programado #${sm.id}: ${err.message}`);
+        }
+      }
+    }
+    // Limpiar mensajes inactivos viejos (>24h desde completados)
+    const cutoff = now - 24 * 60 * 60 * 1000;
+    scheduledMessages = scheduledMessages.filter(sm => sm.active || (sm.lastSent && sm.lastSent > cutoff));
+  }, 10000); // Revisar cada 10 segundos
+}
+
+startScheduler();
+
 // Circular buffer para logs — evita shift() que es O(n)
 const MAX_LOGS = 150;
 let logIndex = 0;
@@ -619,6 +659,12 @@ async function startBot() {
         continue;
       }
 
+      // ── Verificar pausa global ──
+      if (botGlobalPaused) {
+        addLog('   ⏸️ Bot en pausa global, no se responde');
+        continue;
+      }
+
       // ── Verificar config global ──
       const config = await getConfig();
       if (config && config.enabled === false) {
@@ -734,6 +780,7 @@ app.get('/status', (req, res) => {
     totalConversations: conversations.size,
     firestoreConnected: firestoreAvailable,
     pendingOrdersCount: pendingOrders.reduce((n, o) => n + (o.estado === 'pendiente' ? 1 : 0), 0),
+    globalPaused: botGlobalPaused,
     geminiModel: GEMINI_MODEL,
     geminiKeySet: !!GEMINI_API_KEY && GEMINI_API_KEY.length > 5,
     geminiKeyPrefix: GEMINI_API_KEY ? GEMINI_API_KEY.substring(0, 8) + '...' : 'NOT SET'
@@ -1106,6 +1153,94 @@ app.post('/full-review', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// ── PAUSA GLOBAL ────────────────────────────────────────────
+app.post('/global-pause', (req, res) => {
+  botGlobalPaused = !botGlobalPaused;
+  addLog(`${botGlobalPaused ? '⏸️' : '▶️'} Bot ${botGlobalPaused ? 'pausado globalmente' : 'reanudado'}`);
+  res.json({ ok: true, paused: botGlobalPaused });
+});
+
+app.get('/global-pause', (req, res) => {
+  res.json({ paused: botGlobalPaused });
+});
+
+// ── GRUPOS DE WHATSAPP ──────────────────────────────────────
+app.get('/groups', async (req, res) => {
+  try {
+    if (!sock || botState.status !== 'connected') {
+      return res.status(400).json({ error: 'Bot no conectado' });
+    }
+    const groups = await sock.groupFetchAllParticipating();
+    const list = Object.values(groups).map(g => ({
+      jid: g.id,
+      name: g.subject || g.id.split('@')[0],
+      participants: g.participants?.length || 0,
+      creation: g.creation,
+      desc: g.desc || ''
+    }));
+    list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    res.json({ groups: list });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── MENSAJES PROGRAMADOS ────────────────────────────────────
+app.get('/scheduled', (req, res) => {
+  res.json({ messages: scheduledMessages });
+});
+
+app.post('/scheduled', (req, res) => {
+  try {
+    const { jid, groupName, message, scheduledTime, recurring, intervalMinutes } = req.body;
+    if (!jid || !message) return res.status(400).json({ error: 'Faltan jid o message' });
+
+    const nextRun = scheduledTime ? new Date(scheduledTime).getTime() : Date.now() + 60000;
+    const intervalMs = recurring && intervalMinutes ? intervalMinutes * 60 * 1000 : 0;
+
+    const sm = {
+      id: scheduledIdCounter++,
+      jid,
+      groupName: groupName || jid.split('@')[0],
+      message,
+      recurring: !!recurring,
+      intervalMinutes: intervalMinutes || 0,
+      intervalMs,
+      nextRun,
+      active: true,
+      createdAt: Date.now(),
+      lastSent: null,
+      sendCount: 0
+    };
+    scheduledMessages.push(sm);
+    addLog(`📅 Mensaje programado #${sm.id} creado para ${sm.groupName}${sm.recurring ? ` (cada ${intervalMinutes} min)` : ' (una vez)'}`);
+    res.json({ ok: true, scheduled: sm });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/scheduled/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const idx = scheduledMessages.findIndex(sm => sm.id === id);
+  if (idx === -1) return res.status(404).json({ error: 'Mensaje programado no encontrado' });
+  const removed = scheduledMessages.splice(idx, 1)[0];
+  addLog(`🗑️ Mensaje programado #${id} eliminado (${removed.groupName})`);
+  res.json({ ok: true });
+});
+
+app.post('/scheduled/:id/toggle', (req, res) => {
+  const id = parseInt(req.params.id);
+  const sm = scheduledMessages.find(s => s.id === id);
+  if (!sm) return res.status(404).json({ error: 'No encontrado' });
+  sm.active = !sm.active;
+  if (sm.active && sm.recurring && sm.intervalMs > 0) {
+    sm.nextRun = Date.now() + sm.intervalMs;
+  }
+  addLog(`${sm.active ? '▶️' : '⏸️'} Programado #${id} ${sm.active ? 'activado' : 'pausado'}`);
+  res.json({ ok: true, scheduled: sm });
 });
 
 // ── INVENTARIO ──────────────────────────────────────────────

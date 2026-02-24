@@ -2537,3 +2537,160 @@ input:checked + .slider::before {
 .order-card {
   will-change: transform, opacity;
 }
+
+/* ── Pause Button ── */
+#botPauseBtn.paused {
+  background: var(--success) !important;
+  color: #fff !important;
+}
+#botPauseBtn.paused i {
+  animation: none;
+}
+
+/* ── Scheduled Messages ── */
+.scheduled-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.scheduled-form-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+.scheduled-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.scheduled-form-field label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.scheduled-form-field select,
+.scheduled-form-field input,
+.scheduled-form-field textarea {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+.scheduled-form-field select:focus,
+.scheduled-form-field input:focus,
+.scheduled-form-field textarea:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+.scheduled-form-field textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.scheduled-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  transition: border-color 0.2s;
+}
+.scheduled-card:hover {
+  border-color: var(--accent);
+}
+.scheduled-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.scheduled-card-icon.active {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--success);
+}
+.scheduled-card-icon.paused-sched {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--warning);
+}
+.scheduled-card-body {
+  flex: 1;
+  min-width: 0;
+}
+.scheduled-card-body h5 {
+  font-size: 0.85rem;
+  margin: 0 0 4px 0;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.scheduled-card-body p {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 2px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.scheduled-card-body .scheduled-meta {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.scheduled-card-body .scheduled-meta span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.scheduled-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.scheduled-card-actions button {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  transition: all 0.2s;
+}
+.scheduled-card-actions button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.scheduled-card-actions button.btn-delete:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+@media (max-width: 600px) {
+  .scheduled-form-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
