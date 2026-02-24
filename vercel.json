@@ -1,11 +1,14 @@
 {
   "outputDirectory": ".",
+  "redirects": [
+    { "source": "/", "destination": "/landing.html", "statusCode": 302 }
+  ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/admin", "destination": "/admin.html" },
-    { "source": "/landing", "destination": "/landing.html" },
     { "source": "/app", "destination": "/index.html" },
-    { "source": "/((?!api/|admin|landing|app|index\\.html|css/|js/|.*\\.).*)", "destination": "/landing.html" }
+    { "source": "/login", "destination": "/index.html" },
+    { "source": "/landing", "destination": "/landing.html" }
   ],
   "functions": {
     "api/chatbot.js": {

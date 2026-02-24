@@ -163,6 +163,12 @@ document.getElementById('showLogin').addEventListener('click', (e) => {
   document.getElementById('loginPage').classList.remove('hidden');
 });
 
+// Auto-show register if URL hash is #registro
+if (window.location.hash === '#registro') {
+  document.getElementById('loginPage').classList.add('hidden');
+  document.getElementById('registerPage').classList.remove('hidden');
+}
+
 // ── Google Sign-In ──────────────────────────────────────────
 async function signInWithGoogle() {
   try {
@@ -202,7 +208,8 @@ async function signOut() {
     // Limpiar estado del chatbot antes de cerrar sesión
     if (typeof clearChatbotState === 'function') clearChatbotState();
     await auth.signOut();
-    showToast('Sesión cerrada', 'info');
+    // Redirigir a la landing page
+    window.location.href = '/landing.html';
   } catch (error) {
     console.error('Sign out error:', error);
     showToast('Error al cerrar sesión', 'error');
