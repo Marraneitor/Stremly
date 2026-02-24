@@ -1101,28 +1101,9 @@ console.log('🚀 Aplicación principal cargada');
  * Limpiar estado del chatbot (al cambiar de cuenta / cerrar sesión)
  */
 function clearChatbotState() {
-  // Limpiar campos del formulario
-  document.getElementById('botBusinessName').value = '';
-  document.getElementById('botSchedule').value = '';
-  document.getElementById('botPersonality').value = '';
   document.getElementById('botContext').value = '';
-  document.getElementById('botWelcomeMsg').value = '';
-  document.getElementById('botFallbackMsg').value = '';
   document.getElementById('botEnabled').value = 'true';
   document.getElementById('botMaxTokens').value = '512';
-
-  // Limpiar wizard state
-  wizardState.step = 0;
-  wizardState.history = [];
-  wizardState.collected = {};
-  wizardState.active = false;
-
-  // Limpiar UI del wizard
-  const messagesDiv = document.getElementById('wizardMessages');
-  if (messagesDiv) messagesDiv.innerHTML = '';
-  clearQuickReplies();
-  document.querySelectorAll('.wizard-done-actions').forEach(el => el.remove());
-  document.querySelectorAll('.wizard-config-review').forEach(el => el.remove());
 }
 
 /**
@@ -1131,34 +1112,30 @@ function clearChatbotState() {
 async function loadChatbotConfig() {
   if (!currentUser || !db) return;
 
-  // Siempre limpiar datos previos antes de cargar
   clearChatbotState();
 
   try {
     const doc = await db.collection('chatbot_config').doc(currentUser.uid).get();
     if (doc.exists) {
       const data = doc.data();
-      document.getElementById('botBusinessName').value = data.businessName || '';
-      document.getElementById('botSchedule').value = data.schedule || '';
-      document.getElementById('botPersonality').value = data.personality || '';
-      document.getElementById('botContext').value = data.context || '';
-      document.getElementById('botWelcomeMsg').value = data.welcomeMsg || '';
-      document.getElementById('botFallbackMsg').value = data.fallbackMsg || '';
+      // Support legacy multi-field configs by merging into single context
+      if (data.context) {
+        document.getElementById('botContext').value = data.context;
+      } else if (data.businessName) {
+        // Migrate old multi-field config to single context
+        let migrated = '';
+        if (data.businessName) migrated += `🏪 PRESENTACIÓN:\nSoy ${data.businessName}.`;
+        if (data.personality) migrated += ` ${data.personality}`;
+        if (data.schedule) migrated += `\nHorario de atención: ${data.schedule}`;
+        migrated += '\n';
+        if (data.welcomeMsg) migrated += `\n👋 MENSAJE DE BIENVENIDA:\n${data.welcomeMsg}\n`;
+        if (data.fallbackMsg) migrated += `\n⚠️ SI NO SÉ RESPONDER:\n${data.fallbackMsg}\n`;
+        document.getElementById('botContext').value = migrated.trim();
+      }
       document.getElementById('botEnabled').value = data.enabled !== false ? 'true' : 'false';
       document.getElementById('botMaxTokens').value = data.maxTokens || '512';
     }
-    // Si ya tiene config guardada, mostrar resumen; si no, iniciar wizard
-    setTimeout(() => {
-      if (wizardState.active || wizardState.history.length > 0) return;
-      const hasConfig = document.getElementById('botBusinessName').value.trim();
-      if (hasConfig) {
-        showCurrentConfigSummary();
-      } else {
-        startConfigWizard();
-      }
-    }, 500);
   } catch (err) {
-    // Silenciar error de permisos (las reglas aún no incluyen chatbot_config)
     if (err.code === 'permission-denied') {
       console.warn('⚠️ Chatbot config: sin permisos. Actualiza las reglas de Firestore.');
     } else {
@@ -1176,12 +1153,7 @@ async function saveChatbotConfig(e) {
 
   const config = {
     uid: currentUser.uid,
-    businessName: document.getElementById('botBusinessName').value.trim(),
-    schedule: document.getElementById('botSchedule').value.trim(),
-    personality: document.getElementById('botPersonality').value.trim(),
     context: document.getElementById('botContext').value.trim(),
-    welcomeMsg: document.getElementById('botWelcomeMsg').value.trim(),
-    fallbackMsg: document.getElementById('botFallbackMsg').value.trim(),
     enabled: document.getElementById('botEnabled').value === 'true',
     maxTokens: parseInt(document.getElementById('botMaxTokens').value),
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -1230,11 +1202,7 @@ async function sendTestMessage() {
   try {
     // Construir contexto desde el formulario
     const config = {
-      businessName: document.getElementById('botBusinessName').value.trim(),
-      schedule: document.getElementById('botSchedule').value.trim(),
-      personality: document.getElementById('botPersonality').value.trim(),
       context: document.getElementById('botContext').value.trim(),
-      fallbackMsg: document.getElementById('botFallbackMsg').value.trim(),
       maxTokens: parseInt(document.getElementById('botMaxTokens').value)
     };
 
@@ -1261,680 +1229,6 @@ async function sendTestMessage() {
     }
   }
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
-}
-
-/* ============================================================
-   CHATBOT — Wizard de Configuración con IA
-   ============================================================ */
-
-// Estado del wizard
-const wizardState = {
-  step: 0,          // paso actual
-  history: [],      // historial de mensajes [{role, text}]
-  collected: {},    // campos recopilados
-  active: false,
-  steps: [
-    'greeting',
-    'businessName',
-    'schedule',
-    'personality',
-    'context',
-    'welcomeMsg',
-    'fallbackMsg',
-    'summary'
-  ]
-};
-
-/**
- * Generar resumen de inventario disponible para el wizard
- */
-function getInventorySummary() {
-  if (!accountsData || accountsData.length === 0) {
-    return 'No hay cuentas registradas aún en el sistema.';
-  }
-  const platformMap = {};
-  accountsData.forEach(acc => {
-    const plat = acc.plataforma || 'Sin plataforma';
-    if (!platformMap[plat]) platformMap[plat] = { total: 0, used: 0, accounts: 0 };
-    platformMap[plat].accounts++;
-    const totalSlots = acc.perfiles_totales || 0;
-    const usedSlots = clientsData.filter(c => c.cuenta_id === acc.id).length;
-    platformMap[plat].total += totalSlots;
-    platformMap[plat].used += usedSlots;
-  });
-  const lines = Object.entries(platformMap).map(([plat, info]) => {
-    const available = info.total - info.used;
-    return `• ${plat}: ${info.accounts} cuenta(s), ${info.total} perfiles totales, ${available} disponibles`;
-  });
-  return 'Inventario actual:\n' + lines.join('\n');
-}
-
-/**
- * Obtener el system prompt para el wizard según el paso actual
- */
-function getWizardSystemPrompt(step) {
-  const inventory = getInventorySummary();
-
-  const base = `Eres un asistente de configuración de Streamly, una plataforma de gestión de cuentas de streaming.
-Estás ayudando al usuario a configurar su bot de WhatsApp paso a paso.
-Responde SIEMPRE en español. Sé amable, breve y claro. Usa emojis moderadamente.
-NO uses Markdown. Usa solo texto plano con emojis.
-
-${inventory}
-
-Lo que ya se ha configurado hasta ahora:
-${JSON.stringify(wizardState.collected, null, 2)}
-`;
-
-  const prompts = {
-    greeting: base + `
-Este es el primer mensaje. Da la bienvenida al usuario y explícale brevemente que lo vas a guiar para configurar su bot de WhatsApp en unos simples pasos.
-Luego pregúntale: ¿Cómo se llama tu negocio?
-No escribas más de 4 líneas.`,
-
-    businessName: base + `
-El usuario te está dando el nombre de su negocio. Confírmalo amablemente y pregúntale:
-¿Cuáles son tus horarios de atención? (ejemplo: Lun-Vie 9am-6pm, Sáb 10am-2pm)
-No escribas más de 3 líneas.`,
-
-    schedule: base + `
-El usuario te está dando sus horarios de atención. Confírmalo amablemente y pregúntale:
-¿Qué personalidad quieres que tenga tu bot? Explica estas opciones brevemente:
-1. 🤝 Profesional y formal
-2. 😊 Amigable y cercano
-3. 🎉 Divertido y con emojis
-4. 📋 Directo y conciso
-O puede escribir una personalidad personalizada.
-No escribas más de 6 líneas.`,
-
-    personality: base + `
-El usuario eligió una personalidad para el bot. Confírmalo amablemente.
-Ahora pregúntale sobre el contexto de su negocio. Dile que describa:
-- Qué servicios o productos vende
-- Cómo es el proceso de compra
-- Precios o planes si los tiene
-- Cualquier información que el bot deba saber para atender bien
-
-Muéstrale el inventario actual del sistema para que sepa qué tiene disponible.
-No escribas más de 6 líneas.`,
-
-    context: base + `
-El usuario te dio el contexto de su negocio. Confírmalo.
-Ahora pregúntale: ¿Qué mensaje de bienvenida quieres que envíe el bot cuando alguien escribe por primera vez?
-Dale un ejemplo basado en el nombre del negocio que configuró.
-No escribas más de 4 líneas.`,
-
-    welcomeMsg: base + `
-El usuario eligió su mensaje de bienvenida. Confírmalo.
-Última pregunta: ¿Qué mensaje quieres que envíe el bot cuando no sepa responder algo?
-Dale un ejemplo como: "Lo siento, no tengo esa información. Un agente te atenderá pronto."
-No escribas más de 3 líneas.`,
-
-    fallbackMsg: base + `
-El usuario eligió su mensaje de fallback. ¡Excelente!
-Ahora genera un RESUMEN COMPLETO de toda la configuración recopilada en formato lista.
-Al final dile que si todo está bien puede hacer clic en "Guardar configuración" o puede decirte si quiere cambiar algo.
-Incluye TODOS los campos:
-- Nombre del negocio: ${wizardState.collected.businessName || '?'}
-- Horarios: ${wizardState.collected.schedule || '?'}
-- Personalidad: ${wizardState.collected.personality || '?'}
-- Contexto: ${wizardState.collected.context || '?'}
-- Mensaje de bienvenida: ${wizardState.collected.welcomeMsg || '?'}
-- Mensaje de fallback: [lo que acaba de responder el usuario]`
-  };
-
-  return prompts[step] || base;
-}
-
-/**
- * Iniciar el wizard
- */
-function startConfigWizard() {
-  wizardState.step = 0;
-  wizardState.history = [];
-  wizardState.collected = {};
-  wizardState.active = true;
-
-  const messagesDiv = document.getElementById('wizardMessages');
-  messagesDiv.innerHTML = '';
-  clearQuickReplies();
-
-  // Cargar config existente si la hay
-  const existingName = document.getElementById('botBusinessName').value.trim();
-  if (existingName) {
-    wizardState.collected = {
-      businessName: document.getElementById('botBusinessName').value.trim(),
-      schedule: document.getElementById('botSchedule').value.trim(),
-      personality: document.getElementById('botPersonality').value.trim(),
-      context: document.getElementById('botContext').value.trim(),
-      welcomeMsg: document.getElementById('botWelcomeMsg').value.trim(),
-      fallbackMsg: document.getElementById('botFallbackMsg').value.trim()
-    };
-  }
-
-  sendWizardBotMessage('greeting');
-}
-
-/**
- * Enviar mensaje del wizard (IA)
- */
-async function sendWizardBotMessage(step, userMessage) {
-  const messagesDiv = document.getElementById('wizardMessages');
-
-  // Mostrar typing
-  const typingId = 'wiz-typing-' + Date.now();
-  messagesDiv.innerHTML += `<div class="chat-msg chat-msg-bot wizard-typing" id="${typingId}"><span><i class="fa-solid fa-ellipsis fa-beat-fade"></i> Escribiendo...</span></div>`;
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
-
-  try {
-    const systemPrompt = getWizardSystemPrompt(step);
-    const userMsg = userMessage || 'Hola, quiero configurar mi bot de WhatsApp.';
-
-    const res = await fetch('/api/chatbot', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: userMsg,
-        config: {
-          wizardMode: true,
-          context: systemPrompt,
-          maxTokens: 600
-        }
-      })
-    });
-
-    const data = await res.json();
-    const reply = data.reply || 'Lo siento, hubo un error. Intenta de nuevo.';
-
-    // Reemplazar typing con respuesta
-    const typingEl = document.getElementById(typingId);
-    if (typingEl) {
-      typingEl.classList.remove('wizard-typing');
-      typingEl.innerHTML = `<span>${escapeAttr(reply)}</span>`;
-    }
-
-    wizardState.history.push({ role: 'bot', text: reply });
-
-    // Mostrar quick replies según el paso
-    showQuickRepliesForStep(step);
-
-    // Si estamos en el paso de resumen, mostrar botones de acción
-    if (step === 'fallbackMsg') {
-      showWizardDoneActions();
-    }
-
-  } catch (err) {
-    const typingEl = document.getElementById(typingId);
-    if (typingEl) {
-      typingEl.innerHTML = `<span style="color:var(--danger);">Error: ${escapeAttr(err.message)}</span>`;
-    }
-  }
-
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
-}
-
-/**
- * Enviar mensaje del usuario en el wizard
- */
-async function sendWizardMessage() {
-  const input = document.getElementById('wizardInput');
-  const msg = input.value.trim();
-  if (!msg) return;
-  if (!wizardState.active) {
-    startConfigWizard();
-    return;
-  }
-
-  const messagesDiv = document.getElementById('wizardMessages');
-
-  // Mostrar mensaje del usuario
-  messagesDiv.innerHTML += `<div class="chat-msg chat-msg-user"><span>${escapeAttr(msg)}</span></div>`;
-  input.value = '';
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
-  clearQuickReplies();
-
-  wizardState.history.push({ role: 'user', text: msg });
-
-  // Procesar según el paso actual
-  const currentStep = wizardState.steps[wizardState.step];
-  processWizardStep(currentStep, msg);
-}
-
-/**
- * Procesar paso del wizard
- */
-function processWizardStep(step, userMsg) {
-  switch (step) {
-    case 'greeting':
-      wizardState.collected.businessName = userMsg;
-      wizardState.step = 2; // skip to schedule (businessName was just collected)
-      sendWizardBotMessage('businessName', userMsg);
-      break;
-
-    case 'businessName':
-      wizardState.collected.schedule = userMsg;
-      wizardState.step = 3;
-      sendWizardBotMessage('schedule', userMsg);
-      break;
-
-    case 'schedule':
-      // Interpretar personality
-      const personalityMap = {
-        '1': 'Profesional y formal. Usa un tono respetuoso y serio.',
-        '2': 'Amigable y cercano. Usa un tono cálido y conversacional.',
-        '3': 'Divertido y expresivo. Usa emojis frecuentemente y sé entusiasta.',
-        '4': 'Directo y conciso. Ve al grano sin rodeos.'
-      };
-      wizardState.collected.personality = personalityMap[userMsg.trim()] || userMsg;
-      wizardState.step = 4;
-      sendWizardBotMessage('personality', wizardState.collected.personality);
-      break;
-
-    case 'personality':
-      wizardState.collected.context = userMsg;
-      wizardState.step = 5;
-      sendWizardBotMessage('context', userMsg);
-      break;
-
-    case 'context':
-      wizardState.collected.welcomeMsg = userMsg;
-      wizardState.step = 6;
-      sendWizardBotMessage('welcomeMsg', userMsg);
-      break;
-
-    case 'welcomeMsg':
-      wizardState.collected.fallbackMsg = userMsg;
-      wizardState.step = 7;
-      sendWizardBotMessage('fallbackMsg', userMsg);
-      break;
-
-    case 'fallbackMsg':
-    case 'summary':
-      // Conversación libre post-configuración
-      handlePostConfigMessage(userMsg);
-      break;
-  }
-}
-
-/**
- * Manejar mensajes después de completar la configuración
- */
-async function handlePostConfigMessage(msg) {
-  const lower = msg.toLowerCase();
-
-  // Si quiere guardar
-  if (lower.includes('guardar') || lower.includes('listo') || lower.includes('confirmar') || lower === 'sí' || lower === 'si') {
-    applyWizardConfig();
-    return;
-  }
-
-  // Todo lo demás: enviar al AI para detectar/aplicar cambios
-  applyFieldChange(msg);
-}
-
-/**
- * Detectar y aplicar cambio de campo desde texto libre
- */
-async function applyFieldChange(msg) {
-  const messagesDiv = document.getElementById('wizardMessages');
-  const typingId = 'wiz-typing-' + Date.now();
-  messagesDiv.innerHTML += `<div class="chat-msg chat-msg-bot wizard-typing" id="${typingId}"><span><i class="fa-solid fa-ellipsis fa-beat-fade"></i> Analizando...</span></div>`;
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
-
-  try {
-    const res = await fetch('/api/chatbot', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: `El usuario dice: "${msg}"
-
-Configuración actual del bot:
-${JSON.stringify(wizardState.collected, null, 2)}
-
-Analiza si el usuario quiere modificar algún campo. Si es así, responde en EXACTAMENTE este formato JSON seguido de un mensaje:
-{"field": "CAMPO", "value": "NUEVO_VALOR"}
-MENSAJE_AMABLE
-
-Donde CAMPO es uno de: businessName, schedule, personality, context, welcomeMsg, fallbackMsg.
-Si no detectas un cambio, simplemente responde amablemente y pregunta si quiere guardar la configuración.`,
-        config: {
-          wizardMode: true,
-          context: 'Eres un asistente que analiza intenciones del usuario para configuración de chatbot. Responde en español.',
-          maxTokens: 300
-        }
-      })
-    });
-
-    const data = await res.json();
-    const reply = data.reply || '';
-
-    // Intentar extraer JSON del cambio
-    const jsonMatch = reply.match(/\{[\s]*"field"[\s]*:[\s]*"(\w+)"[\s]*,[\s]*"value"[\s]*:[\s]*"([^"]+)"[\s]*\}/);
-    if (jsonMatch) {
-      const field = jsonMatch[1];
-      const value = jsonMatch[2];
-      if (wizardState.collected.hasOwnProperty(field)) {
-        wizardState.collected[field] = value;
-        // Sincronizar al formulario oculto inmediatamente
-        const fieldMap = {
-          businessName: 'botBusinessName',
-          schedule: 'botSchedule',
-          personality: 'botPersonality',
-          context: 'botContext',
-          welcomeMsg: 'botWelcomeMsg',
-          fallbackMsg: 'botFallbackMsg'
-        };
-        const inputId = fieldMap[field];
-        if (inputId) document.getElementById(inputId).value = value;
-      }
-    }
-
-    // Mostrar la parte del mensaje (sin el JSON)
-    const cleanReply = reply.replace(/\{[\s]*"field"[\s]*:[\s]*"[^"]*"[\s]*,[\s]*"value"[\s]*:[\s]*"[^"]*"[\s]*\}/, '').trim();
-
-    const typingEl = document.getElementById(typingId);
-    if (typingEl) {
-      typingEl.classList.remove('wizard-typing');
-      typingEl.innerHTML = `<span>${escapeAttr(cleanReply || 'Entendido. ¿Quieres guardar la configuración?')}</span>`;
-    }
-  } catch (err) {
-    const typingEl = document.getElementById(typingId);
-    if (typingEl) {
-      typingEl.classList.remove('wizard-typing');
-      typingEl.innerHTML = `<span style="color:var(--danger);">Error: ${escapeAttr(err.message)}</span>`;
-    }
-  }
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
-  showWizardDoneActions();
-}
-
-/**
- * Mostrar quick replies según el paso
- */
-function showQuickRepliesForStep(step) {
-  clearQuickReplies();
-  const container = document.getElementById('wizardQuickReplies');
-
-  const replies = {
-    schedule: [
-      { text: '🤝 Profesional', value: '1' },
-      { text: '😊 Amigable', value: '2' },
-      { text: '🎉 Divertido', value: '3' },
-      { text: '📋 Directo', value: '4' }
-    ]
-  };
-
-  const options = replies[step];
-  if (!options) return;
-
-  options.forEach(opt => {
-    const btn = document.createElement('button');
-    btn.className = 'quick-reply-btn';
-    btn.textContent = opt.text;
-    btn.onclick = () => {
-      document.getElementById('wizardInput').value = opt.value;
-      sendWizardMessage();
-    };
-    container.appendChild(btn);
-  });
-}
-
-function clearQuickReplies() {
-  const container = document.getElementById('wizardQuickReplies');
-  if (container) container.innerHTML = '';
-}
-
-/**
- * Mostrar botones de acción al terminar el wizard
- */
-function showWizardDoneActions() {
-  // Remove existing done actions
-  document.querySelectorAll('.wizard-done-actions').forEach(el => el.remove());
-
-  const messagesDiv = document.getElementById('wizardMessages');
-  const actionsDiv = document.createElement('div');
-  actionsDiv.className = 'wizard-done-actions';
-  actionsDiv.innerHTML = `
-    <button class="btn btn-primary" onclick="applyWizardConfig()">
-      <i class="fa-solid fa-floppy-disk"></i> Guardar Configuración
-    </button>
-    <button class="btn btn-secondary" onclick="resetConfigWizard()">
-      <i class="fa-solid fa-rotate-right"></i> Empezar de nuevo
-    </button>
-  `;
-  messagesDiv.appendChild(actionsDiv);
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
-}
-
-/**
- * Aplicar la configuración recopilada por el wizard al formulario y guardar
- */
-async function applyWizardConfig() {
-  const c = wizardState.collected;
-
-  // Rellenar campos del formulario oculto
-  if (c.businessName) document.getElementById('botBusinessName').value = c.businessName;
-  if (c.schedule) document.getElementById('botSchedule').value = c.schedule;
-  if (c.personality) document.getElementById('botPersonality').value = c.personality;
-  if (c.context) document.getElementById('botContext').value = c.context;
-  if (c.welcomeMsg) document.getElementById('botWelcomeMsg').value = c.welcomeMsg;
-  if (c.fallbackMsg) document.getElementById('botFallbackMsg').value = c.fallbackMsg;
-
-  // Guardar usando la función existente
-  const fakeEvent = { preventDefault: () => {} };
-  await saveChatbotConfig(fakeEvent);
-
-  // Limpiar actions previos
-  document.querySelectorAll('.wizard-done-actions').forEach(el => el.remove());
-
-  // Mostrar confirmación + resumen visual
-  const messagesDiv = document.getElementById('wizardMessages');
-  messagesDiv.innerHTML += `<div class="chat-msg chat-msg-bot"><span>✅ ¡Configuración guardada exitosamente!</span></div>`;
-
-  const summaryDiv = document.createElement('div');
-  summaryDiv.className = 'wizard-config-review';
-  summaryDiv.innerHTML = `
-    <div class="wizard-review-header">
-      <i class="fa-solid fa-clipboard-check"></i> Resumen de tu configuración
-    </div>
-    <div class="wizard-review-grid">
-      <div class="wizard-review-item">
-        <span class="wizard-review-label"><i class="fa-solid fa-store"></i> Negocio</span>
-        <span class="wizard-review-value">${escapeAttr(c.businessName || '—')}</span>
-      </div>
-      <div class="wizard-review-item">
-        <span class="wizard-review-label"><i class="fa-solid fa-clock"></i> Horarios</span>
-        <span class="wizard-review-value">${escapeAttr(c.schedule || '—')}</span>
-      </div>
-      <div class="wizard-review-item">
-        <span class="wizard-review-label"><i class="fa-solid fa-masks-theater"></i> Personalidad</span>
-        <span class="wizard-review-value">${escapeAttr(c.personality || '—')}</span>
-      </div>
-      <div class="wizard-review-item wizard-review-wide">
-        <span class="wizard-review-label"><i class="fa-solid fa-book"></i> Contexto</span>
-        <span class="wizard-review-value">${escapeAttr(c.context || '—')}</span>
-      </div>
-      <div class="wizard-review-item">
-        <span class="wizard-review-label"><i class="fa-solid fa-hand-wave"></i> Bienvenida</span>
-        <span class="wizard-review-value">${escapeAttr(c.welcomeMsg || '—')}</span>
-      </div>
-      <div class="wizard-review-item">
-        <span class="wizard-review-label"><i class="fa-solid fa-circle-exclamation"></i> Fallback</span>
-        <span class="wizard-review-value">${escapeAttr(c.fallbackMsg || '—')}</span>
-      </div>
-    </div>
-    <div class="wizard-review-actions">
-      <button class="btn btn-secondary btn-sm" onclick="editConfigField()">
-        <i class="fa-solid fa-pen-to-square"></i> Editar con IA
-      </button>
-      <button class="btn btn-secondary btn-sm" onclick="toggleManualConfig()">
-        <i class="fa-solid fa-sliders"></i> Editar manualmente
-      </button>
-      <button class="btn btn-secondary btn-sm" onclick="resetConfigWizard()">
-        <i class="fa-solid fa-rotate-right"></i> Reconfigurar todo
-      </button>
-    </div>
-  `;
-  messagesDiv.appendChild(summaryDiv);
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
-
-  wizardState.active = false;
-}
-
-/**
- * Activar edición conversacional post-guardado
- */
-function editConfigField() {
-  // Sincronizar estado del wizard desde los campos del formulario
-  wizardState.collected = {
-    businessName: document.getElementById('botBusinessName').value.trim(),
-    schedule: document.getElementById('botSchedule').value.trim(),
-    personality: document.getElementById('botPersonality').value.trim(),
-    context: document.getElementById('botContext').value.trim(),
-    welcomeMsg: document.getElementById('botWelcomeMsg').value.trim(),
-    fallbackMsg: document.getElementById('botFallbackMsg').value.trim()
-  };
-  wizardState.active = true;
-  wizardState.step = 7; // summary step — free conversation mode
-
-  const messagesDiv = document.getElementById('wizardMessages');
-  // Quitar tarjeta de resumen
-  document.querySelectorAll('.wizard-config-review').forEach(el => el.remove());
-
-  // Mostrar config actual resumida para que el usuario sepa qué tiene
-  const c = wizardState.collected;
-  messagesDiv.innerHTML += `<div class="chat-msg chat-msg-bot"><span>✏️ Tu configuración actual es:\n\n🏪 Negocio: ${escapeAttr(c.businessName || '—')}\n🕐 Horarios: ${escapeAttr(c.schedule || '—')}\n🎭 Personalidad: ${escapeAttr(c.personality || '—')}\n📖 Contexto: ${escapeAttr((c.context || '—').substring(0, 80))}${(c.context || '').length > 80 ? '...' : ''}\n👋 Bienvenida: ${escapeAttr(c.welcomeMsg || '—')}\n⚠️ Fallback: ${escapeAttr(c.fallbackMsg || '—')}\n\nDime qué quieres cambiar. Por ejemplo:\n• "Cambiar el nombre a MiStreaming"\n• "Quiero un tono más divertido"\n• "Actualizar los horarios a 24/7"\n\nCuando termines, escribe "guardar".</span></div>`;
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
-  document.getElementById('wizardInput').focus();
-}
-
-/**
- * Mostrar resumen de la config actual (sin guardar de nuevo)
- */
-function showCurrentConfigSummary() {
-  const c = {
-    businessName: document.getElementById('botBusinessName').value.trim(),
-    schedule: document.getElementById('botSchedule').value.trim(),
-    personality: document.getElementById('botPersonality').value.trim(),
-    context: document.getElementById('botContext').value.trim(),
-    welcomeMsg: document.getElementById('botWelcomeMsg').value.trim(),
-    fallbackMsg: document.getElementById('botFallbackMsg').value.trim()
-  };
-  wizardState.collected = { ...c };
-
-  const messagesDiv = document.getElementById('wizardMessages');
-  // Limpiar cualquier resumen previo
-  document.querySelectorAll('.wizard-config-review').forEach(el => el.remove());
-
-  const summaryDiv = document.createElement('div');
-  summaryDiv.className = 'wizard-config-review';
-  summaryDiv.innerHTML = `
-    <div class="wizard-review-header">
-      <i class="fa-solid fa-clipboard-check"></i> Configuración actual
-    </div>
-    <div class="wizard-review-grid">
-      <div class="wizard-review-item">
-        <span class="wizard-review-label"><i class="fa-solid fa-store"></i> Negocio</span>
-        <span class="wizard-review-value">${escapeAttr(c.businessName || '—')}</span>
-      </div>
-      <div class="wizard-review-item">
-        <span class="wizard-review-label"><i class="fa-solid fa-clock"></i> Horarios</span>
-        <span class="wizard-review-value">${escapeAttr(c.schedule || '—')}</span>
-      </div>
-      <div class="wizard-review-item">
-        <span class="wizard-review-label"><i class="fa-solid fa-masks-theater"></i> Personalidad</span>
-        <span class="wizard-review-value">${escapeAttr(c.personality || '—')}</span>
-      </div>
-      <div class="wizard-review-item wizard-review-wide">
-        <span class="wizard-review-label"><i class="fa-solid fa-book"></i> Contexto</span>
-        <span class="wizard-review-value">${escapeAttr(c.context || '—')}</span>
-      </div>
-      <div class="wizard-review-item">
-        <span class="wizard-review-label"><i class="fa-solid fa-hand-wave"></i> Bienvenida</span>
-        <span class="wizard-review-value">${escapeAttr(c.welcomeMsg || '—')}</span>
-      </div>
-      <div class="wizard-review-item">
-        <span class="wizard-review-label"><i class="fa-solid fa-circle-exclamation"></i> Fallback</span>
-        <span class="wizard-review-value">${escapeAttr(c.fallbackMsg || '—')}</span>
-      </div>
-    </div>
-    <div class="wizard-review-actions">
-      <button class="btn btn-secondary btn-sm" onclick="editConfigField()">
-        <i class="fa-solid fa-pen-to-square"></i> Editar con IA
-      </button>
-      <button class="btn btn-secondary btn-sm" onclick="toggleManualConfig()">
-        <i class="fa-solid fa-sliders"></i> Editar manualmente
-      </button>
-      <button class="btn btn-secondary btn-sm" onclick="resetConfigWizard()">
-        <i class="fa-solid fa-rotate-right"></i> Reconfigurar todo
-      </button>
-    </div>
-  `;
-  messagesDiv.appendChild(summaryDiv);
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
-}
-
-/**
- * Reiniciar el wizard — carga config existente si la hay
- */
-function resetConfigWizard() {
-  const hasConfig = document.getElementById('botBusinessName').value.trim();
-
-  wizardState.step = 0;
-  wizardState.history = [];
-  wizardState.active = true;
-
-  // Cargar config existente del formulario
-  if (hasConfig) {
-    wizardState.collected = {
-      businessName: document.getElementById('botBusinessName').value.trim(),
-      schedule: document.getElementById('botSchedule').value.trim(),
-      personality: document.getElementById('botPersonality').value.trim(),
-      context: document.getElementById('botContext').value.trim(),
-      welcomeMsg: document.getElementById('botWelcomeMsg').value.trim(),
-      fallbackMsg: document.getElementById('botFallbackMsg').value.trim()
-    };
-  } else {
-    wizardState.collected = {};
-  }
-
-  const messagesDiv = document.getElementById('wizardMessages');
-  messagesDiv.innerHTML = '';
-  clearQuickReplies();
-  document.querySelectorAll('.wizard-done-actions').forEach(el => el.remove());
-  document.querySelectorAll('.wizard-config-review').forEach(el => el.remove());
-
-  if (hasConfig) {
-    // Ya tiene config — ir directo a modo edición
-    editConfigField();
-  } else {
-    // Sin config — iniciar wizard desde cero
-    sendWizardBotMessage('greeting');
-  }
-}
-
-/**
- * Alternar entre wizard y modo manual
- */
-function toggleManualConfig() {
-  const wizard = document.getElementById('configWizardChat');
-  const form = document.getElementById('chatbotConfigForm');
-  const btn = document.getElementById('btnToggleManual');
-
-  if (form.style.display === 'none') {
-    // Mostrar manual, ocultar wizard
-    form.style.display = '';
-    wizard.style.display = 'none';
-    btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Modo IA';
-  } else {
-    // Mostrar wizard, ocultar manual
-    form.style.display = 'none';
-    wizard.style.display = '';
-    btn.innerHTML = '<i class="fa-solid fa-sliders"></i> Modo Manual';
-    if (!wizardState.active && wizardState.history.length === 0) {
-      startConfigWizard();
-    }
-  }
 }
 
 /* ============================================================
@@ -2958,12 +2252,7 @@ async function syncContextToBot() {
   try {
     // Construir la config desde el formulario o desde Firestore
     const config = {
-      businessName: document.getElementById('botBusinessName').value.trim(),
-      schedule: document.getElementById('botSchedule').value.trim(),
-      personality: document.getElementById('botPersonality').value.trim(),
       context: document.getElementById('botContext').value.trim(),
-      welcomeMsg: document.getElementById('botWelcomeMsg').value.trim(),
-      fallbackMsg: document.getElementById('botFallbackMsg').value.trim(),
       enabled: document.getElementById('botEnabled').value === 'true',
       maxTokens: parseInt(document.getElementById('botMaxTokens').value)
     };
@@ -3724,6 +3013,9 @@ function calendarToday() {
   renderCalendar();
 }
 
+// Store calendar events globally for modal access
+let calendarDayEvents = {};
+
 function renderCalendar() {
   const grid = document.getElementById('calendarGrid');
   const label = document.getElementById('calendarMonthLabel');
@@ -3737,8 +3029,8 @@ function renderCalendar() {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const today = new Date();
 
-  // Build map of events by day
-  const dayEvents = {};
+  // Build map of events by day (full client data)
+  calendarDayEvents = {};
   clientsData.forEach(c => {
     let end = c.fecha_fin;
     if (end?.toDate) end = end.toDate();
@@ -3747,11 +3039,19 @@ function renderCalendar() {
 
     if (end.getFullYear() === year && end.getMonth() === month) {
       const day = end.getDate();
-      if (!dayEvents[day]) dayEvents[day] = [];
+      if (!calendarDayEvents[day]) calendarDayEvents[day] = [];
       const d = daysRemaining(c.fecha_fin);
-      dayEvents[day].push({
+      const account = accountsData.find(a => a.id === c.cuenta_id);
+      calendarDayEvents[day].push({
+        id: c.id,
         name: c.nombre,
-        status: d <= 0 ? 'expired' : d <= 3 ? 'expiring' : 'active'
+        platform: account?.plataforma || 'N/A',
+        profile: c.perfil || '—',
+        price: c.precio || 0,
+        endDate: end,
+        daysLeft: d,
+        status: d <= 0 ? 'expired' : d <= 3 ? 'expiring' : 'active',
+        phone: c.telefono || ''
       });
     }
   });
@@ -3768,16 +3068,88 @@ function renderCalendar() {
   // Day cells
   for (let d = 1; d <= daysInMonth; d++) {
     const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
-    const events = dayEvents[d] || [];
+    const events = calendarDayEvents[d] || [];
     const dots = events.map(e => `<div class="cal-dot ${e.status}" title="${e.name}"></div>`).join('');
+    const hasEvents = events.length > 0;
 
-    html += `<div class="calendar-day${isToday ? ' today' : ''}">
+    html += `<div class="calendar-day${isToday ? ' today' : ''}${hasEvents ? ' has-events' : ''}" ${hasEvents ? `onclick="showCalendarDayModal(${d})"` : ''}>
       <span class="day-number">${d}</span>
       <div class="cal-dots">${dots}</div>
+      ${hasEvents ? `<span class="cal-count">${events.length}</span>` : ''}
     </div>`;
   }
 
   grid.innerHTML = html;
+}
+
+/**
+ * Show modal with clients expiring on a specific calendar day
+ */
+function showCalendarDayModal(day) {
+  const events = calendarDayEvents[day];
+  if (!events || events.length === 0) return;
+
+  const year = calendarDate.getFullYear();
+  const month = calendarDate.getMonth();
+  const dateStr = new Date(year, month, day).toLocaleDateString('es', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+
+  const titleEl = document.getElementById('calendarDayModalTitle');
+  const bodyEl = document.getElementById('calendarDayModalBody');
+
+  titleEl.innerHTML = `<i class="fa-solid fa-calendar-day"></i> ${dateStr}`;
+
+  const expired = events.filter(e => e.status === 'expired');
+  const expiring = events.filter(e => e.status === 'expiring');
+  const active = events.filter(e => e.status === 'active');
+
+  const renderClientRow = (e) => {
+    const statusLabels = { expired: 'Vencido', expiring: 'Por vencer', active: 'Activo' };
+    const statusIcons = { expired: 'fa-circle-xmark', expiring: 'fa-clock', active: 'fa-circle-check' };
+    const priceStr = typeof formatCurrency === 'function' ? formatCurrency(e.price) : `$${e.price}`;
+    const daysText = e.daysLeft <= 0 ? `Venció hace ${Math.abs(e.daysLeft)} día(s)` : `${e.daysLeft} día(s) restante(s)`;
+
+    return `
+      <div class="cal-modal-client cal-modal-${e.status}">
+        <div class="cal-modal-client-header">
+          <div class="cal-modal-client-info">
+            <strong>${escapeAttr(e.name)}</strong>
+            <span class="cal-modal-platform"><i class="fa-solid fa-tv"></i> ${escapeAttr(e.platform)} — ${escapeAttr(e.profile)}</span>
+          </div>
+          <span class="cal-modal-status cal-modal-status-${e.status}">
+            <i class="fa-solid ${statusIcons[e.status]}"></i> ${statusLabels[e.status]}
+          </span>
+        </div>
+        <div class="cal-modal-client-details">
+          <span><i class="fa-solid fa-coins"></i> ${priceStr}</span>
+          <span><i class="fa-solid fa-hourglass-half"></i> ${daysText}</span>
+          ${e.phone ? `<span><i class="fa-solid fa-phone"></i> ${escapeAttr(e.phone)}</span>` : ''}
+        </div>
+        <div class="cal-modal-client-actions">
+          ${e.status !== 'active' ? `<button class="btn btn-success btn-sm" onclick="renewClient('${e.id}'); closeModal('calendarDayModal');" title="Renovar +30 días"><i class="fa-solid fa-rotate-right"></i> Renovar</button>` : ''}
+          ${e.phone ? `<a class="btn btn-secondary btn-sm" href="https://wa.me/${e.phone.replace(/[^0-9]/g, '')}" target="_blank" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>` : ''}
+          <button class="btn btn-secondary btn-sm" onclick="showClientHistory('${e.id}'); closeModal('calendarDayModal');" title="Historial"><i class="fa-solid fa-clock-rotate-left"></i></button>
+        </div>
+      </div>
+    `;
+  };
+
+  let bodyHtml = `<div class="cal-modal-summary">
+    <span class="cal-modal-badge expired"><i class="fa-solid fa-circle-xmark"></i> ${expired.length} vencido(s)</span>
+    <span class="cal-modal-badge expiring"><i class="fa-solid fa-clock"></i> ${expiring.length} por vencer</span>
+    <span class="cal-modal-badge active"><i class="fa-solid fa-circle-check"></i> ${active.length} activo(s)</span>
+  </div>
+  <div class="cal-modal-clients-list">`;
+
+  [...expired, ...expiring, ...active].forEach(e => {
+    bodyHtml += renderClientRow(e);
+  });
+
+  bodyHtml += '</div>';
+  bodyEl.innerHTML = bodyHtml;
+
+  openModal('calendarDayModal');
 }
 
 /* ============================================================

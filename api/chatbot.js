@@ -67,7 +67,6 @@ module.exports = async function handler(req, res) {
 
     const data = await geminiRes.json();
     const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text
-      || config?.fallbackMsg
       || 'Lo siento, no pude generar una respuesta.';
 
     return res.status(200).json({ reply });
@@ -93,35 +92,17 @@ function setCorsHeaders(req, res) {
 }
 
 function buildSystemPrompt(config) {
-  // Wizard mode: use context directly as the full system prompt
-  if (config.wizardMode && config.context) {
-    return config.context;
-  }
-
   const parts = [
-    'Eres un asistente virtual de atención al cliente por WhatsApp.',
+    'Eres un asistente virtual de ventas de cuentas de streaming por WhatsApp.',
     'Responde SIEMPRE en español.',
-    'Sé conciso y directo en tus respuestas (formato WhatsApp, no uses Markdown).'
+    'Sé conciso y directo en tus respuestas (formato WhatsApp, no uses Markdown).',
+    'No inventes información que no esté en el contexto. Si no sabes, dilo.',
+    'No reveles que eres una IA a menos que te pregunten directamente.'
   ];
 
-  if (config.businessName) {
-    parts.push(`El nombre del negocio es: "${config.businessName}".`);
-  }
-  if (config.schedule) {
-    parts.push(`Los horarios de atención son: ${config.schedule}.`);
-  }
-  if (config.personality) {
-    parts.push(`Tu personalidad y forma de actuar: ${config.personality}`);
-  }
   if (config.context) {
-    parts.push(`Contexto del negocio e información importante:\n${config.context}`);
+    parts.push(`\nCONTEXTO Y CONFIGURACIÓN DEL NEGOCIO:\n${config.context}`);
   }
-  if (config.fallbackMsg) {
-    parts.push(`Si no sabes algo o la pregunta está fuera de contexto, responde: "${config.fallbackMsg}".`);
-  }
-
-  parts.push('No inventes información que no esté en el contexto. Si no sabes, dilo.');
-  parts.push('No reveles que eres una IA a menos que te pregunten directamente.');
 
   return parts.join('\n');
 }

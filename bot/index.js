@@ -312,11 +312,9 @@ let systemPromptConfigHash = null;
 
 function hashConfig(config) {
   return JSON.stringify({
-    name: config?.businessName,
-    personality: config?.personality,
-    schedule: config?.schedule,
     context: config?.context,
-    fallback: config?.fallbackMsg
+    enabled: config?.enabled,
+    maxTokens: config?.maxTokens
   });
 }
 
@@ -419,14 +417,13 @@ async function askGemini(message, config, conversationHistory) {
 async function buildSystemPrompt(config) {
   const lines = [];
 
-  // ── Identidad y personalidad ──
-  const botName = config.businessName || 'StreamBot';
-  lines.push(`Eres ${botName}, un asistente virtual de ventas de cuentas de streaming por WhatsApp.`);
+  // ── Base: eres un asistente de ventas de streaming ──
+  lines.push('Eres un asistente virtual de ventas de cuentas de streaming por WhatsApp.');
   lines.push('');
 
   // ── Reglas de formato ──
   lines.push('REGLAS DE FORMATO (obligatorias):');
-  lines.push('- Escribe SIEMPRE en español mexicano casual.');
+  lines.push('- Escribe SIEMPRE en español casual.');
   lines.push('- Formato WhatsApp: texto plano, sin Markdown, sin asteriscos para negritas.');
   lines.push('- Usa emojis con moderación (máximo 2-3 por mensaje).');
   lines.push('- Sé breve y directo. Máximo 3-4 líneas por respuesta.');
@@ -443,17 +440,9 @@ async function buildSystemPrompt(config) {
   lines.push('- Sigue el flujo natural: saludo → interés → plataforma → precio → datos → cierre.');
   lines.push('');
 
-  // ── Personalidad ──
-  if (config.personality) {
-    lines.push(`Tu personalidad: ${config.personality}`);
-    lines.push('');
-  }
-
-  // ── Info del negocio ──
-  if (config.schedule) lines.push(`Horarios de atención: ${config.schedule}`);
+  // ── Contexto del usuario (incluye TODA la configuración personalizada) ──
   if (config.context) {
-    lines.push('');
-    lines.push('INFORMACIÓN DEL NEGOCIO:');
+    lines.push('CONTEXTO Y CONFIGURACIÓN DEL NEGOCIO (proporcionado por el dueño):');
     lines.push(config.context);
     lines.push('');
   }
@@ -483,7 +472,7 @@ async function buildSystemPrompt(config) {
   // ── Proceso de venta ──
   lines.push('PROCESO DE VENTA:');
   lines.push('1. Si el cliente saluda/pregunta → Presenta brevemente qué plataformas hay disponibles.');
-  lines.push('2. Si pregunta precios → Da precios SOLO si están en "Información del negocio". Si no los tienes, di que un agente le confirma.');
+  lines.push('2. Si pregunta precios → Da precios SOLO si están en el contexto del negocio. Si no los tienes, di que un agente le confirma.');
   lines.push('3. Si elige una plataforma → Confirma precio y pregunta si quiere proceder.');
   lines.push('4. Si quiere comprar → Pide nombre completo y número de WhatsApp (si no lo tienes).');
   lines.push('5. Confirma los datos y dile que un agente le contactará para el pago y enviar accesos.');
@@ -513,10 +502,6 @@ async function buildSystemPrompt(config) {
   lines.push('- NUNCA ofrezcas plataformas marcadas como AGOTADO.');
   lines.push('- No inventes precios ni información que no tengas.');
   lines.push('- No reveles que eres IA a menos que pregunten directamente.');
-
-  if (config.fallbackMsg) {
-    lines.push(`- Si no puedes ayudar, responde: "${config.fallbackMsg}"`);
-  }
 
   return lines.join('\n');
 }

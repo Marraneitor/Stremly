@@ -1528,6 +1528,33 @@ textarea.form-control {
   flex-wrap: wrap;
 }
 
+/* Bot Context Help Box */
+.bot-context-help {
+  background: rgba(99,102,241,0.08);
+  border: 1px solid rgba(99,102,241,0.2);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  margin-bottom: 10px;
+}
+.bot-context-help p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.bot-context-help i {
+  color: var(--accent);
+  margin-right: 4px;
+}
+
+#botContext {
+  font-family: 'Inter', monospace;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  min-height: 280px;
+  resize: vertical;
+}
+
 .wizard-done-actions .btn {
   font-size: 0.8125rem;
 }
@@ -3051,6 +3078,119 @@ input:checked + .slider::before {
 .calendar-day .cal-dot.active { background: var(--success); }
 .calendar-day .cal-dot.expiring { background: var(--warning); }
 .calendar-day .cal-dot.expired { background: var(--danger); }
+
+/* Calendar day hover & click */
+.calendar-day.has-events {
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.calendar-day.has-events:hover {
+  transform: scale(1.08);
+  box-shadow: 0 4px 16px rgba(99,102,241,0.25);
+  background: rgba(99,102,241,0.12);
+  z-index: 2;
+}
+.calendar-day .cal-count {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* Calendar Day Modal Styles */
+.cal-modal-summary {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.cal-modal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.cal-modal-badge.expired { background: rgba(239,68,68,0.15); color: var(--danger); }
+.cal-modal-badge.expiring { background: rgba(245,158,11,0.15); color: var(--warning); }
+.cal-modal-badge.active { background: rgba(16,185,129,0.15); color: var(--success); }
+
+.cal-modal-clients-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cal-modal-client {
+  background: var(--bg-input);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  border-left: 4px solid var(--text-muted);
+}
+.cal-modal-client.cal-modal-expired { border-left-color: var(--danger); }
+.cal-modal-client.cal-modal-expiring { border-left-color: var(--warning); }
+.cal-modal-client.cal-modal-active { border-left-color: var(--success); }
+
+.cal-modal-client-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+.cal-modal-client-info {
+  display: flex;
+  flex-direction: column;
+}
+.cal-modal-client-info strong {
+  font-size: 0.95rem;
+}
+.cal-modal-platform {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.cal-modal-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+.cal-modal-status-expired { background: rgba(239,68,68,0.15); color: var(--danger); }
+.cal-modal-status-expiring { background: rgba(245,158,11,0.15); color: var(--warning); }
+.cal-modal-status-active { background: rgba(16,185,129,0.15); color: var(--success); }
+
+.cal-modal-client-details {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.cal-modal-client-details span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.cal-modal-client-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .calendar-legend {
   display: flex;
   gap: 20px;

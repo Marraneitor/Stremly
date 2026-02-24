@@ -908,63 +908,45 @@
           <div class="table-container">
             <div class="table-header">
               <h3 data-i18n="bot.config_title"><i class="fa-solid fa-wand-magic-sparkles"></i> Configuración del Chatbot</h3>
-              <div style="display: flex; gap: 8px;">
-                <button class="btn btn-secondary btn-sm" onclick="toggleManualConfig()" id="btnToggleManual" data-i18n="bot.manual_mode">
-                  <i class="fa-solid fa-sliders"></i> Modo Manual
-                </button>
-                <button class="btn btn-secondary btn-sm" onclick="resetConfigWizard()" data-i18n="bot.restart">
-                  <i class="fa-solid fa-rotate-right"></i> Reiniciar
-                </button>
-              </div>
             </div>
             <div style="padding: 20px;">
-              <!-- Wizard conversacional con IA -->
-              <div id="configWizardChat">
-                <div id="wizardMessages" class="chat-test-messages"></div>
-                <div id="wizardQuickReplies" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;"></div>
-                <div style="display: flex; gap: 8px; margin-top: 12px;">
-                  <input type="text" id="wizardInput" class="form-control" placeholder="Escribe tu respuesta..." data-i18n-ph="bot.write_response_ph" style="flex:1;" onkeydown="if(event.key==='Enter')sendWizardMessage()" />
-                  <button class="btn btn-primary" onclick="sendWizardMessage()">
-                    <i class="fa-solid fa-paper-plane"></i>
-                  </button>
-                </div>
-              </div>
+              <form id="chatbotConfigForm" onsubmit="saveChatbotConfig(event)">
 
-              <!-- Formulario manual (oculto por defecto) -->
-              <form id="chatbotConfigForm" onsubmit="saveChatbotConfig(event)" style="display:none;">
-
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="botBusinessName" data-i18n="bot.business_name"><i class="fa-solid fa-store"></i> Nombre del Negocio</label>
-                    <input type="text" id="botBusinessName" class="form-control" placeholder="Ej: StreamPlus" data-i18n-ph="bot.business_name_ph" />
+                <div class="form-group">
+                  <label for="botContext"><i class="fa-solid fa-brain"></i> Contexto del Bot</label>
+                  <div class="bot-context-help">
+                    <p><i class="fa-solid fa-circle-info"></i> Escribe aquí TODO lo que el bot necesita saber para atender a tus clientes. Entre más detallado sea, mejor atenderá.</p>
                   </div>
-                  <div class="form-group">
-                    <label for="botSchedule" data-i18n="bot.schedule"><i class="fa-solid fa-clock"></i> Horarios de Atención</label>
-                    <input type="text" id="botSchedule" class="form-control" placeholder="Ej: Lun-Vie 9am-6pm, Sáb 10am-2pm" data-i18n-ph="bot.schedule_ph" />
-                  </div>
+                  <textarea id="botContext" class="form-control" rows="14" placeholder="Ejemplo:
+
+🏪 PRESENTACIÓN:
+Soy StreamPlus, un asistente de ventas de cuentas de streaming. Me presento de forma amigable y uso emojis con moderación. Mi horario de atención es 24/7.
+
+📋 DATOS QUE DEBO PEDIR AL CLIENTE:
+- Nombre completo
+- Número de WhatsApp
+- Qué plataforma/cuenta desea
+
+💰 PRECIOS DE PERFILES:
+- Netflix: $50/mes
+- Disney+: $35/mes
+- Spotify: $25/mes
+- HBO Max: $40/mes
+- Amazon Prime: $30/mes
+
+👋 MENSAJE DE BIENVENIDA: 
+¡Hola! 👋 Bienvenido a StreamPlus. Tenemos los mejores precios en cuentas de streaming. ¿En qué te puedo ayudar?
+
+⚠️ SI NO SÉ RESPONDER: 
+Disculpa, no tengo esa información. Un agente te atenderá pronto.
+
+📝 INSTRUCCIONES ADICIONALES:
+- No compartir contraseñas ni credenciales
+- Ser breve y directo (máximo 3-4 líneas por mensaje)
+- Si el cliente confirma la compra, pedir sus datos para procesar el pedido"></textarea>
                 </div>
 
-                <div class="form-group">
-                  <label for="botPersonality" data-i18n="bot.personality"><i class="fa-solid fa-masks-theater"></i> Personalidad del Bot</label>
-                  <textarea id="botPersonality" class="form-control" rows="3" placeholder="Ej: Amable, profesional, usa emojis moderadamente." data-i18n-ph="bot.personality_ph"></textarea>
-                </div>
-
-                <div class="form-group">
-                  <label for="botContext" data-i18n="bot.context"><i class="fa-solid fa-book"></i> Contexto General del Negocio</label>
-                  <textarea id="botContext" class="form-control" rows="5" placeholder="Describe tu negocio, servicios, precios, promociones, etc." data-i18n-ph="bot.context_ph"></textarea>
-                </div>
-
-                <div class="form-group">
-                  <label for="botWelcomeMsg" data-i18n="bot.welcome_msg"><i class="fa-solid fa-hand-wave"></i> Mensaje de Bienvenida</label>
-                  <textarea id="botWelcomeMsg" class="form-control" rows="2" placeholder="Ej: ¡Hola! 👋 Bienvenido a StreamPlus." data-i18n-ph="bot.welcome_msg_ph"></textarea>
-                </div>
-
-                <div class="form-group">
-                  <label for="botFallbackMsg" data-i18n="bot.fallback_msg"><i class="fa-solid fa-circle-exclamation"></i> Mensaje cuando no sabe responder</label>
-                  <input type="text" id="botFallbackMsg" class="form-control" placeholder="Ej: Lo siento, no tengo esa información." data-i18n-ph="bot.fallback_msg_ph" />
-                </div>
-
-                <div class="form-row">
+                <div class="form-row" style="margin-top: 16px;">
                   <div class="form-group">
                     <label for="botEnabled" data-i18n="bot.enabled"><i class="fa-solid fa-power-off"></i> Estado del Bot</label>
                     <select id="botEnabled" class="form-control">
@@ -1655,6 +1637,23 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeModal('historyModal')" data-i18n="modal.close">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Detalle del día del calendario -->
+  <div class="modal-overlay" id="calendarDayModal">
+    <div class="modal" style="max-width: 580px;">
+      <div class="modal-header">
+        <h3 id="calendarDayModalTitle"><i class="fa-solid fa-calendar-day"></i> Detalle del día</h3>
+        <button class="modal-close" onclick="closeModal('calendarDayModal')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body" id="calendarDayModalBody" style="max-height: 60vh; overflow-y: auto;">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('calendarDayModal')">Cerrar</button>
       </div>
     </div>
   </div>
