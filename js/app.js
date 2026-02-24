@@ -1456,48 +1456,13 @@ function processWizardStep(step, userMsg) {
 async function handlePostConfigMessage(msg) {
   const lower = msg.toLowerCase();
 
-  // Si quiere cambiar algo
-  if (lower.includes('cambiar') || lower.includes('modificar') || lower.includes('editar')) {
-    const messagesDiv = document.getElementById('wizardMessages');
-    const typingId = 'wiz-typing-' + Date.now();
-    messagesDiv.innerHTML += `<div class="chat-msg chat-msg-bot wizard-typing" id="${typingId}"><span><i class="fa-solid fa-ellipsis fa-beat-fade"></i> Pensando...</span></div>`;
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-
-    const res = await fetch('/api/chatbot', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: msg,
-        config: {
-          wizardMode: true,
-          context: `Eres un asistente de configuración de Streamly. El usuario quiere modificar su configuración.
-Configuración actual: ${JSON.stringify(wizardState.collected)}
-Pregúntale qué campo quiere cambiar y cuál será el nuevo valor.
-Campos disponibles: nombre del negocio, horarios, personalidad, contexto, mensaje de bienvenida, mensaje de fallback.
-Responde en español. Breve.`,
-          maxTokens: 300
-        }
-      })
-    });
-
-    const data = await res.json();
-    const typingEl = document.getElementById(typingId);
-    if (typingEl) {
-      typingEl.classList.remove('wizard-typing');
-      typingEl.innerHTML = `<span>${escapeAttr(data.reply || 'Dime qué quieres cambiar.')}</span>`;
-    }
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    showWizardDoneActions();
-    return;
-  }
-
   // Si quiere guardar
   if (lower.includes('guardar') || lower.includes('listo') || lower.includes('confirmar') || lower === 'sí' || lower === 'si') {
     applyWizardConfig();
     return;
   }
 
-  // Detectar cambios específicos en el mensaje
+  // Todo lo demás: enviar al AI para detectar/aplicar cambios
   applyFieldChange(msg);
 }
 
@@ -1544,6 +1509,17 @@ Si no detectas un cambio, simplemente responde amablemente y pregunta si quiere 
       const value = jsonMatch[2];
       if (wizardState.collected.hasOwnProperty(field)) {
         wizardState.collected[field] = value;
+        // Sincronizar al formulario oculto inmediatamente
+        const fieldMap = {
+          businessName: 'botBusinessName',
+          schedule: 'botSchedule',
+          personality: 'botPersonality',
+          context: 'botContext',
+          welcomeMsg: 'botWelcomeMsg',
+          fallbackMsg: 'botFallbackMsg'
+        };
+        const inputId = fieldMap[field];
+        if (inputId) document.getElementById(inputId).value = value;
       }
     }
 
@@ -1703,6 +1679,15 @@ async function applyWizardConfig() {
  * Activar edición conversacional post-guardado
  */
 function editConfigField() {
+  // Sincronizar estado del wizard desde los campos del formulario
+  wizardState.collected = {
+    businessName: document.getElementById('botBusinessName').value.trim(),
+    schedule: document.getElementById('botSchedule').value.trim(),
+    personality: document.getElementById('botPersonality').value.trim(),
+    context: document.getElementById('botContext').value.trim(),
+    welcomeMsg: document.getElementById('botWelcomeMsg').value.trim(),
+    fallbackMsg: document.getElementById('botFallbackMsg').value.trim()
+  };
   wizardState.active = true;
   wizardState.step = 7; // summary step — free conversation mode
 
@@ -1710,7 +1695,9 @@ function editConfigField() {
   // Quitar tarjeta de resumen
   document.querySelectorAll('.wizard-config-review').forEach(el => el.remove());
 
-  messagesDiv.innerHTML += `<div class="chat-msg chat-msg-bot"><span>✏️ ¡Claro! Dime qué quieres cambiar. Por ejemplo:\n\n• "Cambiar el nombre a MiStreaming"\n• "Quiero un tono más divertido"\n• "Actualizar los horarios a 24/7"\n\nCuando termines, escribe "guardar".</span></div>`;
+  // Mostrar config actual resumida para que el usuario sepa qué tiene
+  const c = wizardState.collected;
+  messagesDiv.innerHTML += `<div class="chat-msg chat-msg-bot"><span>✏️ Tu configuración actual es:\n\n🏪 Negocio: ${escapeAttr(c.businessName || '—')}\n🕐 Horarios: ${escapeAttr(c.schedule || '—')}\n🎭 Personalidad: ${escapeAttr(c.personality || '—')}\n📖 Contexto: ${escapeAttr((c.context || '—').substring(0, 80))}${(c.context || '').length > 80 ? '...' : ''}\n👋 Bienvenida: ${escapeAttr(c.welcomeMsg || '—')}\n⚠️ Fallback: ${escapeAttr(c.fallbackMsg || '—')}\n\nDime qué quieres cambiar. Por ejemplo:\n• "Cambiar el nombre a MiStreaming"\n• "Quiero un tono más divertido"\n• "Actualizar los horarios a 24/7"\n\nCuando termines, escribe "guardar".</span></div>`;
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
   document.getElementById('wizardInput').focus();
 }
