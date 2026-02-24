@@ -1024,10 +1024,42 @@ console.log('🚀 Aplicación principal cargada');
    ============================================================ */
 
 /**
+ * Limpiar estado del chatbot (al cambiar de cuenta / cerrar sesión)
+ */
+function clearChatbotState() {
+  // Limpiar campos del formulario
+  document.getElementById('botBusinessName').value = '';
+  document.getElementById('botSchedule').value = '';
+  document.getElementById('botPersonality').value = '';
+  document.getElementById('botContext').value = '';
+  document.getElementById('botWelcomeMsg').value = '';
+  document.getElementById('botFallbackMsg').value = '';
+  document.getElementById('botEnabled').value = 'true';
+  document.getElementById('botMaxTokens').value = '512';
+
+  // Limpiar wizard state
+  wizardState.step = 0;
+  wizardState.history = [];
+  wizardState.collected = {};
+  wizardState.active = false;
+
+  // Limpiar UI del wizard
+  const messagesDiv = document.getElementById('wizardMessages');
+  if (messagesDiv) messagesDiv.innerHTML = '';
+  clearQuickReplies();
+  document.querySelectorAll('.wizard-done-actions').forEach(el => el.remove());
+  document.querySelectorAll('.wizard-config-review').forEach(el => el.remove());
+}
+
+/**
  * Cargar configuración del chatbot desde Firestore
  */
 async function loadChatbotConfig() {
   if (!currentUser || !db) return;
+
+  // Siempre limpiar datos previos antes de cargar
+  clearChatbotState();
+
   try {
     const doc = await db.collection('chatbot_config').doc(currentUser.uid).get();
     if (doc.exists) {

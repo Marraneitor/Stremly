@@ -199,6 +199,8 @@ async function signInWithGoogle() {
 // ── Sign Out ────────────────────────────────────────────────
 async function signOut() {
   try {
+    // Limpiar estado del chatbot antes de cerrar sesión
+    if (typeof clearChatbotState === 'function') clearChatbotState();
     await auth.signOut();
     showToast('Sesión cerrada', 'info');
   } catch (error) {
