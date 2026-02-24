@@ -325,8 +325,9 @@ const MD_BOLD_RE = /\*\*(.+?)\*\*/g;
 const MD_ITALIC_RE = /\*(.+?)\*/g;
 const MD_HEADING_RE = /^#+\s/gm;
 const MD_CODE_BLOCK_RE = /```[\s\S]*?```/g;
-const ORDER_TAG_RE = /\[PEDIDO_CONFIRMADO\](\{[^}]+\})/;
-const ORDER_TAG_CLEAN_RE = /\[PEDIDO_CONFIRMADO\]\{[^}]+\}/g;
+// Regex robusta: case-insensitive, permite espacios, newlines, JSON con } anidados
+const ORDER_TAG_RE = /\[PEDIDO[_ ]?CONFIRMADO\]\s*(\{[\s\S]*?\})/i;
+const ORDER_TAG_CLEAN_RE = /\[PEDIDO[_ ]?CONFIRMADO\]\s*\{[\s\S]*?\}/gi;
 
 async function askGemini(message, config, conversationHistory) {
   const currentConfig = config || {};
@@ -489,15 +490,21 @@ async function buildSystemPrompt(config) {
   lines.push('');
 
   // ── Etiqueta de pedido confirmado (OCULTA al cliente) ──
-  lines.push('REGISTRO DE PEDIDOS (MUY IMPORTANTE):');
-  lines.push('Cuando el cliente CONFIRMA que quiere comprar y ya tienes: nombre, teléfono (o lo puedes inferir del chat) y plataforma elegida,');
-  lines.push('debes agregar AL FINAL de tu respuesta (después de tu mensaje normal) esta etiqueta EXACTA:');
+  lines.push('REGISTRO DE PEDIDOS (CRÍTICO - OBLIGATORIO):');
+  lines.push('Cuando el cliente CONFIRMA que quiere comprar/contratar y ya tienes: nombre, teléfono (o lo puedes inferir del número de WhatsApp del chat) y plataforma elegida,');
+  lines.push('DEBES agregar AL FINAL de tu respuesta (en la última línea, después de tu mensaje normal) esta etiqueta EXACTAMENTE así, en UNA SOLA LÍNEA, sin saltos de línea dentro del JSON:');
   lines.push('[PEDIDO_CONFIRMADO]{"plataforma":"NOMBRE_PLATAFORMA","nombre":"NOMBRE_CLIENTE","telefono":"NUMERO","cantidad":1}');
-  lines.push('- Reemplaza los valores con los datos reales del cliente.');
-  lines.push('- Si el cliente no dijo su teléfono, usa el número del chat (que ya conoces).');
-  lines.push('- La etiqueta NO será visible para el cliente, el sistema la procesa internamente.');
-  lines.push('- Solo incluye la etiqueta UNA vez, cuando se confirma la compra.');
-  lines.push('- NO incluyas la etiqueta si el cliente solo pregunta o no ha confirmado.');
+  lines.push('');
+  lines.push('REGLAS ESTRICTAS de la etiqueta:');
+  lines.push('- Reemplaza NOMBRE_PLATAFORMA con la plataforma real (ej: Netflix, Disney+, Spotify, etc).');
+  lines.push('- Reemplaza NOMBRE_CLIENTE con el nombre real del cliente.');
+  lines.push('- Reemplaza NUMERO con el teléfono completo del cliente (si no lo dijo, usa el número del chat).');
+  lines.push('- La etiqueta DEBE ir en la ÚLTIMA línea de tu respuesta.');
+  lines.push('- NO pongas espacios entre [PEDIDO_CONFIRMADO] y el {.');
+  lines.push('- El JSON debe ir en UNA sola línea, sin saltos de línea.');
+  lines.push('- La etiqueta NO será visible para el cliente, el sistema la procesa y la elimina automáticamente.');
+  lines.push('- Incluye la etiqueta cuando el cliente dice "sí quiero", "va", "dale", "confirmo", "lo quiero", "me interesa comprarlo", o cualquier confirmación de compra.');
+  lines.push('- NO incluyas la etiqueta si el cliente solo pregunta precios o información sin confirmar.');
   lines.push('');
 
   // ── Restricciones ──
@@ -710,8 +717,64 @@ async function startBot() {
             // Limitar: mantener solo últimos 500 pedidos
             if (pendingOrders.length > 500) pendingOrders.splice(0, pendingOrders.length - 500);
             addLog(`🛒 NUEVO PEDIDO #${order.id}: ${order.nombre} — ${order.plataforma} (${order.cantidad})`);
+
+            // ── Auto-notificar al dueño por WhatsApp ──
+            try {
+              const myId = sock.user?.id;
+              if (myId) {
+                const myJid = myId.includes(':') ? myId.split(':')[0] + '@s.whatsapp.net' : myId;
+                const notifLines = [
+                  '🛒 *¡Nuevo pedido desde WhatsApp!*',
+                  '',
+                  `👤 *Cliente:* ${order.nombre}`,
+                  `📺 *Plataforma:* ${order.plataforma}`,
+                  `📱 *Teléfono:* ${order.telefono}`,
+                  `🔢 *Cantidad:* ${order.cantidad}`,
+                  '',
+                  `📅 *Fecha:* ${new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' })}`,
+                  '',
+                  '💡 Revisa tu panel de Streamly para asignar la cuenta.'
+                ];
+                await sock.sendMessage(myJid, { text: notifLines.join('\n') });
+                addLog(`📲 Notificación de pedido #${order.id} enviada a tu WhatsApp`);
+              }
+            } catch (notifErr) {
+              addLog(`⚠️ No se pudo notificar pedido a tu WhatsApp: ${notifErr.message}`);
+            }
           } catch (parseErr) {
-            addLog(`⚠️ Error parseando pedido: ${parseErr.message}`);
+            addLog(`⚠️ Error parseando pedido JSON: ${parseErr.message} — Raw: ${orderMatch[1]}`);
+            // Fallback: intentar extraer datos con regex si JSON.parse falla
+            try {
+              const fallbackPlat = orderMatch[1].match(/"plataforma"\s*:\s*"([^"]+)"/i);
+              const fallbackNom = orderMatch[1].match(/"nombre"\s*:\s*"([^"]+)"/i);
+              const fallbackTel = orderMatch[1].match(/"telefono"\s*:\s*"([^"]+)"/i);
+              if (fallbackPlat || fallbackNom) {
+                const now = Date.now();
+                const order = {
+                  id: orderIdCounter++,
+                  plataforma: fallbackPlat ? fallbackPlat[1] : 'Sin especificar',
+                  nombre: fallbackNom ? fallbackNom[1] : pushName || senderShort,
+                  telefono: fallbackTel ? fallbackTel[1] : senderShort,
+                  cantidad: 1,
+                  estado: 'pendiente',
+                  jid: sender,
+                  timestamp: now,
+                  fechaHora: new Date(now).toISOString()
+                };
+                pendingOrders.push(order);
+                addLog(`🛒 PEDIDO #${order.id} (fallback): ${order.nombre} — ${order.plataforma}`);
+                // Notificar igual
+                const myId = sock.user?.id;
+                if (myId) {
+                  const myJid = myId.includes(':') ? myId.split(':')[0] + '@s.whatsapp.net' : myId;
+                  await sock.sendMessage(myJid, {
+                    text: `🛒 *¡Nuevo pedido desde WhatsApp!*\n\n👤 *Cliente:* ${order.nombre}\n📺 *Plataforma:* ${order.plataforma}\n📱 *Teléfono:* ${order.telefono}\n\n📅 *Fecha:* ${new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' })}\n\n💡 Revisa tu panel de Streamly para asignar la cuenta.`
+                  });
+                }
+              }
+            } catch (_fallbackErr) {
+              addLog(`⚠️ Fallback de pedido también falló`);
+            }
           }
           reply = reply.replace(ORDER_TAG_CLEAN_RE, '').trim();
         }

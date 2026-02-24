@@ -2970,6 +2970,7 @@ async function loadPendingOrders() {
     renderPendingOrders(orders);
 
     // Actualizar badge en el nav
+    const pendientes = orders.filter(o => o.estado === 'pendiente');
     const navBadge = document.getElementById('navOrdersBadge');
     if (navBadge) {
       if (pendientes.length > 0) {
@@ -2979,7 +2980,9 @@ async function loadPendingOrders() {
         navBadge.style.display = 'none';
       }
     }
-  } catch (_) {}
+  } catch (err) {
+    console.warn('Error loading pending orders:', err);
+  }
 }
 
 /**
@@ -3035,20 +3038,23 @@ function renderPendingOrders(orders) {
 
   const pendientes = orders.filter(o => o.estado === 'pendiente');
 
-  if (orders.length === 0) {
+  if (pendientes.length === 0) {
     container.style.display = 'none';
+    // Reset tbody to default empty state
+    tbody.innerHTML = `<tr><td colspan="8" class="table-empty"><i class="fa-solid fa-inbox"></i><p>No hay pedidos pendientes</p></td></tr>`;
+    if (countEl) countEl.textContent = '0';
     return;
   }
 
   container.style.display = '';
-  countEl.textContent = pendientes.length;
+  if (countEl) countEl.textContent = pendientes.length;
 
-  tbody.innerHTML = orders.map(o => {
+  tbody.innerHTML = pendientes.map(o => {
     const fecha = new Date(o.timestamp || o.fechaHora);
     const fechaStr = fecha.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }) + ' ' + 
                      fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-    const statusClass = o.estado === 'pendiente' ? 'order-status-pendiente' : 'order-status-completado';
-    const statusText = o.estado === 'pendiente' ? 'PENDIENTE' : o.estado.toUpperCase();
+    const statusClass = 'order-status-pendiente';
+    const statusText = 'PENDIENTE';
 
     const waPhone = (o.telefono || '').replace(/[^0-9]/g, '');
     const waLink = waPhone ? `https://wa.me/${waPhone}` : '#';
