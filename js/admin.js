@@ -161,6 +161,10 @@ async function initAdmin() {
 
   isOwnerSession = !!(adminUser.email && adminUser.email.toLowerCase() === OWNER_EMAIL.toLowerCase());
 
+  // Show/hide Regalos tab immediately based on owner status
+  const giftTab = document.getElementById('tabGifts');
+  if (giftTab) giftTab.style.display = isOwnerSession ? '' : 'none';
+
   try {
     if (isOwnerSession) {
       await loadAllDataAsOwner();
@@ -175,9 +179,6 @@ async function initAdmin() {
 
     adminReady = true;
     updateAdminStats();
-    // Show Regalos tab only for owner
-    const giftTab = document.getElementById('tabGifts');
-    if (giftTab) giftTab.style.display = isOwnerSession ? '' : 'none';
     switchTab('overview');
     updateLastRefresh();
   } catch (err) {
@@ -201,24 +202,43 @@ function updateLastRefresh() {
 
 // ── Owner: Load ALL data via API ────────────────────────────
 async function loadAllDataAsOwner() {
-  const token = await adminUser.getIdToken(true);
-  const res   = await fetch('/api/admin-report', {
-    headers: { 'Authorization': `Bearer ${token}` }
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || `admin-report returned ${res.status}`);
+  try {
+    const token = await adminUser.getIdToken(true);
+    const res   = await fetch('/api/admin-report', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (res.ok) {
+      const json = await res.json();
+      if (json.ok) {
+        const data = json.data;
+        allUsers     = data.usuarios    || [];
+        allAccounts  = data.cuentas     || [];
+        allClients   = data.clientes    || [];
+        allMovements = data.movimientos || [];
+        console.log('[admin] datos cargados vía API (todos los usuarios)');
+        return;
+      }
+    }
+    // API not available (local dev or missing env var) — fall back to Firestore direct
+    console.warn('[admin] /api/admin-report no disponible, usando Firestore directo');
+  } catch (e) {
+    console.warn('[admin] /api/admin-report error, fallback a Firestore:', e.message);
   }
-  const json = await res.json();
-  if (!json.ok) throw new Error(json.error || 'API error');
 
-  const data = json.data;
+  // Fallback: load ALL collections without uid filter (owner sees everything)
+  const [usersSnap, accountsSnap, clientsSnap, movementsSnap] = await Promise.all([
+    db.collection('usuarios').get(),
+    db.collection('cuentas').get(),
+    db.collection('clientes').get(),
+    db.collection('movimientos').get(),
+  ]);
 
-  // Normalize timestamp strings back to Date objects where needed
-  allUsers     = data.usuarios   || [];
-  allAccounts  = data.cuentas    || [];
-  allClients   = data.clientes   || [];
-  allMovements = data.movimientos|| [];
+  allUsers     = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+  allAccounts  = accountsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+  allClients   = clientsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+  allMovements = movementsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+  console.log('[admin] datos cargados vía Firestore directo (fallback)');
 }
 
 // ── Data Loaders (filtered by authenticated user's UID) ─────
@@ -263,6 +283,7 @@ async function refreshAdmin() {
     } else {
       await Promise.all([loadAllUsers(), loadAllAccounts(), loadAllClients(), loadAllMovements()]);
     }
+    adminReady = true;
     updateAdminStats();
     const activeTab = document.querySelector('.admin-tab.active')?.dataset?.tab || 'overview';
     switchTab(activeTab);
