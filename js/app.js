@@ -406,7 +406,8 @@ async function saveClient(e) {
             note: `Pago ${account?.plataforma || data.plataforma || ''} — ${data.perfil_asignado}`
           });
         } catch (mErr) {
-          console.warn('No se pudo registrar movimiento automático:', mErr);
+          console.error('No se pudo registrar movimiento automático:', mErr);
+          showToast('Error al registrar movimiento automático', 'error');
         }
       }
     } else {
@@ -437,7 +438,8 @@ async function saveClient(e) {
             note: `Pago ${account?.plataforma || ''} — ${data.perfil_asignado}`
           });
         } catch (mErr) {
-          console.warn('No se pudo registrar movimiento automático:', mErr);
+          console.error('No se pudo registrar movimiento automático:', mErr);
+          showToast('Error al registrar movimiento automático', 'error');
         }
       }
     }
@@ -2324,7 +2326,7 @@ async function loadScheduledMessages() {
     const res = await fetch(`${url}/scheduled`);
     if (!res.ok) throw new Error('Error al cargar programados');
     const data = await res.json();
-    const msgs = data.scheduled || [];
+    const msgs = data.messages || data.scheduled || [];
     if (msgs.length === 0) {
       container.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:20px;"><i class="fa-solid fa-calendar-xmark"></i><p>${t('sched.no_messages', 'Sin mensajes programados')}</p></div>`;
       return;
@@ -2339,7 +2341,7 @@ async function loadScheduledMessages() {
  * Renderizar tarjeta de mensaje programado
  */
 function renderScheduledCard(m) {
-  const date = new Date(m.scheduledTime);
+  const date = new Date(m.nextRun || m.scheduledTime);
   const dateStr = date.toLocaleString('es', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   const isActive = m.active !== false;
   const iconClass = isActive ? 'active' : 'paused-sched';

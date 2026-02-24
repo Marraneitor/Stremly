@@ -258,6 +258,11 @@ function navigateTo(section) {
   if (section === 'clientes' && typeof loadPendingOrders === 'function') {
     setTimeout(() => loadPendingOrders(), 200);
   }
+
+  // Recargar movimientos al visitar la sección
+  if (section === 'movimientos' && typeof loadMovements === 'function') {
+    setTimeout(() => loadMovements(), 200);
+  }
 }
 
 // ── Toggle Password Visibility ──────────────────────────────
