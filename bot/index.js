@@ -1336,6 +1336,30 @@ app.delete('/scheduled/:id', (req, res) => {
   res.json({ ok: true });
 });
 
+app.put('/scheduled/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const sm = scheduledMessages.find(s => s.id === id);
+  if (!sm) return res.status(404).json({ error: 'No encontrado' });
+  try {
+    const { message, scheduledTime, recurring, intervalMinutes } = req.body;
+    if (message !== undefined) sm.message = message;
+    if (scheduledTime !== undefined) {
+      sm.nextRun = new Date(scheduledTime).getTime();
+    }
+    if (recurring !== undefined) {
+      sm.recurring = !!recurring;
+    }
+    if (intervalMinutes !== undefined) {
+      sm.intervalMinutes = intervalMinutes || 0;
+      sm.intervalMs = sm.recurring && sm.intervalMinutes ? sm.intervalMinutes * 60 * 1000 : 0;
+    }
+    addLog(`✏️ Programado #${id} editado (${sm.groupName})`);
+    res.json({ ok: true, scheduled: sm });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/scheduled/:id/toggle', (req, res) => {
   const id = parseInt(req.params.id);
   const sm = scheduledMessages.find(s => s.id === id);

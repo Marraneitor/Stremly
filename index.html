@@ -1338,6 +1338,63 @@
     </div>
   </div>
 
+  <!-- Modal: Editar Mensaje Programado -->
+  <div class="modal-overlay" id="editScheduledModal">
+    <div class="modal" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-pen-to-square"></i> <span data-i18n="sched.edit_title">Editar Mensaje Programado</span></h3>
+        <button class="modal-close" onclick="closeModal('editScheduledModal')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editSchedId" />
+        <div class="form-group">
+          <label data-i18n="sched.group"><i class="fa-solid fa-people-group"></i> Grupo</label>
+          <input type="text" id="editSchedGroup" class="form-control" disabled />
+        </div>
+        <div class="form-group">
+          <label data-i18n="sched.message"><i class="fa-solid fa-message"></i> Mensaje</label>
+          <textarea id="editSchedMessage" class="form-control" rows="3"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label data-i18n="sched.datetime"><i class="fa-regular fa-calendar"></i> Fecha y hora</label>
+            <input type="datetime-local" id="editSchedDateTime" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label data-i18n="sched.send_type"><i class="fa-solid fa-repeat"></i> Tipo de envío</label>
+            <select id="editSchedType" class="form-control" onchange="toggleEditRecurringOptions()">
+              <option value="once" data-i18n="sched.once">Una sola vez</option>
+              <option value="recurring" data-i18n="sched.recurring">Repetir</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row" id="editRecurringOptions" style="display:none;">
+          <div class="form-group">
+            <label data-i18n="sched.repeat_every"><i class="fa-solid fa-clock-rotate-left"></i> Repetir cada</label>
+            <input type="number" id="editSchedInterval" class="form-control" min="1" value="60" />
+          </div>
+          <div class="form-group">
+            <label data-i18n="sched.unit">Unidad</label>
+            <select id="editSchedIntervalUnit" class="form-control">
+              <option value="minutes" data-i18n="sched.minutes">Minutos</option>
+              <option value="hours" data-i18n="sched.hours">Horas</option>
+              <option value="days" data-i18n="sched.days">Días</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('editScheduledModal')" data-i18n="modal.cancel">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveScheduledEdit()">
+          <i class="fa-solid fa-floppy-disk"></i>
+          <span data-i18n="modal.save">Guardar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal: Confirmación de eliminación -->
   <div class="modal-overlay" id="confirmModal">
     <div class="modal" style="max-width: 400px;">

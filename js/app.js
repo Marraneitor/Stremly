@@ -2327,6 +2327,7 @@ async function loadScheduledMessages() {
     if (!res.ok) throw new Error('Error al cargar programados');
     const data = await res.json();
     const msgs = data.messages || data.scheduled || [];
+    _scheduledCache = msgs;
     if (msgs.length === 0) {
       container.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:20px;"><i class="fa-solid fa-calendar-xmark"></i><p>${t('sched.no_messages', 'Sin mensajes programados')}</p></div>`;
       return;
@@ -2364,6 +2365,9 @@ function renderScheduledCard(m) {
       </div>
     </div>
     <div class="scheduled-card-actions">
+      <button onclick="editScheduledMessage(${m.id})" title="Editar">
+        <i class="fa-solid fa-pen-to-square"></i>
+      </button>
       <button onclick="toggleScheduledMessage(${m.id})" title="${isActive ? 'Pausar' : 'Activar'}">
         <i class="fa-solid ${isActive ? 'fa-pause' : 'fa-play'}"></i>
       </button>
@@ -2433,6 +2437,97 @@ async function deleteScheduledMessage(id) {
     loadScheduledMessages();
   } catch (err) {
     showToast('Error al eliminar', 'error');
+  }
+}
+
+/**
+ * Editar mensaje programado — abrir modal
+ */
+let _scheduledCache = [];
+function editScheduledMessage(id) {
+  const msg = _scheduledCache.find(m => m.id === id);
+  if (!msg) return showToast('Mensaje no encontrado', 'error');
+
+  document.getElementById('editSchedId').value = id;
+  document.getElementById('editSchedGroup').value = msg.groupName || 'Grupo';
+  document.getElementById('editSchedMessage').value = msg.message || '';
+
+  // Convert nextRun timestamp to datetime-local format
+  const dt = new Date(msg.nextRun || Date.now());
+  const offset = dt.getTimezoneOffset();
+  const local = new Date(dt.getTime() - offset * 60000);
+  document.getElementById('editSchedDateTime').value = local.toISOString().slice(0, 16);
+
+  // Set type
+  const typeSelect = document.getElementById('editSchedType');
+  typeSelect.value = msg.recurring ? 'recurring' : 'once';
+
+  // Set interval
+  const opts = document.getElementById('editRecurringOptions');
+  if (msg.recurring) {
+    opts.style.display = '';
+    const mins = msg.intervalMinutes || 60;
+    if (mins >= 1440 && mins % 1440 === 0) {
+      document.getElementById('editSchedInterval').value = mins / 1440;
+      document.getElementById('editSchedIntervalUnit').value = 'days';
+    } else if (mins >= 60 && mins % 60 === 0) {
+      document.getElementById('editSchedInterval').value = mins / 60;
+      document.getElementById('editSchedIntervalUnit').value = 'hours';
+    } else {
+      document.getElementById('editSchedInterval').value = mins;
+      document.getElementById('editSchedIntervalUnit').value = 'minutes';
+    }
+  } else {
+    opts.style.display = 'none';
+    document.getElementById('editSchedInterval').value = 60;
+    document.getElementById('editSchedIntervalUnit').value = 'minutes';
+  }
+
+  openModal('editScheduledModal');
+}
+
+function toggleEditRecurringOptions() {
+  const sel = document.getElementById('editSchedType');
+  const opts = document.getElementById('editRecurringOptions');
+  if (sel && opts) {
+    opts.style.display = sel.value === 'recurring' ? '' : 'none';
+  }
+}
+
+/**
+ * Guardar edición de mensaje programado
+ */
+async function saveScheduledEdit() {
+  const url = getBotUrl();
+  if (!url) return;
+  const id = parseInt(document.getElementById('editSchedId').value);
+  const message = (document.getElementById('editSchedMessage').value || '').trim();
+  const dateTimeStr = document.getElementById('editSchedDateTime').value || '';
+  const type = document.getElementById('editSchedType').value || 'once';
+  const interval = parseInt(document.getElementById('editSchedInterval').value || '60', 10);
+  const unit = document.getElementById('editSchedIntervalUnit').value || 'minutes';
+
+  if (!message) return showToast(t('sched.write_message', 'Escribe un mensaje'), 'warning');
+  if (!dateTimeStr) return showToast(t('sched.select_datetime', 'Selecciona fecha y hora'), 'warning');
+
+  const scheduledTime = new Date(dateTimeStr).toISOString();
+  const recurring = type === 'recurring';
+  let intervalMinutes = interval;
+  if (unit === 'hours') intervalMinutes = interval * 60;
+  if (unit === 'days') intervalMinutes = interval * 1440;
+
+  try {
+    const res = await fetch(`${url}/scheduled/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, scheduledTime, recurring, intervalMinutes })
+    });
+    if (!res.ok) throw new Error('Error al editar');
+    showToast(t('sched.edited', 'Mensaje editado correctamente'), 'success');
+    closeModal('editScheduledModal');
+    loadScheduledMessages();
+  } catch (err) {
+    showToast('Error al editar mensaje', 'error');
   }
 }
 
