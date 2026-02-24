@@ -93,6 +93,11 @@ function setCorsHeaders(req, res) {
 }
 
 function buildSystemPrompt(config) {
+  // Wizard mode: use context directly as the full system prompt
+  if (config.wizardMode && config.context) {
+    return config.context;
+  }
+
   const parts = [
     'Eres un asistente virtual de atención al cliente por WhatsApp.',
     'Responde SIEMPRE en español.',

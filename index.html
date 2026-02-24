@@ -688,40 +688,61 @@
           <!-- Configuración del Contexto -->
           <div class="table-container">
             <div class="table-header">
-              <h3><i class="fa-solid fa-sliders"></i> Configuración del Chatbot</h3>
+              <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Configuración del Chatbot</h3>
+              <div style="display: flex; gap: 8px;">
+                <button class="btn btn-secondary btn-sm" onclick="toggleManualConfig()" id="btnToggleManual">
+                  <i class="fa-solid fa-sliders"></i> Modo Manual
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="resetConfigWizard()">
+                  <i class="fa-solid fa-rotate-right"></i> Reiniciar
+                </button>
+              </div>
             </div>
             <div style="padding: 20px;">
-              <form id="chatbotConfigForm" onsubmit="saveChatbotConfig(event)">
+              <!-- Wizard conversacional con IA -->
+              <div id="configWizardChat">
+                <div id="wizardMessages" class="chat-test-messages" style="min-height: 200px; max-height: 450px;"></div>
+                <div id="wizardQuickReplies" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;"></div>
+                <div style="display: flex; gap: 8px; margin-top: 12px;">
+                  <input type="text" id="wizardInput" class="form-control" placeholder="Escribe tu respuesta..." style="flex:1;" onkeydown="if(event.key==='Enter')sendWizardMessage()" />
+                  <button class="btn btn-primary" onclick="sendWizardMessage()">
+                    <i class="fa-solid fa-paper-plane"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Formulario manual (oculto por defecto) -->
+              <form id="chatbotConfigForm" onsubmit="saveChatbotConfig(event)" style="display:none;">
 
                 <div class="form-row">
                   <div class="form-group">
                     <label for="botBusinessName"><i class="fa-solid fa-store"></i> Nombre del Negocio</label>
-                    <input type="text" id="botBusinessName" class="form-control" placeholder="Ej: StreamPlus" required />
+                    <input type="text" id="botBusinessName" class="form-control" placeholder="Ej: StreamPlus" />
                   </div>
                   <div class="form-group">
                     <label for="botSchedule"><i class="fa-solid fa-clock"></i> Horarios de Atención</label>
-                    <input type="text" id="botSchedule" class="form-control" placeholder="Ej: Lun-Vie 9am-6pm, Sáb 10am-2pm" required />
+                    <input type="text" id="botSchedule" class="form-control" placeholder="Ej: Lun-Vie 9am-6pm, Sáb 10am-2pm" />
                   </div>
                 </div>
 
                 <div class="form-group">
                   <label for="botPersonality"><i class="fa-solid fa-masks-theater"></i> Personalidad del Bot</label>
-                  <textarea id="botPersonality" class="form-control" rows="3" placeholder="Ej: Amable, profesional, usa emojis moderadamente. Responde en español. Siempre saluda al cliente por su nombre." required></textarea>
+                  <textarea id="botPersonality" class="form-control" rows="3" placeholder="Ej: Amable, profesional, usa emojis moderadamente."></textarea>
                 </div>
 
                 <div class="form-group">
                   <label for="botContext"><i class="fa-solid fa-book"></i> Contexto General del Negocio</label>
-                  <textarea id="botContext" class="form-control" rows="5" placeholder="Describe tu negocio, servicios, precios, promociones, reglas, métodos de pago, etc. Todo lo que el bot necesite saber para responder correctamente." required></textarea>
+                  <textarea id="botContext" class="form-control" rows="5" placeholder="Describe tu negocio, servicios, precios, promociones, etc."></textarea>
                 </div>
 
                 <div class="form-group">
                   <label for="botWelcomeMsg"><i class="fa-solid fa-hand-wave"></i> Mensaje de Bienvenida</label>
-                  <textarea id="botWelcomeMsg" class="form-control" rows="2" placeholder="Ej: ¡Hola! 👋 Bienvenido a StreamPlus. ¿En qué puedo ayudarte?"></textarea>
+                  <textarea id="botWelcomeMsg" class="form-control" rows="2" placeholder="Ej: ¡Hola! 👋 Bienvenido a StreamPlus."></textarea>
                 </div>
 
                 <div class="form-group">
                   <label for="botFallbackMsg"><i class="fa-solid fa-circle-exclamation"></i> Mensaje cuando no sabe responder</label>
-                  <input type="text" id="botFallbackMsg" class="form-control" placeholder="Ej: Lo siento, no tengo esa información. Un agente te atenderá pronto." />
+                  <input type="text" id="botFallbackMsg" class="form-control" placeholder="Ej: Lo siento, no tengo esa información." />
                 </div>
 
                 <div class="form-row">

@@ -1041,6 +1041,12 @@ async function loadChatbotConfig() {
       document.getElementById('botEnabled').value = data.enabled !== false ? 'true' : 'false';
       document.getElementById('botMaxTokens').value = data.maxTokens || '512';
     }
+    // Auto-iniciar wizard si no hay config previa
+    setTimeout(() => {
+      if (!wizardState.active && wizardState.history.length === 0) {
+        startConfigWizard();
+      }
+    }, 500);
   } catch (err) {
     // Silenciar error de permisos (las reglas aún no incluyen chatbot_config)
     if (err.code === 'permission-denied') {
@@ -1145,6 +1151,543 @@ async function sendTestMessage() {
     }
   }
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+/* ============================================================
+   CHATBOT — Wizard de Configuración con IA
+   ============================================================ */
+
+// Estado del wizard
+const wizardState = {
+  step: 0,          // paso actual
+  history: [],      // historial de mensajes [{role, text}]
+  collected: {},    // campos recopilados
+  active: false,
+  steps: [
+    'greeting',
+    'businessName',
+    'schedule',
+    'personality',
+    'context',
+    'welcomeMsg',
+    'fallbackMsg',
+    'summary'
+  ]
+};
+
+/**
+ * Generar resumen de inventario disponible para el wizard
+ */
+function getInventorySummary() {
+  if (!accountsData || accountsData.length === 0) {
+    return 'No hay cuentas registradas aún en el sistema.';
+  }
+  const platformMap = {};
+  accountsData.forEach(acc => {
+    const plat = acc.plataforma || 'Sin plataforma';
+    if (!platformMap[plat]) platformMap[plat] = { total: 0, used: 0, accounts: 0 };
+    platformMap[plat].accounts++;
+    const totalSlots = acc.perfiles_totales || 0;
+    const usedSlots = clientsData.filter(c => c.cuenta_id === acc.id).length;
+    platformMap[plat].total += totalSlots;
+    platformMap[plat].used += usedSlots;
+  });
+  const lines = Object.entries(platformMap).map(([plat, info]) => {
+    const available = info.total - info.used;
+    return `• ${plat}: ${info.accounts} cuenta(s), ${info.total} perfiles totales, ${available} disponibles`;
+  });
+  return 'Inventario actual:\n' + lines.join('\n');
+}
+
+/**
+ * Obtener el system prompt para el wizard según el paso actual
+ */
+function getWizardSystemPrompt(step) {
+  const inventory = getInventorySummary();
+
+  const base = `Eres un asistente de configuración de Streamly, una plataforma de gestión de cuentas de streaming.
+Estás ayudando al usuario a configurar su bot de WhatsApp paso a paso.
+Responde SIEMPRE en español. Sé amable, breve y claro. Usa emojis moderadamente.
+NO uses Markdown. Usa solo texto plano con emojis.
+
+${inventory}
+
+Lo que ya se ha configurado hasta ahora:
+${JSON.stringify(wizardState.collected, null, 2)}
+`;
+
+  const prompts = {
+    greeting: base + `
+Este es el primer mensaje. Da la bienvenida al usuario y explícale brevemente que lo vas a guiar para configurar su bot de WhatsApp en unos simples pasos.
+Luego pregúntale: ¿Cómo se llama tu negocio?
+No escribas más de 4 líneas.`,
+
+    businessName: base + `
+El usuario te está dando el nombre de su negocio. Confírmalo amablemente y pregúntale:
+¿Cuáles son tus horarios de atención? (ejemplo: Lun-Vie 9am-6pm, Sáb 10am-2pm)
+No escribas más de 3 líneas.`,
+
+    schedule: base + `
+El usuario te está dando sus horarios de atención. Confírmalo amablemente y pregúntale:
+¿Qué personalidad quieres que tenga tu bot? Explica estas opciones brevemente:
+1. 🤝 Profesional y formal
+2. 😊 Amigable y cercano
+3. 🎉 Divertido y con emojis
+4. 📋 Directo y conciso
+O puede escribir una personalidad personalizada.
+No escribas más de 6 líneas.`,
+
+    personality: base + `
+El usuario eligió una personalidad para el bot. Confírmalo amablemente.
+Ahora pregúntale sobre el contexto de su negocio. Dile que describa:
+- Qué servicios o productos vende
+- Cómo es el proceso de compra
+- Precios o planes si los tiene
+- Cualquier información que el bot deba saber para atender bien
+
+Muéstrale el inventario actual del sistema para que sepa qué tiene disponible.
+No escribas más de 6 líneas.`,
+
+    context: base + `
+El usuario te dio el contexto de su negocio. Confírmalo.
+Ahora pregúntale: ¿Qué mensaje de bienvenida quieres que envíe el bot cuando alguien escribe por primera vez?
+Dale un ejemplo basado en el nombre del negocio que configuró.
+No escribas más de 4 líneas.`,
+
+    welcomeMsg: base + `
+El usuario eligió su mensaje de bienvenida. Confírmalo.
+Última pregunta: ¿Qué mensaje quieres que envíe el bot cuando no sepa responder algo?
+Dale un ejemplo como: "Lo siento, no tengo esa información. Un agente te atenderá pronto."
+No escribas más de 3 líneas.`,
+
+    fallbackMsg: base + `
+El usuario eligió su mensaje de fallback. ¡Excelente!
+Ahora genera un RESUMEN COMPLETO de toda la configuración recopilada en formato lista.
+Al final dile que si todo está bien puede hacer clic en "Guardar configuración" o puede decirte si quiere cambiar algo.
+Incluye TODOS los campos:
+- Nombre del negocio: ${wizardState.collected.businessName || '?'}
+- Horarios: ${wizardState.collected.schedule || '?'}
+- Personalidad: ${wizardState.collected.personality || '?'}
+- Contexto: ${wizardState.collected.context || '?'}
+- Mensaje de bienvenida: ${wizardState.collected.welcomeMsg || '?'}
+- Mensaje de fallback: [lo que acaba de responder el usuario]`
+  };
+
+  return prompts[step] || base;
+}
+
+/**
+ * Iniciar el wizard
+ */
+function startConfigWizard() {
+  wizardState.step = 0;
+  wizardState.history = [];
+  wizardState.collected = {};
+  wizardState.active = true;
+
+  const messagesDiv = document.getElementById('wizardMessages');
+  messagesDiv.innerHTML = '';
+  clearQuickReplies();
+
+  // Cargar config existente si la hay
+  const existingName = document.getElementById('botBusinessName').value.trim();
+  if (existingName) {
+    wizardState.collected = {
+      businessName: document.getElementById('botBusinessName').value.trim(),
+      schedule: document.getElementById('botSchedule').value.trim(),
+      personality: document.getElementById('botPersonality').value.trim(),
+      context: document.getElementById('botContext').value.trim(),
+      welcomeMsg: document.getElementById('botWelcomeMsg').value.trim(),
+      fallbackMsg: document.getElementById('botFallbackMsg').value.trim()
+    };
+  }
+
+  sendWizardBotMessage('greeting');
+}
+
+/**
+ * Enviar mensaje del wizard (IA)
+ */
+async function sendWizardBotMessage(step, userMessage) {
+  const messagesDiv = document.getElementById('wizardMessages');
+
+  // Mostrar typing
+  const typingId = 'wiz-typing-' + Date.now();
+  messagesDiv.innerHTML += `<div class="chat-msg chat-msg-bot wizard-typing" id="${typingId}"><span><i class="fa-solid fa-ellipsis fa-beat-fade"></i> Escribiendo...</span></div>`;
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+  try {
+    const systemPrompt = getWizardSystemPrompt(step);
+    const userMsg = userMessage || 'Hola, quiero configurar mi bot de WhatsApp.';
+
+    const res = await fetch('/api/chatbot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: userMsg,
+        config: {
+          wizardMode: true,
+          context: systemPrompt,
+          maxTokens: 600
+        }
+      })
+    });
+
+    const data = await res.json();
+    const reply = data.reply || 'Lo siento, hubo un error. Intenta de nuevo.';
+
+    // Reemplazar typing con respuesta
+    const typingEl = document.getElementById(typingId);
+    if (typingEl) {
+      typingEl.classList.remove('wizard-typing');
+      typingEl.innerHTML = `<span>${escapeAttr(reply)}</span>`;
+    }
+
+    wizardState.history.push({ role: 'bot', text: reply });
+
+    // Mostrar quick replies según el paso
+    showQuickRepliesForStep(step);
+
+    // Si estamos en el paso de resumen, mostrar botones de acción
+    if (step === 'fallbackMsg') {
+      showWizardDoneActions();
+    }
+
+  } catch (err) {
+    const typingEl = document.getElementById(typingId);
+    if (typingEl) {
+      typingEl.innerHTML = `<span style="color:var(--danger);">Error: ${escapeAttr(err.message)}</span>`;
+    }
+  }
+
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+/**
+ * Enviar mensaje del usuario en el wizard
+ */
+async function sendWizardMessage() {
+  const input = document.getElementById('wizardInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  if (!wizardState.active) {
+    startConfigWizard();
+    return;
+  }
+
+  const messagesDiv = document.getElementById('wizardMessages');
+
+  // Mostrar mensaje del usuario
+  messagesDiv.innerHTML += `<div class="chat-msg chat-msg-user"><span>${escapeAttr(msg)}</span></div>`;
+  input.value = '';
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  clearQuickReplies();
+
+  wizardState.history.push({ role: 'user', text: msg });
+
+  // Procesar según el paso actual
+  const currentStep = wizardState.steps[wizardState.step];
+  processWizardStep(currentStep, msg);
+}
+
+/**
+ * Procesar paso del wizard
+ */
+function processWizardStep(step, userMsg) {
+  switch (step) {
+    case 'greeting':
+      wizardState.collected.businessName = userMsg;
+      wizardState.step = 2; // skip to schedule (businessName was just collected)
+      sendWizardBotMessage('businessName', userMsg);
+      break;
+
+    case 'businessName':
+      wizardState.collected.schedule = userMsg;
+      wizardState.step = 3;
+      sendWizardBotMessage('schedule', userMsg);
+      break;
+
+    case 'schedule':
+      // Interpretar personality
+      const personalityMap = {
+        '1': 'Profesional y formal. Usa un tono respetuoso y serio.',
+        '2': 'Amigable y cercano. Usa un tono cálido y conversacional.',
+        '3': 'Divertido y expresivo. Usa emojis frecuentemente y sé entusiasta.',
+        '4': 'Directo y conciso. Ve al grano sin rodeos.'
+      };
+      wizardState.collected.personality = personalityMap[userMsg.trim()] || userMsg;
+      wizardState.step = 4;
+      sendWizardBotMessage('personality', wizardState.collected.personality);
+      break;
+
+    case 'personality':
+      wizardState.collected.context = userMsg;
+      wizardState.step = 5;
+      sendWizardBotMessage('context', userMsg);
+      break;
+
+    case 'context':
+      wizardState.collected.welcomeMsg = userMsg;
+      wizardState.step = 6;
+      sendWizardBotMessage('welcomeMsg', userMsg);
+      break;
+
+    case 'welcomeMsg':
+      wizardState.collected.fallbackMsg = userMsg;
+      wizardState.step = 7;
+      sendWizardBotMessage('fallbackMsg', userMsg);
+      break;
+
+    case 'fallbackMsg':
+    case 'summary':
+      // Conversación libre post-configuración
+      handlePostConfigMessage(userMsg);
+      break;
+  }
+}
+
+/**
+ * Manejar mensajes después de completar la configuración
+ */
+async function handlePostConfigMessage(msg) {
+  const lower = msg.toLowerCase();
+
+  // Si quiere cambiar algo
+  if (lower.includes('cambiar') || lower.includes('modificar') || lower.includes('editar')) {
+    const messagesDiv = document.getElementById('wizardMessages');
+    const typingId = 'wiz-typing-' + Date.now();
+    messagesDiv.innerHTML += `<div class="chat-msg chat-msg-bot wizard-typing" id="${typingId}"><span><i class="fa-solid fa-ellipsis fa-beat-fade"></i> Pensando...</span></div>`;
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+    const res = await fetch('/api/chatbot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: msg,
+        config: {
+          wizardMode: true,
+          context: `Eres un asistente de configuración de Streamly. El usuario quiere modificar su configuración.
+Configuración actual: ${JSON.stringify(wizardState.collected)}
+Pregúntale qué campo quiere cambiar y cuál será el nuevo valor.
+Campos disponibles: nombre del negocio, horarios, personalidad, contexto, mensaje de bienvenida, mensaje de fallback.
+Responde en español. Breve.`,
+          maxTokens: 300
+        }
+      })
+    });
+
+    const data = await res.json();
+    const typingEl = document.getElementById(typingId);
+    if (typingEl) {
+      typingEl.classList.remove('wizard-typing');
+      typingEl.innerHTML = `<span>${escapeAttr(data.reply || 'Dime qué quieres cambiar.')}</span>`;
+    }
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    showWizardDoneActions();
+    return;
+  }
+
+  // Si quiere guardar
+  if (lower.includes('guardar') || lower.includes('listo') || lower.includes('confirmar') || lower === 'sí' || lower === 'si') {
+    applyWizardConfig();
+    return;
+  }
+
+  // Detectar cambios específicos en el mensaje
+  applyFieldChange(msg);
+}
+
+/**
+ * Detectar y aplicar cambio de campo desde texto libre
+ */
+async function applyFieldChange(msg) {
+  const messagesDiv = document.getElementById('wizardMessages');
+  const typingId = 'wiz-typing-' + Date.now();
+  messagesDiv.innerHTML += `<div class="chat-msg chat-msg-bot wizard-typing" id="${typingId}"><span><i class="fa-solid fa-ellipsis fa-beat-fade"></i> Analizando...</span></div>`;
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+  try {
+    const res = await fetch('/api/chatbot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `El usuario dice: "${msg}"
+
+Configuración actual del bot:
+${JSON.stringify(wizardState.collected, null, 2)}
+
+Analiza si el usuario quiere modificar algún campo. Si es así, responde en EXACTAMENTE este formato JSON seguido de un mensaje:
+{"field": "CAMPO", "value": "NUEVO_VALOR"}
+MENSAJE_AMABLE
+
+Donde CAMPO es uno de: businessName, schedule, personality, context, welcomeMsg, fallbackMsg.
+Si no detectas un cambio, simplemente responde amablemente y pregunta si quiere guardar la configuración.`,
+        config: {
+          wizardMode: true,
+          context: 'Eres un asistente que analiza intenciones del usuario para configuración de chatbot. Responde en español.',
+          maxTokens: 300
+        }
+      })
+    });
+
+    const data = await res.json();
+    const reply = data.reply || '';
+
+    // Intentar extraer JSON del cambio
+    const jsonMatch = reply.match(/\{[\s]*"field"[\s]*:[\s]*"(\w+)"[\s]*,[\s]*"value"[\s]*:[\s]*"([^"]+)"[\s]*\}/);
+    if (jsonMatch) {
+      const field = jsonMatch[1];
+      const value = jsonMatch[2];
+      if (wizardState.collected.hasOwnProperty(field)) {
+        wizardState.collected[field] = value;
+      }
+    }
+
+    // Mostrar la parte del mensaje (sin el JSON)
+    const cleanReply = reply.replace(/\{[\s]*"field"[\s]*:[\s]*"[^"]*"[\s]*,[\s]*"value"[\s]*:[\s]*"[^"]*"[\s]*\}/, '').trim();
+
+    const typingEl = document.getElementById(typingId);
+    if (typingEl) {
+      typingEl.classList.remove('wizard-typing');
+      typingEl.innerHTML = `<span>${escapeAttr(cleanReply || 'Entendido. ¿Quieres guardar la configuración?')}</span>`;
+    }
+  } catch (err) {
+    const typingEl = document.getElementById(typingId);
+    if (typingEl) {
+      typingEl.classList.remove('wizard-typing');
+      typingEl.innerHTML = `<span style="color:var(--danger);">Error: ${escapeAttr(err.message)}</span>`;
+    }
+  }
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  showWizardDoneActions();
+}
+
+/**
+ * Mostrar quick replies según el paso
+ */
+function showQuickRepliesForStep(step) {
+  clearQuickReplies();
+  const container = document.getElementById('wizardQuickReplies');
+
+  const replies = {
+    schedule: [
+      { text: '🤝 Profesional', value: '1' },
+      { text: '😊 Amigable', value: '2' },
+      { text: '🎉 Divertido', value: '3' },
+      { text: '📋 Directo', value: '4' }
+    ]
+  };
+
+  const options = replies[step];
+  if (!options) return;
+
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'quick-reply-btn';
+    btn.textContent = opt.text;
+    btn.onclick = () => {
+      document.getElementById('wizardInput').value = opt.value;
+      sendWizardMessage();
+    };
+    container.appendChild(btn);
+  });
+}
+
+function clearQuickReplies() {
+  const container = document.getElementById('wizardQuickReplies');
+  if (container) container.innerHTML = '';
+}
+
+/**
+ * Mostrar botones de acción al terminar el wizard
+ */
+function showWizardDoneActions() {
+  // Remove existing done actions
+  document.querySelectorAll('.wizard-done-actions').forEach(el => el.remove());
+
+  const messagesDiv = document.getElementById('wizardMessages');
+  const actionsDiv = document.createElement('div');
+  actionsDiv.className = 'wizard-done-actions';
+  actionsDiv.innerHTML = `
+    <button class="btn btn-primary" onclick="applyWizardConfig()">
+      <i class="fa-solid fa-floppy-disk"></i> Guardar Configuración
+    </button>
+    <button class="btn btn-secondary" onclick="resetConfigWizard()">
+      <i class="fa-solid fa-rotate-right"></i> Empezar de nuevo
+    </button>
+  `;
+  messagesDiv.appendChild(actionsDiv);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+/**
+ * Aplicar la configuración recopilada por el wizard al formulario y guardar
+ */
+async function applyWizardConfig() {
+  const c = wizardState.collected;
+
+  // Rellenar campos del formulario oculto
+  if (c.businessName) document.getElementById('botBusinessName').value = c.businessName;
+  if (c.schedule) document.getElementById('botSchedule').value = c.schedule;
+  if (c.personality) document.getElementById('botPersonality').value = c.personality;
+  if (c.context) document.getElementById('botContext').value = c.context;
+  if (c.welcomeMsg) document.getElementById('botWelcomeMsg').value = c.welcomeMsg;
+  if (c.fallbackMsg) document.getElementById('botFallbackMsg').value = c.fallbackMsg;
+
+  // Guardar usando la función existente
+  const fakeEvent = { preventDefault: () => {} };
+  await saveChatbotConfig(fakeEvent);
+
+  // Mostrar confirmación en el chat
+  const messagesDiv = document.getElementById('wizardMessages');
+  messagesDiv.innerHTML += `<div class="chat-msg chat-msg-bot"><span>✅ ¡Configuración guardada exitosamente! Tu bot de WhatsApp ya está configurado con estos ajustes. Puedes probar el bot en la sección de prueba de abajo.</span></div>`;
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+  // Limpiar actions
+  document.querySelectorAll('.wizard-done-actions').forEach(el => el.remove());
+
+  wizardState.active = false;
+}
+
+/**
+ * Reiniciar el wizard
+ */
+function resetConfigWizard() {
+  wizardState.step = 0;
+  wizardState.history = [];
+  wizardState.collected = {};
+  wizardState.active = true;
+
+  const messagesDiv = document.getElementById('wizardMessages');
+  messagesDiv.innerHTML = '';
+  clearQuickReplies();
+  document.querySelectorAll('.wizard-done-actions').forEach(el => el.remove());
+
+  sendWizardBotMessage('greeting');
+}
+
+/**
+ * Alternar entre wizard y modo manual
+ */
+function toggleManualConfig() {
+  const wizard = document.getElementById('configWizardChat');
+  const form = document.getElementById('chatbotConfigForm');
+  const btn = document.getElementById('btnToggleManual');
+
+  if (form.style.display === 'none') {
+    // Mostrar manual, ocultar wizard
+    form.style.display = '';
+    wizard.style.display = 'none';
+    btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Modo IA';
+  } else {
+    // Mostrar wizard, ocultar manual
+    form.style.display = 'none';
+    wizard.style.display = '';
+    btn.innerHTML = '<i class="fa-solid fa-sliders"></i> Modo Manual';
+    if (!wizardState.active && wizardState.history.length === 0) {
+      startConfigWizard();
+    }
+  }
 }
 
 /* ============================================================

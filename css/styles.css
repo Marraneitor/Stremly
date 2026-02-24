@@ -1451,6 +1451,80 @@ textarea.form-control {
   border-bottom-left-radius: 4px;
 }
 
+/* ====== Config Wizard Styles ====== */
+#configWizardChat .chat-test-messages {
+  max-height: 450px;
+  min-height: 200px;
+  scroll-behavior: smooth;
+}
+
+.wizard-typing {
+  align-self: flex-start;
+  padding: 10px 18px;
+  font-style: italic;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}
+
+.wizard-typing .dots {
+  display: inline-block;
+  animation: wizardDots 1.4s infinite steps(4, end);
+}
+
+@keyframes wizardDots {
+  0%   { content: ''; }
+  25%  { content: '.'; }
+  50%  { content: '..'; }
+  75%  { content: '...'; }
+}
+
+#wizardQuickReplies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+#wizardQuickReplies .quick-reply-btn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#wizardQuickReplies .quick-reply-btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.wizard-summary {
+  background: var(--bg-card);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  margin-top: 6px;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.wizard-summary strong {
+  color: var(--accent-light);
+}
+
+.wizard-done-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.wizard-done-actions .btn {
+  font-size: 0.8125rem;
+}
+
 /* Instructions box */
 .chatbot-instructions {
   background: var(--bg-primary);
