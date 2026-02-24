@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Streamly — Gestiona tus cuentas y automatiza WhatsApp</title>
+  <meta name="description" content="Streamly: Plataforma todo-en-uno para gestionar cuentas streaming, clientes, cobros y automatizar WhatsApp con IA. Desde $99 MXN/mes." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📺</text></svg>">
+
+  <!-- Fuentes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="css/landing.css" />
+</head>
+<body>
+
+  <!-- ═══════ NAVBAR ═══════ -->
+  <nav class="nav">
+    <div class="nav-container">
+      <a href="#" class="nav-logo">
+        <div class="nav-logo-icon">📺</div>
+        <span>Streamly</span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="#features" data-i18n="nav.features">Características</a>
+        <a href="#how-it-works" data-i18n="nav.how">Cómo funciona</a>
+        <a href="#pricing" data-i18n="nav.pricing">Precios</a>
+        <a href="#faq" data-i18n="nav.faq">FAQ</a>
+      </div>
+      <div class="nav-actions">
+        <!-- Language Switcher -->
+        <div class="lang-switcher">
+          <button class="lang-btn" id="langBtn" onclick="toggleLandingLangDropdown()">
+            <i class="fa-solid fa-globe"></i>
+            <span id="langLabel">ES</span>
+          </button>
+          <div class="lang-dropdown" id="langDropdown">
+            <button class="lang-opt active" data-lang="es" onclick="setLandingLang('es')">🇲🇽 Español</button>
+            <button class="lang-opt" data-lang="en" onclick="setLandingLang('en')">🇺🇸 English</button>
+            <button class="lang-opt" data-lang="pt" onclick="setLandingLang('pt')">🇧🇷 Português</button>
+            <button class="lang-opt" data-lang="fr" onclick="setLandingLang('fr')">🇫🇷 Français</button>
+          </div>
+        </div>
+        <a href="/index.html" class="nav-cta" data-i18n="nav.login">Iniciar Sesión</a>
+        <button class="nav-hamburger" id="navHamburger" onclick="toggleMobileMenu()">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══════ HERO ═══════ -->
+  <section class="hero">
+    <div class="hero-bg">
+      <div class="hero-gradient"></div>
+      <div class="hero-grid"></div>
+    </div>
+    <div class="hero-container">
+      <div class="hero-badge" data-i18n="hero.badge">🚀 Plataforma todo-en-uno</div>
+      <h1 class="hero-title">
+        <span data-i18n="hero.title1">Gestiona cuentas.</span><br/>
+        <span class="hero-gradient-text" data-i18n="hero.title2">Automatiza WhatsApp.</span><br/>
+        <span data-i18n="hero.title3">Crece tu negocio.</span>
+      </h1>
+      <p class="hero-subtitle" data-i18n="hero.subtitle">
+        Streamly centraliza la gestión de tus cuentas de streaming, clientes, cobros y un bot de WhatsApp con IA — todo desde un solo panel.
+      </p>
+      <div class="hero-cta-group">
+        <a href="#pricing" class="btn-primary-lg" data-i18n="hero.cta_start">Comenzar Ahora</a>
+        <a href="#features" class="btn-outline-lg" data-i18n="hero.cta_learn">
+          <i class="fa-solid fa-play"></i> Ver más
+        </a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span class="hero-stat-number">99<small>MXN</small></span>
+          <span class="hero-stat-label" data-i18n="hero.stat_price">/mes — plan único</span>
+        </div>
+        <div class="hero-stat-divider"></div>
+        <div class="hero-stat">
+          <span class="hero-stat-number">24/7</span>
+          <span class="hero-stat-label" data-i18n="hero.stat_bot">Bot WhatsApp activo</span>
+        </div>
+        <div class="hero-stat-divider"></div>
+        <div class="hero-stat">
+          <span class="hero-stat-number">∞</span>
+          <span class="hero-stat-label" data-i18n="hero.stat_clients">Clientes ilimitados</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ LOGOS / PLATFORMS ═══════ -->
+  <section class="platforms">
+    <div class="section-container">
+      <p class="platforms-label" data-i18n="platforms.label">Compatible con las principales plataformas de streaming</p>
+      <div class="platforms-grid">
+        <div class="platform-item"><i class="fa-brands fa-spotify"></i> Spotify</div>
+        <div class="platform-item"><i class="fa-solid fa-film"></i> Netflix</div>
+        <div class="platform-item"><i class="fa-solid fa-tv"></i> Disney+</div>
+        <div class="platform-item"><i class="fa-brands fa-amazon"></i> Prime Video</div>
+        <div class="platform-item"><i class="fa-brands fa-youtube"></i> YouTube</div>
+        <div class="platform-item"><i class="fa-solid fa-plus"></i> Y más...</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ FEATURES ═══════ -->
+  <section class="features" id="features">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-badge" data-i18n="features.badge">Características</span>
+        <h2 class="section-title" data-i18n="features.title">Todo lo que necesitas para gestionar tu negocio</h2>
+        <p class="section-subtitle" data-i18n="features.subtitle">Desde el control de cuentas hasta la automatización de cobros con IA</p>
+      </div>
+      <div class="features-grid">
+        <!-- Feature 1 -->
+        <div class="feature-card">
+          <div class="feature-icon" style="--accent-hue: 250;">
+            <i class="fa-solid fa-users-gear"></i>
+          </div>
+          <h3 data-i18n="features.f1_title">Gestión de Cuentas</h3>
+          <p data-i18n="features.f1_desc">Administra todas tus cuentas de streaming en un solo lugar. Netflix, Spotify, Disney+, y mucho más. Agrega perfiles, contraseñas y fechas de vencimiento.</p>
+        </div>
+        <!-- Feature 2 -->
+        <div class="feature-card">
+          <div class="feature-icon" style="--accent-hue: 160;">
+            <i class="fa-solid fa-address-book"></i>
+          </div>
+          <h3 data-i18n="features.f2_title">Control de Clientes</h3>
+          <p data-i18n="features.f2_desc">Ficha completa por cliente: datos de contacto, plataforma asignada, fecha de pago, estado activo/inactivo. Nunca pierdas el control de quién paga qué.</p>
+        </div>
+        <!-- Feature 3 -->
+        <div class="feature-card">
+          <div class="feature-icon" style="--accent-hue: 30;">
+            <i class="fa-solid fa-chart-line"></i>
+          </div>
+          <h3 data-i18n="features.f3_title">Reportes y Métricas</h3>
+          <p data-i18n="features.f3_desc">Visualiza ingresos, egresos, clientes activos y ganancias netas. Gráficas en tiempo real para tomar mejores decisiones de negocio.</p>
+        </div>
+        <!-- Feature 4 -->
+        <div class="feature-card featured">
+          <div class="feature-icon" style="--accent-hue: 140;">
+            <i class="fa-brands fa-whatsapp"></i>
+          </div>
+          <h3 data-i18n="features.f4_title">Bot WhatsApp con IA</h3>
+          <p data-i18n="features.f4_desc">Bot inteligente que responde automáticamente a tus clientes. Configuración personalizada, tono de voz, respuestas con contexto de tu negocio usando Gemini AI.</p>
+          <span class="feature-badge" data-i18n="features.f4_badge">⭐ Más popular</span>
+        </div>
+        <!-- Feature 5 -->
+        <div class="feature-card">
+          <div class="feature-icon" style="--accent-hue: 200;">
+            <i class="fa-solid fa-clock"></i>
+          </div>
+          <h3 data-i18n="features.f5_title">Mensajes Programados</h3>
+          <p data-i18n="features.f5_desc">Programa mensajes a cualquier grupo de WhatsApp. Una sola vez o recurrentes. Ideal para recordatorios de pago y promociones automáticas.</p>
+        </div>
+        <!-- Feature 6 -->
+        <div class="feature-card">
+          <div class="feature-icon" style="--accent-hue: 340;">
+            <i class="fa-solid fa-money-bill-wave"></i>
+          </div>
+          <h3 data-i18n="features.f6_title">Gestión de Movimientos</h3>
+          <p data-i18n="features.f6_desc">Registra ingresos y egresos vinculados a clientes y cuentas. Exporta datos, filtra por fecha y mantén tu contabilidad al día con facilidad.</p>
+        </div>
+        <!-- Feature 7 -->
+        <div class="feature-card">
+          <div class="feature-icon" style="--accent-hue: 60;">
+            <i class="fa-solid fa-boxes-stacked"></i>
+          </div>
+          <h3 data-i18n="features.f7_title">Inventario de Cuentas</h3>
+          <p data-i18n="features.f7_desc">Visualiza cuántas cuentas tienes disponibles y cuántas están asignadas. Control total del stock para no quedarte sin perfiles.</p>
+        </div>
+        <!-- Feature 8 -->
+        <div class="feature-card">
+          <div class="feature-icon" style="--accent-hue: 290;">
+            <i class="fa-solid fa-language"></i>
+          </div>
+          <h3 data-i18n="features.f8_title">Multi-idioma</h3>
+          <p data-i18n="features.f8_desc">Interfaz completamente traducida a Español, Inglés, Portugués y Francés. Perfecto para negocios internacionales o clientela diversa.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ HOW IT WORKS ═══════ -->
+  <section class="how-it-works" id="how-it-works">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-badge" data-i18n="how.badge">Cómo funciona</span>
+        <h2 class="section-title" data-i18n="how.title">Empieza en 3 simples pasos</h2>
+      </div>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <div class="step-icon"><i class="fa-solid fa-user-plus"></i></div>
+          <h3 data-i18n="how.s1_title">Crea tu cuenta</h3>
+          <p data-i18n="how.s1_desc">Regístrate en segundos. No necesitas tarjeta de crédito para explorar la plataforma.</p>
+        </div>
+        <div class="step-connector"><i class="fa-solid fa-arrow-right"></i></div>
+        <div class="step-card">
+          <div class="step-number">2</div>
+          <div class="step-icon"><i class="fa-solid fa-gear"></i></div>
+          <h3 data-i18n="how.s2_title">Configura tu negocio</h3>
+          <p data-i18n="how.s2_desc">Agrega tus cuentas de streaming, importa clientes y configura el bot de WhatsApp con nuestro asistente IA.</p>
+        </div>
+        <div class="step-connector"><i class="fa-solid fa-arrow-right"></i></div>
+        <div class="step-card">
+          <div class="step-number">3</div>
+          <div class="step-icon"><i class="fa-solid fa-rocket"></i></div>
+          <h3 data-i18n="how.s3_title">¡Automatiza y crece!</h3>
+          <p data-i18n="how.s3_desc">Tu bot responde clientes, los recordatorios se envían solos, y tú te enfocas en crecer tu negocio.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ PRICING ═══════ -->
+  <section class="pricing" id="pricing">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-badge" data-i18n="pricing.badge">Precios</span>
+        <h2 class="section-title" data-i18n="pricing.title">Un solo plan. Todo incluido.</h2>
+        <p class="section-subtitle" data-i18n="pricing.subtitle">Sin sorpresas, sin costos ocultos. Todo lo que necesitas por un precio simple.</p>
+      </div>
+
+      <!-- Currency Switcher -->
+      <div class="currency-switcher">
+        <span data-i18n="pricing.see_in">Ver precio en:</span>
+        <div class="currency-options">
+          <button class="currency-btn active" data-currency="MXN" onclick="setCurrency('MXN')">🇲🇽 MXN</button>
+          <button class="currency-btn" data-currency="USD" onclick="setCurrency('USD')">🇺🇸 USD</button>
+          <button class="currency-btn" data-currency="EUR" onclick="setCurrency('EUR')">🇪🇺 EUR</button>
+          <button class="currency-btn" data-currency="BRL" onclick="setCurrency('BRL')">🇧🇷 BRL</button>
+          <button class="currency-btn" data-currency="GBP" onclick="setCurrency('GBP')">🇬🇧 GBP</button>
+          <button class="currency-btn" data-currency="COP" onclick="setCurrency('COP')">🇨🇴 COP</button>
+          <button class="currency-btn" data-currency="ARS" onclick="setCurrency('ARS')">🇦🇷 ARS</button>
+        </div>
+      </div>
+
+      <div class="pricing-card">
+        <div class="pricing-card-badge" data-i18n="pricing.plan_name">Plan Completo</div>
+        <div class="pricing-price">
+          <span class="pricing-currency" id="priceCurrencySymbol">$</span>
+          <span class="pricing-amount" id="priceAmount">99</span>
+          <span class="pricing-period">
+            <span id="priceCurrencyCode">MXN</span> / <span data-i18n="pricing.month">mes</span>
+          </span>
+        </div>
+        <p class="pricing-note" data-i18n="pricing.note">Cancela cuando quieras. Sin contratos.</p>
+
+        <ul class="pricing-features">
+          <li><i class="fa-solid fa-check"></i> <span data-i18n="pricing.pf1">Cuentas de streaming ilimitadas</span></li>
+          <li><i class="fa-solid fa-check"></i> <span data-i18n="pricing.pf2">Clientes ilimitados</span></li>
+          <li><i class="fa-solid fa-check"></i> <span data-i18n="pricing.pf3">Bot WhatsApp con IA (Gemini)</span></li>
+          <li><i class="fa-solid fa-check"></i> <span data-i18n="pricing.pf4">Mensajes programados a grupos</span></li>
+          <li><i class="fa-solid fa-check"></i> <span data-i18n="pricing.pf5">Reportes y métricas en tiempo real</span></li>
+          <li><i class="fa-solid fa-check"></i> <span data-i18n="pricing.pf6">Gestión de movimientos financieros</span></li>
+          <li><i class="fa-solid fa-check"></i> <span data-i18n="pricing.pf7">Inventario de cuentas disponibles</span></li>
+          <li><i class="fa-solid fa-check"></i> <span data-i18n="pricing.pf8">Multi-idioma (ES, EN, PT, FR)</span></li>
+          <li><i class="fa-solid fa-check"></i> <span data-i18n="pricing.pf9">Actualizaciones gratuitas</span></li>
+          <li><i class="fa-solid fa-check"></i> <span data-i18n="pricing.pf10">Soporte prioritario</span></li>
+        </ul>
+
+        <button class="btn-subscribe" id="subscribeBtn" onclick="startCheckout()" data-i18n="pricing.subscribe">
+          <i class="fa-solid fa-bolt"></i> Suscribirme ahora
+        </button>
+        <p class="pricing-secure"><i class="fa-solid fa-lock"></i> <span data-i18n="pricing.secure">Pago seguro con Stripe</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ FAQ ═══════ -->
+  <section class="faq" id="faq">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-badge">FAQ</span>
+        <h2 class="section-title" data-i18n="faq.title">Preguntas Frecuentes</h2>
+      </div>
+      <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span data-i18n="faq.q1">¿Necesito conocimientos técnicos para usar Streamly?</span>
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <div class="faq-answer">
+            <p data-i18n="faq.a1">No. Streamly está diseñado para ser intuitivo. El asistente de IA te guía paso a paso para configurar tu bot de WhatsApp, y la interfaz es completamente visual.</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span data-i18n="faq.q2">¿Cómo funciona el bot de WhatsApp?</span>
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <div class="faq-answer">
+            <p data-i18n="faq.a2">Conectas tu WhatsApp escaneando un QR (como WhatsApp Web). El bot usa Gemini AI para responder automáticamente según las instrucciones que tú configures: tono, horario, información de precios, etc.</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span data-i18n="faq.q3">¿Puedo cancelar en cualquier momento?</span>
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <div class="faq-answer">
+            <p data-i18n="faq.a3">Sí. No hay contratos de permanencia. Puedes cancelar tu suscripción desde tu panel de Stripe cuando quieras, y seguirás teniendo acceso hasta el final de tu periodo de pago.</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span data-i18n="faq.q4">¿Qué plataformas de streaming soporta?</span>
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <div class="faq-answer">
+            <p data-i18n="faq.a4">Streamly es flexible y puedes agregar cualquier plataforma: Netflix, Spotify, Disney+, HBO Max, Amazon Prime, YouTube Premium, Crunchyroll, y cualquier otra que necesites.</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span data-i18n="faq.q5">¿Es seguro?</span>
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <div class="faq-answer">
+            <p data-i18n="faq.a5">Sí. Usamos Firebase Authentication para el login, datos encriptados en tránsito, aislamiento por usuario, y los pagos son procesados directamente por Stripe — nunca tocamos tu información financiera.</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span data-i18n="faq.q6">¿Funciona en mi país?</span>
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <div class="faq-answer">
+            <p data-i18n="faq.a6">Sí. Streamly funciona en cualquier país. Puedes ver los precios en tu moneda local (MXN, USD, EUR, BRL, GBP, COP, ARS) y el bot de WhatsApp opera globalmente.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ CTA FINAL ═══════ -->
+  <section class="final-cta">
+    <div class="section-container">
+      <h2 data-i18n="cta.title">¿Listo para transformar tu negocio?</h2>
+      <p data-i18n="cta.subtitle">Únete a Streamly hoy y lleva tu gestión de cuentas al siguiente nivel.</p>
+      <div class="final-cta-buttons">
+        <a href="#pricing" class="btn-primary-lg" data-i18n="cta.subscribe">Suscribirme por $99 MXN/mes</a>
+        <a href="/index.html" class="btn-outline-lg" data-i18n="cta.login">Ya tengo cuenta → Entrar</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ FOOTER ═══════ -->
+  <footer class="footer">
+    <div class="section-container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <div class="nav-logo-icon">📺</div>
+            <span>Streamly</span>
+          </div>
+          <p data-i18n="footer.desc">Plataforma todo-en-uno para la gestión de cuentas de streaming y automatización de WhatsApp con IA.</p>
+        </div>
+        <div class="footer-links">
+          <h4 data-i18n="footer.product">Producto</h4>
+          <a href="#features" data-i18n="nav.features">Características</a>
+          <a href="#pricing" data-i18n="nav.pricing">Precios</a>
+          <a href="#faq" data-i18n="nav.faq">FAQ</a>
+        </div>
+        <div class="footer-links">
+          <h4 data-i18n="footer.account">Cuenta</h4>
+          <a href="/index.html" data-i18n="nav.login">Iniciar Sesión</a>
+          <a href="/index.html" data-i18n="footer.register">Registrarse</a>
+        </div>
+        <div class="footer-links">
+          <h4 data-i18n="footer.legal">Legal</h4>
+          <a href="#" data-i18n="footer.privacy">Privacidad</a>
+          <a href="#" data-i18n="footer.terms">Términos</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 Streamly. <span data-i18n="footer.rights">Todos los derechos reservados.</span></p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/landing.js"></script>
+</body>
+</html>
