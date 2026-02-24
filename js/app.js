@@ -8,6 +8,15 @@ let accountsData   = [];
 let clientsData    = [];
 let movementsData  = [];
 
+// ── Plan / Suscripción ──────────────────────────────────────
+let currentPlan = 'free'; // 'free' | 'lite' | 'premium'
+
+const PLAN_CONFIG = {
+  free:    { maxClients: 20,       label: 'Free',    allow: [] },
+  lite:    { maxClients: 49,       label: 'Lite',    allow: ['reportes', 'calendario'] },
+  premium: { maxClients: Infinity, label: 'Premium', allow: ['reportes', 'calendario', 'deudores', 'plantillas', 'logs', 'chatbot'] }
+};
+
 // ── Utilidad: debounce para evitar re-renders excesivos en búsqueda ──
 function debounce(fn, delay = 250) {
   let timer;
@@ -37,16 +46,175 @@ async function loadAllData() {
     await Promise.all([
       loadAccounts(),
       loadClients(),
-      loadMovements()
+      loadMovements(),
+      loadUserPlan()
     ]);
     updateDashboard();
     updateReports();
     populateAccountSelect();
     populateClientSelect();
     loadChatbotConfig();
+    applyPlanRestrictions();
   } catch (error) {
     console.error('Error cargando datos:', error);
     showToast('Error cargando datos. Verifica la conexión.', 'error');
+  }
+}
+
+/* ============================================================
+   PLAN / SUSCRIPCIÓN
+   ============================================================ */
+
+/**
+ * Cargar plan del usuario desde Firestore
+ */
+async function loadUserPlan() {
+  if (!currentUser || !db) return;
+  try {
+    const doc = await db.collection('usuarios').doc(currentUser.uid).get();
+    if (doc.exists && doc.data().plan) {
+      currentPlan = doc.data().plan;
+    } else {
+      currentPlan = 'free';
+    }
+  } catch (err) {
+    console.warn('No se pudo cargar plan, usando free:', err.message);
+    currentPlan = 'free';
+  }
+}
+
+/**
+ * Aplicar restricciones visuales del plan (sidebar locks, badge)
+ */
+function applyPlanRestrictions() {
+  const cfg = PLAN_CONFIG[currentPlan] || PLAN_CONFIG.free;
+  const toolSections = ['reportes', 'calendario', 'deudores', 'plantillas', 'logs', 'chatbot'];
+
+  // Mostrar/ocultar candados en el sidebar
+  toolSections.forEach(s => {
+    const lockEl = document.getElementById('lock' + s.charAt(0).toUpperCase() + s.slice(1));
+    if (lockEl) {
+      lockEl.style.display = cfg.allow.includes(s) ? 'none' : 'inline';
+    }
+  });
+
+  // Actualizar badge del sidebar
+  const badgeName = document.getElementById('sidebarPlanName');
+  const badge = document.getElementById('sidebarPlanBadge');
+  if (badgeName) badgeName.textContent = cfg.label;
+  if (badge) {
+    badge.className = 'plan-badge-sidebar plan-badge-' + currentPlan;
+  }
+
+  // Actualizar página "Mi Plan"
+  updatePlanPage();
+}
+
+/**
+ * Actualizar la página de planes
+ */
+function updatePlanPage() {
+  const cfg = PLAN_CONFIG[currentPlan] || PLAN_CONFIG.free;
+  const totalClients = clientsData.length;
+  const maxC = cfg.maxClients === Infinity ? '∞' : cfg.maxClients;
+
+  // Plan actual card
+  const nameEl = document.getElementById('currentPlanName');
+  const detailEl = document.getElementById('currentPlanDetail');
+  const usageText = document.getElementById('planUsageText');
+  const usageFill = document.getElementById('planUsageFill');
+  const planCard = document.getElementById('currentPlanCard');
+
+  if (nameEl) nameEl.textContent = cfg.label;
+  if (detailEl) detailEl.textContent = cfg.maxClients === Infinity ? 'Clientes ilimitados' : `Hasta ${cfg.maxClients} clientes`;
+  if (usageText) usageText.textContent = `${totalClients} / ${maxC} clientes`;
+  if (planCard) planCard.className = 'current-plan-card current-plan-' + currentPlan;
+
+  if (usageFill) {
+    const pct = cfg.maxClients === Infinity ? Math.min((totalClients / 100) * 100, 100) : Math.min((totalClients / cfg.maxClients) * 100, 100);
+    usageFill.style.width = pct + '%';
+    if (pct >= 90) usageFill.classList.add('usage-danger');
+    else if (pct >= 70) usageFill.classList.add('usage-warning');
+    else usageFill.classList.remove('usage-danger', 'usage-warning');
+  }
+
+  // Highlight current plan card
+  ['Free', 'Lite', 'Premium'].forEach(p => {
+    const card = document.getElementById('planCard' + p);
+    if (card) card.classList.toggle('pricing-card-active', currentPlan === p.toLowerCase());
+  });
+
+  // Update buttons
+  const plans = ['free', 'lite', 'premium'];
+  plans.forEach(p => {
+    const btn = document.getElementById('btnSelect' + p.charAt(0).toUpperCase() + p.slice(1));
+    if (btn) {
+      if (p === currentPlan) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Plan Actual';
+      } else {
+        btn.disabled = false;
+        const labels = { free: 'Elegir Free', lite: '<i class="fa-solid fa-arrow-up"></i> Elegir Lite', premium: '<i class="fa-solid fa-crown"></i> Elegir Premium' };
+        btn.innerHTML = labels[p];
+      }
+    }
+  });
+}
+
+/**
+ * Verificar si el usuario puede acceder a una sección
+ */
+function canAccessSection(section) {
+  const toolSections = ['reportes', 'calendario', 'deudores', 'plantillas', 'logs', 'chatbot'];
+  if (!toolSections.includes(section)) return true; // dashboard, cuentas, clientes, movimientos always allowed
+  const cfg = PLAN_CONFIG[currentPlan] || PLAN_CONFIG.free;
+  return cfg.allow.includes(section);
+}
+
+/**
+ * Verificar si puede agregar más clientes
+ */
+function canAddMoreClients() {
+  const cfg = PLAN_CONFIG[currentPlan] || PLAN_CONFIG.free;
+  return clientsData.length < cfg.maxClients;
+}
+
+/**
+ * Mostrar modal de upgrade
+ */
+function showUpgradeModal(title, msg) {
+  const modalTitle = document.getElementById('upgradeModalTitle');
+  const modalMsg = document.getElementById('upgradeModalMsg');
+  if (modalTitle) modalTitle.textContent = title || 'Mejora tu plan';
+  if (modalMsg) modalMsg.textContent = msg || 'Esta función no está disponible en tu plan actual.';
+  document.getElementById('upgradePlanModal').classList.add('active');
+}
+
+/**
+ * Seleccionar un plan (guardar en Firestore)
+ */
+async function selectPlan(plan) {
+  if (!currentUser || !db) return;
+  if (plan === currentPlan) return;
+
+  // Si baja de plan, verificar que no exceda el límite
+  const newCfg = PLAN_CONFIG[plan];
+  if (clientsData.length > newCfg.maxClients) {
+    showToast(`No puedes cambiar a ${newCfg.label}: tienes ${clientsData.length} clientes y el límite es ${newCfg.maxClients}`, 'error');
+    return;
+  }
+
+  try {
+    await db.collection('usuarios').doc(currentUser.uid).update({
+      plan: plan
+    });
+    currentPlan = plan;
+    applyPlanRestrictions();
+    showToast(`¡Plan cambiado a ${newCfg.label}!`, 'success');
+    if (typeof logActivity === 'function') logActivity('plan', `Plan cambiado a ${newCfg.label}`);
+  } catch (err) {
+    console.error('Error cambiando plan:', err);
+    showToast('Error al cambiar de plan', 'error');
   }
 }
 
@@ -362,6 +530,17 @@ async function saveClient(e) {
   e.preventDefault();
 
   const id = document.getElementById('clientId').value;
+
+  // Verificar límite de clientes al crear (no al editar)
+  if (!id && !canAddMoreClients()) {
+    const cfg = PLAN_CONFIG[currentPlan];
+    showUpgradeModal(
+      'Límite de clientes alcanzado',
+      `Tu plan ${cfg.label} permite hasta ${cfg.maxClients} clientes. Tienes ${clientsData.length}. Mejora tu plan para agregar más.`
+    );
+    return;
+  }
+
   const accountId = document.getElementById('clientAccount').value;
   const account = accountsData.find(a => a.id === accountId);
 

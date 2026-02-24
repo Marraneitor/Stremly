@@ -3358,3 +3358,239 @@ input:checked + .slider::before {
     padding: 2px;
   }
 }
+
+/* ============================================================
+   PLAN / PRICING
+   ============================================================ */
+
+/* Sidebar Plan Badge */
+.plan-badge-sidebar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  margin-bottom: 10px;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.plan-badge-sidebar:hover { opacity: 0.85; transform: translateX(2px); }
+.plan-badge-free {
+  background: rgba(100,116,139,0.12);
+  color: #94a3b8;
+  border: 1px solid rgba(100,116,139,0.2);
+}
+.plan-badge-lite {
+  background: rgba(59,130,246,0.12);
+  color: #60a5fa;
+  border: 1px solid rgba(59,130,246,0.25);
+}
+.plan-badge-premium {
+  background: rgba(245,158,11,0.12);
+  color: #fbbf24;
+  border: 1px solid rgba(245,158,11,0.25);
+}
+.plan-badge-sidebar i { font-size: 0.85rem; }
+
+/* Nav Lock Icon */
+.nav-lock-icon {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+/* Plan Page Header */
+.plan-page-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.plan-page-header h2 {
+  font-size: 1.6rem;
+  margin-bottom: 4px;
+  color: var(--text-primary);
+}
+.plan-page-header h2 i { color: #fbbf24; margin-right: 8px; }
+.plan-page-header p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* Current Plan Card */
+.current-plan-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 20px 24px;
+  margin-bottom: 28px;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.current-plan-free { border-left: 4px solid #94a3b8; }
+.current-plan-lite { border-left: 4px solid #3b82f6; }
+.current-plan-premium { border-left: 4px solid #f59e0b; }
+
+.current-plan-info { display: flex; flex-direction: column; gap: 2px; }
+.current-plan-label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.current-plan-name { font-size: 1.3rem; font-weight: 700; color: var(--text-primary); }
+.current-plan-detail { font-size: 0.82rem; color: var(--text-secondary); }
+
+.current-plan-usage { flex: 1; max-width: 350px; min-width: 200px; }
+.plan-usage-bar {
+  height: 8px;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.plan-usage-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+.plan-usage-fill.usage-warning { background: var(--warning); }
+.plan-usage-fill.usage-danger { background: var(--danger); }
+.plan-usage-text { font-size: 0.75rem; color: var(--text-muted); }
+
+/* Pricing Grid */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.pricing-card {
+  background: var(--bg-card);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  position: relative;
+}
+.pricing-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+.pricing-card-active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.pricing-card-featured {
+  border-color: #f59e0b;
+}
+.pricing-card-featured:hover {
+  box-shadow: 0 8px 24px rgba(245,158,11,0.2);
+}
+
+.pricing-popular-tag {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #000;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  z-index: 1;
+}
+
+.pricing-card-header {
+  padding: 28px 20px 20px;
+  text-align: center;
+}
+.pricing-card-header h3 {
+  font-size: 1.2rem;
+  margin: 8px 0 4px;
+  color: var(--text-primary);
+}
+.pricing-price {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+.pricing-price span {
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.pricing-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  margin-bottom: 4px;
+}
+.pricing-free .pricing-icon { background: rgba(100,116,139,0.15); color: #94a3b8; }
+.pricing-lite .pricing-icon { background: rgba(59,130,246,0.15); color: #3b82f6; }
+.pricing-premium .pricing-icon { background: rgba(245,158,11,0.15); color: #f59e0b; }
+
+.pricing-card-body { padding: 0 20px 24px; }
+
+.pricing-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px;
+}
+.pricing-features li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  font-size: 0.84rem;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.pricing-features li:last-child { border-bottom: none; }
+.pricing-features li.included i { color: var(--success); font-size: 0.75rem; }
+.pricing-features li.excluded { color: var(--text-muted); opacity: 0.6; }
+.pricing-features li.excluded i { color: var(--danger); font-size: 0.75rem; }
+
+.pricing-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.pricing-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.pricing-btn-free {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+}
+.pricing-btn-lite {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #fff;
+}
+.pricing-btn-lite:hover:not(:disabled) { box-shadow: 0 4px 12px rgba(59,130,246,0.4); }
+.pricing-btn-premium {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #000;
+}
+.pricing-btn-premium:hover:not(:disabled) { box-shadow: 0 4px 12px rgba(245,158,11,0.4); }
+
+/* Responsive Pricing */
+@media (max-width: 900px) {
+  .pricing-grid { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; }
+  .current-plan-card { flex-direction: column; align-items: flex-start; }
+  .current-plan-usage { max-width: 100%; }
+}

@@ -251,6 +251,21 @@ document.getElementById('sidebarOverlay')?.addEventListener('click', () => {
 
 // ── Navegación entre secciones ──────────────────────────────
 function navigateTo(section) {
+  // Verificar acceso por plan (si la función existe y aplica)
+  if (typeof canAccessSection === 'function' && !canAccessSection(section)) {
+    if (typeof showUpgradeModal === 'function') {
+      const sectionNames = {
+        reportes: 'Reportes', calendario: 'Calendario', deudores: 'Deudores',
+        plantillas: 'Plantillas', logs: 'Actividad', chatbot: 'Chatbot IA'
+      };
+      showUpgradeModal(
+        `${sectionNames[section] || section} no disponible`,
+        `Tu plan actual no incluye acceso a ${sectionNames[section] || section}. Mejora tu plan para desbloquear esta herramienta.`
+      );
+    }
+    return;
+  }
+
   // Ocultar todas las secciones
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   // Mostrar la sección seleccionada
@@ -273,7 +288,8 @@ function navigateTo(section) {
     deudores: 'Deudores',
     plantillas: 'Plantillas',
     logs: 'Actividad',
-    chatbot: 'Chatbot IA'
+    chatbot: 'Chatbot IA',
+    plan: 'Mi Plan'
   };
   document.getElementById('pageTitle').textContent = titles[section] || section;
 
@@ -308,6 +324,9 @@ function navigateTo(section) {
   }
   if (section === 'logs' && typeof renderActivityLogs === 'function') {
     setTimeout(() => renderActivityLogs(), 100);
+  }
+  if (section === 'plan' && typeof updatePlanPage === 'function') {
+    setTimeout(() => updatePlanPage(), 100);
   }
 }
 

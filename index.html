@@ -293,30 +293,44 @@
         <button class="nav-item" data-section="reportes" onclick="navigateTo('reportes')" data-i18n="sidebar.reports">
           <i class="fa-solid fa-chart-bar"></i>
           Reportes
+          <span class="nav-lock-icon" id="lockReportes" style="display:none; margin-left:auto;"><i class="fa-solid fa-lock"></i></span>
         </button>
         <button class="nav-item" data-section="calendario" onclick="navigateTo('calendario')" data-i18n="sidebar.calendar">
           <i class="fa-solid fa-calendar-days"></i>
           Calendario
+          <span class="nav-lock-icon" id="lockCalendario" style="display:none; margin-left:auto;"><i class="fa-solid fa-lock"></i></span>
         </button>
         <button class="nav-item" data-section="deudores" onclick="navigateTo('deudores')" data-i18n="sidebar.debtors">
           <i class="fa-solid fa-file-invoice-dollar"></i>
           Deudores
+          <span class="nav-lock-icon" id="lockDeudores" style="display:none; margin-left:auto;"><i class="fa-solid fa-lock"></i></span>
         </button>
         <button class="nav-item" data-section="plantillas" onclick="navigateTo('plantillas')" data-i18n="sidebar.templates">
           <i class="fa-solid fa-envelope-open-text"></i>
           Plantillas
+          <span class="nav-lock-icon" id="lockPlantillas" style="display:none; margin-left:auto;"><i class="fa-solid fa-lock"></i></span>
         </button>
         <button class="nav-item" data-section="logs" onclick="navigateTo('logs')" data-i18n="sidebar.logs">
           <i class="fa-solid fa-clipboard-list"></i>
           Actividad
+          <span class="nav-lock-icon" id="lockLogs" style="display:none; margin-left:auto;"><i class="fa-solid fa-lock"></i></span>
         </button>
         <button class="nav-item" data-section="chatbot" onclick="navigateTo('chatbot')" data-i18n="sidebar.chatbot">
           <i class="fa-brands fa-whatsapp"></i>
           Chatbot IA
+          <span class="nav-lock-icon" id="lockChatbot" style="display:none; margin-left:auto;"><i class="fa-solid fa-lock"></i></span>
+        </button>
+        <button class="nav-item" data-section="plan" onclick="navigateTo('plan')">
+          <i class="fa-solid fa-crown"></i>
+          Mi Plan
         </button>
       </nav>
 
       <div class="sidebar-footer">
+        <div class="plan-badge-sidebar" id="sidebarPlanBadge" onclick="navigateTo('plan')" title="Ver mi plan">
+          <i class="fa-solid fa-crown"></i>
+          <span id="sidebarPlanName">Free</span>
+        </div>
         <div class="sidebar-user" id="sidebarUser">
           <div class="sidebar-user-avatar" id="userAvatar">A</div>
           <div class="sidebar-user-info">
@@ -1289,8 +1303,135 @@ Disculpa, no tengo esa información. Un agente te atenderá pronto.
           </div>
         </div>
 
+        <!-- ==================== MI PLAN ==================== -->
+        <div class="section" id="section-plan">
+          <div class="plan-page-header">
+            <h2><i class="fa-solid fa-crown"></i> Mi Plan</h2>
+            <p>Elige el plan que mejor se adapte a tu negocio</p>
+          </div>
+
+          <!-- Plan actual -->
+          <div class="current-plan-card" id="currentPlanCard">
+            <div class="current-plan-info">
+              <span class="current-plan-label">Tu plan actual</span>
+              <span class="current-plan-name" id="currentPlanName">Free</span>
+              <span class="current-plan-detail" id="currentPlanDetail">Hasta 20 clientes</span>
+            </div>
+            <div class="current-plan-usage">
+              <div class="plan-usage-bar">
+                <div class="plan-usage-fill" id="planUsageFill" style="width: 0%"></div>
+              </div>
+              <span class="plan-usage-text" id="planUsageText">0 / 20 clientes</span>
+            </div>
+          </div>
+
+          <!-- Cards de planes -->
+          <div class="pricing-grid">
+            <!-- FREE -->
+            <div class="pricing-card" id="planCardFree">
+              <div class="pricing-card-header pricing-free">
+                <div class="pricing-icon"><i class="fa-solid fa-user"></i></div>
+                <h3>Free</h3>
+                <div class="pricing-price">$0 <span>/ mes</span></div>
+              </div>
+              <div class="pricing-card-body">
+                <ul class="pricing-features">
+                  <li class="included"><i class="fa-solid fa-check"></i> Hasta 20 clientes</li>
+                  <li class="included"><i class="fa-solid fa-check"></i> Dashboard</li>
+                  <li class="included"><i class="fa-solid fa-check"></i> Gestión de cuentas</li>
+                  <li class="included"><i class="fa-solid fa-check"></i> Movimientos</li>
+                  <li class="excluded"><i class="fa-solid fa-xmark"></i> Reportes</li>
+                  <li class="excluded"><i class="fa-solid fa-xmark"></i> Calendario</li>
+                  <li class="excluded"><i class="fa-solid fa-xmark"></i> Deudores</li>
+                  <li class="excluded"><i class="fa-solid fa-xmark"></i> Plantillas</li>
+                  <li class="excluded"><i class="fa-solid fa-xmark"></i> Actividad</li>
+                  <li class="excluded"><i class="fa-solid fa-xmark"></i> Chatbot IA</li>
+                </ul>
+                <button class="btn pricing-btn pricing-btn-free" id="btnSelectFree" onclick="selectPlan('free')" disabled>
+                  Plan Actual
+                </button>
+              </div>
+            </div>
+
+            <!-- LITE -->
+            <div class="pricing-card" id="planCardLite">
+              <div class="pricing-card-header pricing-lite">
+                <div class="pricing-icon"><i class="fa-solid fa-rocket"></i></div>
+                <h3>Lite</h3>
+                <div class="pricing-price">$50 <span>/ mes</span></div>
+              </div>
+              <div class="pricing-card-body">
+                <ul class="pricing-features">
+                  <li class="included"><i class="fa-solid fa-check"></i> Hasta 49 clientes</li>
+                  <li class="included"><i class="fa-solid fa-check"></i> Dashboard</li>
+                  <li class="included"><i class="fa-solid fa-check"></i> Gestión de cuentas</li>
+                  <li class="included"><i class="fa-solid fa-check"></i> Movimientos</li>
+                  <li class="included"><i class="fa-solid fa-check"></i> Reportes</li>
+                  <li class="included"><i class="fa-solid fa-check"></i> Calendario</li>
+                  <li class="excluded"><i class="fa-solid fa-xmark"></i> Deudores</li>
+                  <li class="excluded"><i class="fa-solid fa-xmark"></i> Plantillas</li>
+                  <li class="excluded"><i class="fa-solid fa-xmark"></i> Actividad</li>
+                  <li class="excluded"><i class="fa-solid fa-xmark"></i> Chatbot IA</li>
+                </ul>
+                <button class="btn pricing-btn pricing-btn-lite" id="btnSelectLite" onclick="selectPlan('lite')">
+                  <i class="fa-solid fa-arrow-up"></i> Elegir Lite
+                </button>
+              </div>
+            </div>
+
+            <!-- PREMIUM -->
+            <div class="pricing-card pricing-card-featured" id="planCardPremium">
+              <div class="pricing-popular-tag"><i class="fa-solid fa-star"></i> Recomendado</div>
+              <div class="pricing-card-header pricing-premium">
+                <div class="pricing-icon"><i class="fa-solid fa-crown"></i></div>
+                <h3>Premium</h3>
+                <div class="pricing-price">$100 <span>/ mes</span></div>
+              </div>
+              <div class="pricing-card-body">
+                <ul class="pricing-features">
+                  <li class="included"><i class="fa-solid fa-check"></i> Clientes ilimitados (+50)</li>
+                  <li class="included"><i class="fa-solid fa-check"></i> Dashboard</li>
+                  <li class="included"><i class="fa-solid fa-check"></i> Gestión de cuentas</li>
+                  <li class="included"><i class="fa-solid fa-check"></i> Movimientos</li>
+                  <li class="included"><i class="fa-solid fa-check"></i> Reportes</li>
+                  <li class="included"><i class="fa-solid fa-check"></i> Calendario</li>
+                  <li class="included"><i class="fa-solid fa-check"></i> Deudores</li>
+                  <li class="included"><i class="fa-solid fa-check"></i> Plantillas</li>
+                  <li class="included"><i class="fa-solid fa-check"></i> Actividad</li>
+                  <li class="included"><i class="fa-solid fa-check"></i> Chatbot IA</li>
+                </ul>
+                <button class="btn pricing-btn pricing-btn-premium" id="btnSelectPremium" onclick="selectPlan('premium')">
+                  <i class="fa-solid fa-crown"></i> Elegir Premium
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </main>
+  </div>
+
+  <!-- Modal: Upgrade Plan -->
+  <div class="modal-overlay" id="upgradePlanModal">
+    <div class="modal" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-lock"></i> Función Premium</h3>
+        <button class="modal-close" onclick="closeModal('upgradePlanModal')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body" style="text-align: center; padding: 24px;">
+        <div style="font-size: 3rem; margin-bottom: 12px;">
+          <i class="fa-solid fa-crown" style="color: #f59e0b;"></i>
+        </div>
+        <h3 id="upgradeModalTitle" style="margin-bottom: 8px;">Mejora tu plan</h3>
+        <p id="upgradeModalMsg" style="color: var(--text-muted); margin-bottom: 20px;">Esta función no está disponible en tu plan actual.</p>
+        <button class="btn pricing-btn pricing-btn-premium" onclick="closeModal('upgradePlanModal'); navigateTo('plan');" style="width: 100%;">
+          <i class="fa-solid fa-crown"></i> Ver Planes
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- ============================================================

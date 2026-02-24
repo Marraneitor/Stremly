@@ -128,6 +128,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
       await db.collection('usuarios').doc(cred.user.uid).set({
         email: email,
         nombre_negocio: businessName,
+        plan: 'free',
         creado_en: firebase.firestore.FieldValue.serverTimestamp()
       });
     } catch (firestoreError) {
@@ -182,6 +183,7 @@ async function signInWithGoogle() {
         await db.collection('usuarios').doc(user.uid).set({
           email: user.email,
           nombre_negocio: user.displayName || 'Mi Negocio',
+          plan: 'free',
           creado_en: firebase.firestore.FieldValue.serverTimestamp()
         });
       } catch (firestoreError) {
