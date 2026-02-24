@@ -1041,9 +1041,13 @@ async function loadChatbotConfig() {
       document.getElementById('botEnabled').value = data.enabled !== false ? 'true' : 'false';
       document.getElementById('botMaxTokens').value = data.maxTokens || '512';
     }
-    // Auto-iniciar wizard si no hay config previa
+    // Si ya tiene config guardada, mostrar resumen; si no, iniciar wizard
     setTimeout(() => {
-      if (!wizardState.active && wizardState.history.length === 0) {
+      if (wizardState.active || wizardState.history.length > 0) return;
+      const hasConfig = document.getElementById('botBusinessName').value.trim();
+      if (hasConfig) {
+        showCurrentConfigSummary();
+      } else {
         startConfigWizard();
       }
     }, 500);
@@ -1638,15 +1642,143 @@ async function applyWizardConfig() {
   const fakeEvent = { preventDefault: () => {} };
   await saveChatbotConfig(fakeEvent);
 
-  // Mostrar confirmación en el chat
-  const messagesDiv = document.getElementById('wizardMessages');
-  messagesDiv.innerHTML += `<div class="chat-msg chat-msg-bot"><span>✅ ¡Configuración guardada exitosamente! Tu bot de WhatsApp ya está configurado con estos ajustes. Puedes probar el bot en la sección de prueba de abajo.</span></div>`;
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
-
-  // Limpiar actions
+  // Limpiar actions previos
   document.querySelectorAll('.wizard-done-actions').forEach(el => el.remove());
 
+  // Mostrar confirmación + resumen visual
+  const messagesDiv = document.getElementById('wizardMessages');
+  messagesDiv.innerHTML += `<div class="chat-msg chat-msg-bot"><span>✅ ¡Configuración guardada exitosamente!</span></div>`;
+
+  const summaryDiv = document.createElement('div');
+  summaryDiv.className = 'wizard-config-review';
+  summaryDiv.innerHTML = `
+    <div class="wizard-review-header">
+      <i class="fa-solid fa-clipboard-check"></i> Resumen de tu configuración
+    </div>
+    <div class="wizard-review-grid">
+      <div class="wizard-review-item">
+        <span class="wizard-review-label"><i class="fa-solid fa-store"></i> Negocio</span>
+        <span class="wizard-review-value">${escapeAttr(c.businessName || '—')}</span>
+      </div>
+      <div class="wizard-review-item">
+        <span class="wizard-review-label"><i class="fa-solid fa-clock"></i> Horarios</span>
+        <span class="wizard-review-value">${escapeAttr(c.schedule || '—')}</span>
+      </div>
+      <div class="wizard-review-item">
+        <span class="wizard-review-label"><i class="fa-solid fa-masks-theater"></i> Personalidad</span>
+        <span class="wizard-review-value">${escapeAttr(c.personality || '—')}</span>
+      </div>
+      <div class="wizard-review-item wizard-review-wide">
+        <span class="wizard-review-label"><i class="fa-solid fa-book"></i> Contexto</span>
+        <span class="wizard-review-value">${escapeAttr(c.context || '—')}</span>
+      </div>
+      <div class="wizard-review-item">
+        <span class="wizard-review-label"><i class="fa-solid fa-hand-wave"></i> Bienvenida</span>
+        <span class="wizard-review-value">${escapeAttr(c.welcomeMsg || '—')}</span>
+      </div>
+      <div class="wizard-review-item">
+        <span class="wizard-review-label"><i class="fa-solid fa-circle-exclamation"></i> Fallback</span>
+        <span class="wizard-review-value">${escapeAttr(c.fallbackMsg || '—')}</span>
+      </div>
+    </div>
+    <div class="wizard-review-actions">
+      <button class="btn btn-secondary btn-sm" onclick="editConfigField()">
+        <i class="fa-solid fa-pen-to-square"></i> Editar con IA
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="toggleManualConfig()">
+        <i class="fa-solid fa-sliders"></i> Editar manualmente
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="resetConfigWizard()">
+        <i class="fa-solid fa-rotate-right"></i> Reconfigurar todo
+      </button>
+    </div>
+  `;
+  messagesDiv.appendChild(summaryDiv);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
   wizardState.active = false;
+}
+
+/**
+ * Activar edición conversacional post-guardado
+ */
+function editConfigField() {
+  wizardState.active = true;
+  wizardState.step = 7; // summary step — free conversation mode
+
+  const messagesDiv = document.getElementById('wizardMessages');
+  // Quitar tarjeta de resumen
+  document.querySelectorAll('.wizard-config-review').forEach(el => el.remove());
+
+  messagesDiv.innerHTML += `<div class="chat-msg chat-msg-bot"><span>✏️ ¡Claro! Dime qué quieres cambiar. Por ejemplo:\n\n• "Cambiar el nombre a MiStreaming"\n• "Quiero un tono más divertido"\n• "Actualizar los horarios a 24/7"\n\nCuando termines, escribe "guardar".</span></div>`;
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  document.getElementById('wizardInput').focus();
+}
+
+/**
+ * Mostrar resumen de la config actual (sin guardar de nuevo)
+ */
+function showCurrentConfigSummary() {
+  const c = {
+    businessName: document.getElementById('botBusinessName').value.trim(),
+    schedule: document.getElementById('botSchedule').value.trim(),
+    personality: document.getElementById('botPersonality').value.trim(),
+    context: document.getElementById('botContext').value.trim(),
+    welcomeMsg: document.getElementById('botWelcomeMsg').value.trim(),
+    fallbackMsg: document.getElementById('botFallbackMsg').value.trim()
+  };
+  wizardState.collected = { ...c };
+
+  const messagesDiv = document.getElementById('wizardMessages');
+  // Limpiar cualquier resumen previo
+  document.querySelectorAll('.wizard-config-review').forEach(el => el.remove());
+
+  const summaryDiv = document.createElement('div');
+  summaryDiv.className = 'wizard-config-review';
+  summaryDiv.innerHTML = `
+    <div class="wizard-review-header">
+      <i class="fa-solid fa-clipboard-check"></i> Configuración actual
+    </div>
+    <div class="wizard-review-grid">
+      <div class="wizard-review-item">
+        <span class="wizard-review-label"><i class="fa-solid fa-store"></i> Negocio</span>
+        <span class="wizard-review-value">${escapeAttr(c.businessName || '—')}</span>
+      </div>
+      <div class="wizard-review-item">
+        <span class="wizard-review-label"><i class="fa-solid fa-clock"></i> Horarios</span>
+        <span class="wizard-review-value">${escapeAttr(c.schedule || '—')}</span>
+      </div>
+      <div class="wizard-review-item">
+        <span class="wizard-review-label"><i class="fa-solid fa-masks-theater"></i> Personalidad</span>
+        <span class="wizard-review-value">${escapeAttr(c.personality || '—')}</span>
+      </div>
+      <div class="wizard-review-item wizard-review-wide">
+        <span class="wizard-review-label"><i class="fa-solid fa-book"></i> Contexto</span>
+        <span class="wizard-review-value">${escapeAttr(c.context || '—')}</span>
+      </div>
+      <div class="wizard-review-item">
+        <span class="wizard-review-label"><i class="fa-solid fa-hand-wave"></i> Bienvenida</span>
+        <span class="wizard-review-value">${escapeAttr(c.welcomeMsg || '—')}</span>
+      </div>
+      <div class="wizard-review-item">
+        <span class="wizard-review-label"><i class="fa-solid fa-circle-exclamation"></i> Fallback</span>
+        <span class="wizard-review-value">${escapeAttr(c.fallbackMsg || '—')}</span>
+      </div>
+    </div>
+    <div class="wizard-review-actions">
+      <button class="btn btn-secondary btn-sm" onclick="editConfigField()">
+        <i class="fa-solid fa-pen-to-square"></i> Editar con IA
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="toggleManualConfig()">
+        <i class="fa-solid fa-sliders"></i> Editar manualmente
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="resetConfigWizard()">
+        <i class="fa-solid fa-rotate-right"></i> Reconfigurar todo
+      </button>
+    </div>
+  `;
+  messagesDiv.appendChild(summaryDiv);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
 /**
