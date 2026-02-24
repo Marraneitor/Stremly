@@ -13,6 +13,9 @@ let adminUser     = null;  // Firebase Auth user
 const OWNER_EMAIL = 'yoelskygold@gmail.com';
 let isOwnerSession = false;
 
+const ADMIN_BUILD_ID = '2026-02-24-regalos-allusers-2';
+console.log('🔒 Admin panel cargado — build:', ADMIN_BUILD_ID);
+
 // ── Utility helpers (standalone) ────────────────────────────
 function escapeHtml(str) {
   if (!str) return '';
