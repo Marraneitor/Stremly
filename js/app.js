@@ -290,7 +290,7 @@ function renderClientsTable(data = null) {
   if (items.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="10" class="table-empty">
+        <td colspan="11" class="table-empty">
           <i class="fa-solid fa-users"></i>
           <p>Agrega tu primer cliente</p>
         </td>
@@ -326,6 +326,9 @@ function renderClientsTable(data = null) {
         <td>${formatDate(cl.fecha_fin)}</td>
         <td>${renderDaysRemaining(days)}</td>
         <td>${renderStatusBadge(days)}</td>
+        <td>${cl.estado_pago === 'pagado' 
+          ? '<span class="badge" style="background: var(--success); color: #fff;"><i class="fa-solid fa-circle-check"></i> Pagado</span>' 
+          : '<span class="badge" style="background: var(--warning); color: #000;"><i class="fa-solid fa-clock"></i> Pendiente</span>'}</td>
         <td>
           <div class="row-actions">
             <button class="btn-icon btn-send-creds" onclick="window.open('${credLink}', '_blank')" title="Enviar credenciales">
@@ -370,8 +373,39 @@ async function saveClient(e) {
 
   try {
     if (id) {
+      // Detectar cambio de estado de pago: pendiente → pagado
+      const oldClient = clientsData.find(c => c.id === id);
+      const switchedToPaid = oldClient && oldClient.estado_pago !== 'pagado' && data.estado_pago === 'pagado' && precio > 0;
+
       await db.collection('clientes').doc(id).update(data);
       showToast('Cliente actualizado', 'success');
+
+      // Auto-registrar movimiento si cambió a pagado
+      if (switchedToPaid) {
+        try {
+          await db.collection('movimientos').add({
+            uid: currentUser.uid,
+            cliente_id: id,
+            cliente_nombre: data.nombre,
+            monto: precio,
+            fecha_pago: data.fecha_inicio || new Date(),
+            metodo: 'Automático',
+            nota: `Pago ${account?.plataforma || data.plataforma || ''} — ${data.perfil_asignado}`,
+            creado_en: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          showToast('Movimiento de pago registrado automáticamente', 'success');
+          notifySaleToWhatsApp({
+            clientName: data.nombre,
+            platform: account?.plataforma || data.plataforma,
+            profile: data.perfil_asignado,
+            amount: precio,
+            paymentMethod: 'Automático',
+            note: `Pago ${account?.plataforma || data.plataforma || ''} — ${data.perfil_asignado}`
+          });
+        } catch (mErr) {
+          console.warn('No se pudo registrar movimiento automático:', mErr);
+        }
+      }
     } else {
       data.creado_en = firebase.firestore.FieldValue.serverTimestamp();
       const newRef = await db.collection('clientes').add(data);
