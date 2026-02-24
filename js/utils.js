@@ -2,6 +2,10 @@
    Streamly — Utilidades Compartidas
    ============================================================ */
 
+// Build ID (debug): útil para confirmar qué versión está cargando el navegador
+window.STREAMLY_BUILD_ID = '2026-02-24-micuenta';
+console.log('⚡ Streamly build:', window.STREAMLY_BUILD_ID);
+
 // ── Formateo de fechas ──────────────────────────────────────
 /**
  * Convierte una fecha a string legible (dd/mm/aaaa)
@@ -289,7 +293,8 @@ function navigateTo(section) {
     plantillas: 'Plantillas',
     logs: 'Actividad',
     chatbot: 'Chatbot IA',
-    plan: 'Mi Plan'
+    plan: 'Mi Plan',
+    micuenta: 'Mi Cuenta'
   };
   document.getElementById('pageTitle').textContent = titles[section] || section;
 
@@ -327,6 +332,9 @@ function navigateTo(section) {
   }
   if (section === 'plan' && typeof updatePlanPage === 'function') {
     setTimeout(() => updatePlanPage(), 100);
+  }
+  if (section === 'micuenta' && typeof updateMyAccountPage === 'function') {
+    setTimeout(() => updateMyAccountPage(), 100);
   }
 }
 

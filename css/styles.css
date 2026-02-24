@@ -3795,3 +3795,212 @@ input:checked + .slider::before {
   .current-plan-card { flex-direction: column; align-items: flex-start; }
   .current-plan-usage { max-width: 100%; }
 }
+
+/* ============================================================
+   MI CUENTA (My Account Page)
+   ============================================================ */
+.myaccount-page { max-width: 900px; margin: 0 auto; }
+
+.myaccount-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 28px 32px;
+  margin-bottom: 24px;
+}
+.myaccount-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--accent), #6d28d9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-accent);
+}
+.myaccount-header-info { display: flex; flex-direction: column; gap: 4px; }
+.myaccount-header-info h2 { font-size: 1.4rem; font-weight: 700; color: var(--text-primary); }
+.myaccount-header-info p { font-size: 0.875rem; color: var(--text-secondary); }
+.myaccount-provider {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: var(--bg-input);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  margin-top: 4px;
+  width: fit-content;
+}
+
+.myaccount-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.myaccount-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.myaccount-card-full {
+  grid-column: 1 / -1;
+}
+.myaccount-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+}
+.myaccount-card-header i {
+  color: var(--accent-light);
+  font-size: 1rem;
+}
+.myaccount-card-header h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.myaccount-card-body {
+  padding: 20px;
+}
+.myaccount-card-body .form-group {
+  margin-bottom: 14px;
+}
+.myaccount-card-body .form-group label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.myaccount-card-body .form-group-password {
+  position: relative;
+}
+.myaccount-card-body .form-group-password .form-control {
+  padding-right: 40px;
+}
+
+/* Alerts */
+.myaccount-alert {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  margin-bottom: 14px;
+}
+.myaccount-alert-danger {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+.myaccount-alert-success {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+/* Google notice */
+.myaccount-google-notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(59, 130, 246, 0.08);
+  border-radius: var(--radius-md);
+  color: var(--info);
+}
+.myaccount-google-notice i { font-size: 1.5rem; }
+.myaccount-google-notice p { font-size: 0.85rem; line-height: 1.4; }
+
+/* Plan badge */
+.myaccount-plan-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(109, 40, 217, 0.1));
+  color: var(--accent-light);
+}
+.myaccount-plan-badge.plan-free { background: rgba(148, 163, 184, 0.12); color: #94a3b8; }
+.myaccount-plan-badge.plan-lite { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
+.myaccount-plan-badge.plan-premium { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
+.myaccount-plan-badge i { font-size: 0.85rem; }
+
+/* Info rows */
+.myaccount-info-rows { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+.myaccount-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+.myaccount-info-row:last-child { border-bottom: none; }
+.myaccount-info-label { font-size: 0.82rem; color: var(--text-muted); }
+.myaccount-info-value { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); }
+
+/* Upgrade button */
+.myaccount-upgrade-btn {
+  width: 100%;
+  margin-top: 4px;
+}
+
+/* Stats Grid */
+.myaccount-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+.myaccount-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 8px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  transition: var(--transition-fast);
+}
+.myaccount-stat-item:hover {
+  border-color: var(--accent-glow);
+  transform: translateY(-2px);
+}
+.myaccount-stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+.myaccount-stat-icon.purple { background: rgba(124, 58, 237, 0.12); color: var(--accent-light); }
+.myaccount-stat-icon.blue { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
+.myaccount-stat-icon.green { background: var(--success-bg); color: var(--success); }
+.myaccount-stat-icon.red { background: var(--danger-bg); color: var(--danger); }
+.myaccount-stat-icon.orange { background: var(--warning-bg); color: var(--warning); }
+.myaccount-stat-value { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); }
+.myaccount-stat-label { font-size: 0.72rem; color: var(--text-muted); text-align: center; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .myaccount-grid { grid-template-columns: 1fr; }
+  .myaccount-stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .myaccount-header { flex-direction: column; text-align: center; padding: 20px; }
+  .myaccount-header-info { align-items: center; }
+  .myaccount-avatar { width: 60px; height: 60px; font-size: 1.4rem; }
+}

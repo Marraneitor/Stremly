@@ -3640,6 +3640,154 @@ function clearActivityLogs() {
    → observer → renderCalendar → innerHTML → observer…).
    Navigation hooks in utils.js navigateTo() handle everything.
    ============================================================ */
+
+/* ============================================================
+   MI CUENTA (My Account)
+   ============================================================ */
+
+/**
+ * Actualizar la página "Mi Cuenta" con datos del usuario actual
+ */
+function updateMyAccountPage() {
+  if (!currentUser) return;
+
+  // Avatar
+  const initial = (currentUser.displayName || currentUser.email || 'U')[0].toUpperCase();
+  const avatarEl = document.getElementById('myaccountAvatar');
+  if (avatarEl) avatarEl.textContent = initial;
+
+  // Name & Email
+  const nameEl = document.getElementById('myaccountName');
+  if (nameEl) nameEl.textContent = currentUser.displayName || 'Admin';
+
+  const emailEl = document.getElementById('myaccountEmail');
+  if (emailEl) emailEl.textContent = currentUser.email || '';
+
+  // Provider
+  const providerEl = document.getElementById('myaccountProvider');
+  if (providerEl) {
+    const isGoogle = currentUser.providerData && currentUser.providerData.some(p => p.providerId === 'google.com');
+    if (isGoogle) {
+      providerEl.innerHTML = '<i class="fa-brands fa-google"></i> Google';
+    } else {
+      providerEl.innerHTML = '<i class="fa-solid fa-envelope"></i> Email';
+    }
+  }
+
+  // Show/hide password section based on provider
+  const isGoogle = currentUser.providerData && currentUser.providerData.some(p => p.providerId === 'google.com');
+  const passwordSection = document.getElementById('myaccountPasswordSection');
+  const googleNotice = document.getElementById('myaccountGoogleNotice');
+  if (passwordSection) passwordSection.style.display = isGoogle ? 'none' : 'block';
+  if (googleNotice) googleNotice.style.display = isGoogle ? 'flex' : 'none';
+
+  // Plan info
+  const plan = typeof currentPlan !== 'undefined' ? currentPlan : 'free';
+  const cfg = (typeof PLAN_CONFIG !== 'undefined' ? PLAN_CONFIG[plan] : null) || { label: 'Free', maxClients: 20 };
+
+  const planBadge = document.getElementById('myaccountPlanBadge');
+  if (planBadge) {
+    planBadge.className = 'myaccount-plan-badge plan-' + plan;
+  }
+  const planNameEl = document.getElementById('myaccountPlanName');
+  if (planNameEl) planNameEl.textContent = cfg.label;
+
+  const planValueEl = document.getElementById('myaccountPlanValue');
+  if (planValueEl) planValueEl.textContent = cfg.label;
+
+  const maxClientsEl = document.getElementById('myaccountMaxClients');
+  const maxC = cfg.maxClients === Infinity ? '∞' : cfg.maxClients;
+  if (maxClientsEl) maxClientsEl.textContent = maxC;
+
+  const totalClients = typeof clientsData !== 'undefined' ? clientsData.length : 0;
+  const usageEl = document.getElementById('myaccountUsage');
+  if (usageEl) usageEl.textContent = totalClients + ' / ' + maxC;
+
+  // Member since
+  const memberSinceEl = document.getElementById('myaccountMemberSince');
+  if (memberSinceEl && currentUser.metadata && currentUser.metadata.creationTime) {
+    const d = new Date(currentUser.metadata.creationTime);
+    memberSinceEl.textContent = d.toLocaleDateString(currentLang || 'es', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  // Stats
+  const totalAccounts = typeof accountsData !== 'undefined' ? accountsData.length : 0;
+  const totalMovements = typeof movementsData !== 'undefined' ? movementsData.length : 0;
+
+  const now = new Date();
+  let activeClients = 0;
+  let expiredClients = 0;
+  if (typeof clientsData !== 'undefined') {
+    clientsData.forEach(c => {
+      const end = c.endDate ? new Date(c.endDate) : null;
+      if (end && end >= now) activeClients++;
+      else expiredClients++;
+    });
+  }
+
+  const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setVal('myaccountStatAccounts', totalAccounts);
+  setVal('myaccountStatClients', totalClients);
+  setVal('myaccountStatActive', activeClients);
+  setVal('myaccountStatExpired', expiredClients);
+  setVal('myaccountStatMovements', totalMovements);
+}
+
+/**
+ * Manejar cambio de contraseña
+ */
+async function handleChangePassword(e) {
+  e.preventDefault();
+
+  const errorEl = document.getElementById('passwordChangeError');
+  const successEl = document.getElementById('passwordChangeSuccess');
+  const btn = document.getElementById('btnChangePassword');
+
+  // Reset alerts
+  if (errorEl) { errorEl.style.display = 'none'; errorEl.textContent = ''; }
+  if (successEl) { successEl.style.display = 'none'; successEl.textContent = ''; }
+
+  const currentPwd = document.getElementById('currentPasswordInput').value;
+  const newPwd = document.getElementById('newPasswordInput').value;
+  const confirmPwd = document.getElementById('confirmPasswordInput').value;
+
+  // Validate
+  if (newPwd.length < 6) {
+    if (errorEl) { errorEl.textContent = t('myaccount.password_short'); errorEl.style.display = 'block'; }
+    return;
+  }
+  if (newPwd !== confirmPwd) {
+    if (errorEl) { errorEl.textContent = t('myaccount.password_mismatch'); errorEl.style.display = 'block'; }
+    return;
+  }
+
+  // Disable button
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ...'; }
+
+  try {
+    // Re-authenticate
+    const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, currentPwd);
+    await currentUser.reauthenticateWithCredential(credential);
+    // Update password
+    await currentUser.updatePassword(newPwd);
+
+    if (successEl) { successEl.textContent = t('myaccount.password_success'); successEl.style.display = 'block'; }
+    // Clear form
+    document.getElementById('changePasswordForm').reset();
+
+    if (typeof showToast === 'function') showToast(t('myaccount.password_success'), 'success');
+  } catch (err) {
+    console.error('Password change error:', err);
+    let msg = t('myaccount.password_error');
+    if (err.code === 'auth/wrong-password') {
+      msg = t('myaccount.password_wrong');
+    }
+    if (errorEl) { errorEl.textContent = msg; errorEl.style.display = 'block'; }
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-key"></i> ' + t('myaccount.update_password'); }
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof initTheme === 'function') initTheme();
 
