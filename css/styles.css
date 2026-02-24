@@ -1555,6 +1555,38 @@ textarea.form-control {
   resize: vertical;
 }
 
+/* Botón Mejorar con IA */
+.btn-ai-improve {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(99,102,241,0.3);
+}
+.btn-ai-improve:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(99,102,241,0.45);
+  background: linear-gradient(135deg, #5558e6, #7c4fe0, #9645e8);
+}
+.btn-ai-improve:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+.btn-ai-improve i {
+  font-size: 0.9rem;
+}
+
 .wizard-done-actions .btn {
   font-size: 0.8125rem;
 }

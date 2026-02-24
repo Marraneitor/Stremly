@@ -1169,6 +1169,52 @@ async function saveChatbotConfig(e) {
 }
 
 /**
+ * Mejorar contexto del bot con IA (Gemini Flash 2)
+ */
+async function improveContextWithAI() {
+  const textarea = document.getElementById('botContext');
+  const btn = document.getElementById('btnImproveContext');
+  const rawContext = textarea.value.trim();
+
+  if (!rawContext) {
+    showNotification('Escribe primero el contexto que quieres mejorar', 'warning');
+    return;
+  }
+
+  // Guardar estado original del botón
+  const originalHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mejorando...';
+
+  try {
+    const res = await fetch('/api/improve-context', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ context: rawContext })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.improvedContext) {
+      throw new Error(data.error || 'No se pudo mejorar el contexto');
+    }
+
+    // Reemplazar con el contexto mejorado
+    textarea.value = data.improvedContext;
+    textarea.style.borderColor = 'var(--success)';
+    setTimeout(() => { textarea.style.borderColor = ''; }, 3000);
+
+    showNotification('¡Contexto mejorado con IA! Revisa el resultado y ajusta si es necesario.', 'success');
+  } catch (err) {
+    console.error('Error mejorando contexto:', err);
+    showNotification('Error al mejorar: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHTML;
+  }
+}
+
+/**
  * Mostrar sección de prueba del chatbot
  */
 function testChatbot() {

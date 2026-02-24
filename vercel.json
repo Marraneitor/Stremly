@@ -14,6 +14,9 @@
     "api/chatbot.js": {
       "maxDuration": 30
     },
+    "api/improve-context.js": {
+      "maxDuration": 30
+    },
     "api/firebase-config.js": {
       "maxDuration": 10
     },
