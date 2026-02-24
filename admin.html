@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📺</text></svg>">
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Streamly — Panel Admin</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+</head>
+<body>
+
+  <!-- ============================================================
+       GATE — Passkey Screen
+       ============================================================ -->
+  <div class="admin-gate" id="adminGate">
+    <div class="gate-card">
+      <div class="gate-icon">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <h1>Admin Panel</h1>
+      <p id="gateMessage">Inicia sesión con tu cuenta de Streamly</p>
+      <div id="gateLoading" style="display:none; text-align:center; padding:16px;">
+        <i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem; color:var(--accent);"></i>
+        <p style="margin-top:8px; color:var(--text-secondary); font-size:0.85rem;">Verificando sesión...</p>
+      </div>
+      <div id="gateForm">
+        <input
+          type="email"
+          id="adminEmail"
+          class="form-control"
+          placeholder="correo@ejemplo.com"
+          autocomplete="email"
+          autofocus
+          style="margin-bottom: 10px;"
+        />
+        <input
+          type="password"
+          id="adminPassword"
+          class="form-control"
+          placeholder="Contraseña"
+          autocomplete="current-password"
+        />
+        <button class="btn" onclick="adminLogin()">
+          <i class="fa-solid fa-lock-open"></i>
+          Acceder
+        </button>
+      </div>
+      <div class="gate-error" id="gateError"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       ADMIN LAYOUT
+       ============================================================ -->
+  <div class="admin-layout" id="adminLayout">
+    <!-- Header -->
+    <header class="admin-header">
+      <div class="admin-header-left">
+        <h1><i class="fa-solid fa-shield-halved"></i> Streamly Admin</h1>
+        <span class="admin-badge">OWNER ONLY</span>
+      </div>
+      <div class="admin-header-right">
+        <span class="last-refresh" id="lastRefresh"></span>
+        <button class="btn-sm" onclick="refreshAdmin()">
+          <i class="fa-solid fa-arrows-rotate"></i> Actualizar
+        </button>
+        <button class="btn-sm btn-danger" onclick="exitAdmin()">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i> Salir
+        </button>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <div class="admin-content">
+      <!-- Info Bar (hidden by default) -->
+      <div class="admin-info-bar" id="adminInfoBar" style="display: none;">
+        <i class="fa-solid fa-circle-info"></i>
+        <span>Error de conexión</span>
+      </div>
+
+      <!-- Loading -->
+      <div class="admin-loading" id="adminLoading" style="display: flex;">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <span>Cargando datos de todos los usuarios...</span>
+      </div>
+
+      <!-- Stats Overview -->
+      <div class="admin-stats">
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon purple"><i class="fa-solid fa-users"></i></div>
+          <div class="admin-stat-info">
+            <div class="admin-stat-value" id="statUsers">0</div>
+            <div class="admin-stat-label">Usuarios Registrados</div>
+          </div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon blue"><i class="fa-solid fa-tv"></i></div>
+          <div class="admin-stat-info">
+            <div class="admin-stat-value" id="statAccounts">0</div>
+            <div class="admin-stat-label">Cuentas Totales</div>
+          </div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon green"><i class="fa-solid fa-user-check"></i></div>
+          <div class="admin-stat-info">
+            <div class="admin-stat-value" id="statActiveClients">0</div>
+            <div class="admin-stat-label">Clientes Activos</div>
+          </div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon red"><i class="fa-solid fa-user-xmark"></i></div>
+          <div class="admin-stat-info">
+            <div class="admin-stat-value" id="statExpiredClients">0</div>
+            <div class="admin-stat-label">Clientes Vencidos</div>
+          </div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon teal"><i class="fa-solid fa-people-group"></i></div>
+          <div class="admin-stat-info">
+            <div class="admin-stat-value" id="statClients">0</div>
+            <div class="admin-stat-label">Clientes Totales</div>
+          </div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon yellow"><i class="fa-solid fa-receipt"></i></div>
+          <div class="admin-stat-info">
+            <div class="admin-stat-value" id="statMovements">0</div>
+            <div class="admin-stat-label">Movimientos</div>
+          </div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon green"><i class="fa-solid fa-dollar-sign"></i></div>
+          <div class="admin-stat-info">
+            <div class="admin-stat-value" id="statRevenue">$0</div>
+            <div class="admin-stat-label">Ingresos Totales</div>
+          </div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon purple"><i class="fa-solid fa-calendar"></i></div>
+          <div class="admin-stat-info">
+            <div class="admin-stat-value" id="statMonthRevenue">$0</div>
+            <div class="admin-stat-label">Ingresos del Mes</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="admin-tabs">
+        <button class="admin-tab active" data-tab="overview" onclick="switchTab('overview')">
+          <i class="fa-solid fa-chart-pie"></i> Resumen
+        </button>
+        <button class="admin-tab" data-tab="users" onclick="switchTab('users')">
+          <i class="fa-solid fa-users"></i> Usuarios
+          <span class="tab-count" id="tabCountUsers">0</span>
+        </button>
+        <button class="admin-tab" data-tab="accounts" onclick="switchTab('accounts')">
+          <i class="fa-solid fa-tv"></i> Cuentas
+          <span class="tab-count" id="tabCountAccounts">0</span>
+        </button>
+        <button class="admin-tab" data-tab="clients" onclick="switchTab('clients')">
+          <i class="fa-solid fa-user-group"></i> Clientes
+          <span class="tab-count" id="tabCountClients">0</span>
+        </button>
+        <button class="admin-tab" data-tab="movements" onclick="switchTab('movements')">
+          <i class="fa-solid fa-money-bill-transfer"></i> Movimientos
+          <span class="tab-count" id="tabCountMovements">0</span>
+        </button>
+      </div>
+
+      <!-- ==================== PANEL: Overview ==================== -->
+      <div class="admin-panel active" id="panel-overview">
+        <!-- Revenue by Platform -->
+        <div class="admin-table-container" style="margin-bottom: 24px;">
+          <div class="admin-table-header">
+            <h3><i class="fa-solid fa-chart-bar"></i> Ingresos por Plataforma</h3>
+          </div>
+          <div class="admin-table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Plataforma</th>
+                  <th>Clientes</th>
+                  <th>Ingresos</th>
+                  <th>Cuentas</th>
+                </tr>
+              </thead>
+              <tbody id="overviewPlatformBody">
+                <tr><td colspan="4" class="table-empty-admin"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Revenue by User -->
+        <div class="admin-table-container">
+          <div class="admin-table-header">
+            <h3><i class="fa-solid fa-ranking-star"></i> Ingresos por Usuario</h3>
+          </div>
+          <div class="admin-table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Negocio</th>
+                  <th>Email</th>
+                  <th>Ingresos Totales</th>
+                  <th>Pagos</th>
+                </tr>
+              </thead>
+              <tbody id="overviewUserBody">
+                <tr><td colspan="4" class="table-empty-admin"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== PANEL: Users ==================== -->
+      <div class="admin-panel" id="panel-users">
+        <div class="admin-table-container">
+          <div class="admin-table-header">
+            <h3><i class="fa-solid fa-users"></i> Todos los Usuarios Registrados</h3>
+            <div class="admin-table-actions">
+              <div class="admin-search">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="searchUsers" placeholder="Buscar usuario..." oninput="searchUsers()" />
+              </div>
+              <button class="btn-export" onclick="exportCSV('users')">
+                <i class="fa-solid fa-download"></i> CSV
+              </button>
+            </div>
+          </div>
+          <div class="admin-table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Negocio</th>
+                  <th>Email</th>
+                  <th>UID</th>
+                  <th>Cuentas</th>
+                  <th>Clientes</th>
+                  <th>Ingresos</th>
+                </tr>
+              </thead>
+              <tbody id="usersBody">
+                <tr><td colspan="6" class="table-empty-admin"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== PANEL: Accounts ==================== -->
+      <div class="admin-panel" id="panel-accounts">
+        <div class="admin-table-container">
+          <div class="admin-table-header">
+            <h3><i class="fa-solid fa-tv"></i> Todas las Cuentas de Streaming</h3>
+            <div class="admin-table-actions">
+              <div class="admin-search">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="searchAccounts" placeholder="Buscar cuenta..." oninput="searchAccounts()" />
+              </div>
+              <button class="btn-export" onclick="exportCSV('accounts')">
+                <i class="fa-solid fa-download"></i> CSV
+              </button>
+            </div>
+          </div>
+          <div class="admin-table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Plataforma</th>
+                  <th>Credenciales</th>
+                  <th>Perfiles</th>
+                  <th>Vencimiento</th>
+                  <th>Días Rest.</th>
+                  <th>Estado</th>
+                  <th>Dueño</th>
+                  <th>Notas</th>
+                </tr>
+              </thead>
+              <tbody id="accountsBody">
+                <tr><td colspan="8" class="table-empty-admin"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== PANEL: Clients ==================== -->
+      <div class="admin-panel" id="panel-clients">
+        <div class="admin-table-container">
+          <div class="admin-table-header">
+            <h3><i class="fa-solid fa-user-group"></i> Todos los Clientes</h3>
+            <div class="admin-table-actions">
+              <div class="admin-search">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="searchClients" placeholder="Buscar cliente..." oninput="searchClients()" />
+              </div>
+              <button class="btn-export" onclick="exportCSV('clients')">
+                <i class="fa-solid fa-download"></i> CSV
+              </button>
+            </div>
+          </div>
+          <div class="admin-table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>WhatsApp</th>
+                  <th>Plataforma</th>
+                  <th>Perfil / PIN</th>
+                  <th>Inicio</th>
+                  <th>Fin</th>
+                  <th>Días Rest.</th>
+                  <th>Estado</th>
+                  <th>Pago</th>
+                  <th>Dueño</th>
+                </tr>
+              </thead>
+              <tbody id="clientsBody">
+                <tr><td colspan="10" class="table-empty-admin"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== PANEL: Movements ==================== -->
+      <div class="admin-panel" id="panel-movements">
+        <div class="admin-table-container">
+          <div class="admin-table-header">
+            <h3><i class="fa-solid fa-money-bill-transfer"></i> Todos los Movimientos Financieros</h3>
+            <div class="admin-table-actions">
+              <div class="admin-search">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="searchMovements" placeholder="Buscar movimiento..." oninput="searchMovements()" />
+              </div>
+              <button class="btn-export" onclick="exportCSV('movements')">
+                <i class="fa-solid fa-download"></i> CSV
+              </button>
+            </div>
+          </div>
+          <div class="admin-table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha Pago</th>
+                  <th>Cliente</th>
+                  <th>Monto</th>
+                  <th>Método</th>
+                  <th>Nota</th>
+                  <th>Dueño</th>
+                  <th>Registrado</th>
+                </tr>
+              </thead>
+              <tbody id="movementsBody">
+                <tr><td colspan="7" class="table-empty-admin"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCRIPTS
+       ============================================================ -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Streamly — Iniciar Sesión</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📺</text></svg>">
+
+  <!-- Fuentes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <link rel="stylesheet" href="https://unpkg.com/lucide-static@latest/font/lucide.css" />
+
+  <!-- Font Awesome (para iconos de plataformas y WhatsApp) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="css/styles.css" />
+
+  <style>
+    /* Icono decorativo del login */
+    .login-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 16px;
+      background: linear-gradient(135deg, var(--accent), #6d28d9);
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.75rem;
+      color: #fff;
+      box-shadow: var(--shadow-accent);
+    }
+    .login-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+    }
+    .login-divider::before,
+    .login-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-color);
+    }
+    .login-footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+    }
+    .login-footer a {
+      color: var(--accent-light);
+      font-weight: 500;
+    }
+    .password-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px;
+      font-size: 1rem;
+    }
+    .password-toggle:hover {
+      color: var(--text-primary);
+    }
+    .form-group-password {
+      position: relative;
+    }
+    .form-group-password .form-control {
+      padding-right: 40px;
+    }
+    .login-error {
+      background: var(--danger-bg);
+      color: var(--danger);
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.8125rem;
+      margin-bottom: 16px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+    .login-error.show {
+      display: flex;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================
+       LOGIN PAGE
+       ============================================================ -->
+  <div class="login-page" id="loginPage">
+    <div class="login-container">
+      <div class="login-logo">
+        <div class="login-icon">
+          <i class="fa-solid fa-bolt"></i>
+        </div>
+        <h1>Streamly</h1>
+        <p>Gestión de cuentas de streaming</p>
+      </div>
+
+      <!-- Error message -->
+      <div class="login-error" id="loginError">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span id="loginErrorMsg">Credenciales incorrectas</span>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" autocomplete="off">
+        <div class="form-group">
+          <label for="loginEmail">Correo electrónico</label>
+          <input
+            type="email"
+            id="loginEmail"
+            class="form-control"
+            placeholder="tu@email.com"
+            autocomplete="username"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="loginPassword">Contraseña</label>
+          <div class="form-group-password">
+            <input
+              type="password"
+              id="loginPassword"
+              class="form-control"
+              placeholder="••••••••"
+              required
+              autocomplete="current-password"
+            />
+            <button type="button" class="password-toggle" onclick="togglePassword('loginPassword', this)">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="loginBtn">
+          <i class="fa-solid fa-right-to-bracket"></i>
+          Iniciar Sesión
+        </button>
+      </form>
+
+      <div class="login-divider">o</div>
+
+      <button type="button" class="btn-google" id="googleLoginBtn" onclick="signInWithGoogle()">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
+        Continuar con Google
+      </button>
+
+      <div class="login-footer">
+        ¿No tienes cuenta? <a href="#" id="showRegister">Regístrate aquí</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       REGISTER PAGE (overlay)
+       ============================================================ -->
+  <div class="login-page hidden" id="registerPage">
+    <div class="login-container">
+      <div class="login-logo">
+        <div class="login-icon">
+          <i class="fa-solid fa-user-plus"></i>
+        </div>
+        <h1>Crear Cuenta</h1>
+        <p>Configura tu negocio de streaming</p>
+      </div>
+
+      <div class="login-error" id="registerError">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span id="registerErrorMsg"></span>
+      </div>
+
+      <form id="registerForm" autocomplete="off">
+        <div class="form-group">
+          <label for="regBusinessName">Nombre del negocio</label>
+          <input
+            type="text"
+            id="regBusinessName"
+            class="form-control"
+            placeholder="Ej: StreamPlus"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="regEmail">Correo electrónico</label>
+          <input
+            type="email"
+            id="regEmail"
+            class="form-control"
+            placeholder="tu@email.com"
+            autocomplete="username"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="regPassword">Contraseña</label>
+          <div class="form-group-password">
+            <input
+              type="password"
+              id="regPassword"
+              class="form-control"
+              placeholder="Mínimo 6 caracteres"
+              required
+              minlength="6"
+              autocomplete="new-password"
+            />
+            <button type="button" class="password-toggle" onclick="togglePassword('regPassword', this)">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="registerBtn">
+          <i class="fa-solid fa-user-plus"></i>
+          Crear Cuenta
+        </button>
+      </form>
+
+      <div class="login-divider">o</div>
+
+      <button type="button" class="btn-google" id="googleRegisterBtn" onclick="signInWithGoogle()">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
+        Registrarse con Google
+      </button>
+
+      <div class="login-footer">
+        ¿Ya tienes cuenta? <a href="#" id="showLogin">Inicia sesión</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MAIN APP (oculto hasta login)
+       ============================================================ -->
+  <div class="app-layout hidden" id="appLayout">
+    <!-- Overlay para sidebar mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h1><i class="fa-solid fa-bolt"></i> Streamly</h1>
+        <span>Gestión Streaming</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Principal</div>
+        <button class="nav-item active" data-section="dashboard" onclick="navigateTo('dashboard')">
+          <i class="fa-solid fa-chart-pie"></i>
+          Dashboard
+        </button>
+        <button class="nav-item" data-section="cuentas" onclick="navigateTo('cuentas')">
+          <i class="fa-solid fa-tv"></i>
+          Cuentas
+        </button>
+        <button class="nav-item" data-section="clientes" onclick="navigateTo('clientes')">
+          <i class="fa-solid fa-users"></i>
+          Clientes
+          <span class="badge badge-warning" id="navOrdersBadge" style="margin-left: auto; display: none; font-size: 0.65rem; padding: 2px 6px;"></span>
+        </button>
+        <button class="nav-item" data-section="movimientos" onclick="navigateTo('movimientos')">
+          <i class="fa-solid fa-money-bill-transfer"></i>
+          Movimientos
+        </button>
+
+        <div class="nav-section-title" style="margin-top: 16px;">Herramientas</div>
+        <button class="nav-item" data-section="reportes" onclick="navigateTo('reportes')">
+          <i class="fa-solid fa-chart-bar"></i>
+          Reportes
+        </button>
+        <button class="nav-item" data-section="chatbot" onclick="navigateTo('chatbot')">
+          <i class="fa-brands fa-whatsapp"></i>
+          Chatbot IA
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-user" id="sidebarUser">
+          <div class="sidebar-user-avatar" id="userAvatar">A</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name" id="userName">Admin</div>
+            <div class="sidebar-user-email" id="userEmail">admin@email.com</div>
+          </div>
+        </div>
+        <button class="btn-signout" onclick="signOut()">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          Cerrar Sesión
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <h2 class="page-title" id="pageTitle">Dashboard</h2>
+        </div>
+        <div class="header-right">
+          <span class="header-date" id="headerDate"></span>
+          <button class="btn btn-primary btn-sm" id="headerAddBtn" onclick="openQuickAdd()">
+            <i class="fa-solid fa-plus"></i>
+            Nuevo
+          </button>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        <!-- ==================== DASHBOARD ==================== -->
+        <div class="section active" id="section-dashboard">
+          <!-- Stats Cards -->
+          <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <div class="stat-card-icon purple">
+                  <i class="fa-solid fa-dollar-sign"></i>
+                </div>
+              </div>
+              <div class="stat-card-value" id="statBalance">$0.00</div>
+              <div class="stat-card-label">Balance Total del Mes</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <div class="stat-card-icon green">
+                  <i class="fa-solid fa-user-check"></i>
+                </div>
+              </div>
+              <div class="stat-card-value" id="statActiveClients">0</div>
+              <div class="stat-card-label">Clientes Activos</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <div class="stat-card-icon red">
+                  <i class="fa-solid fa-user-xmark"></i>
+                </div>
+              </div>
+              <div class="stat-card-value" id="statExpiredClients">0</div>
+              <div class="stat-card-label">Clientes Vencidos</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <div class="stat-card-icon blue">
+                  <i class="fa-solid fa-tv"></i>
+                </div>
+              </div>
+              <div class="stat-card-value" id="statTotalAccounts">0</div>
+              <div class="stat-card-label">Cuentas Registradas</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <div class="stat-card-icon yellow">
+                  <i class="fa-solid fa-clock"></i>
+                </div>
+              </div>
+              <div class="stat-card-value" id="statExpiringSoon">0</div>
+              <div class="stat-card-label">Vence en ≤ 3 días</div>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="quick-actions">
+            <button class="quick-action-btn" onclick="openModal('accountModal')">
+              <i class="fa-solid fa-plus-circle"></i>
+              Nueva Cuenta
+            </button>
+            <button class="quick-action-btn" onclick="openNewClientModal()">
+              <i class="fa-solid fa-user-plus"></i>
+              Agregar Cliente
+            </button>
+            <button class="quick-action-btn" onclick="openModal('movementModal')">
+              <i class="fa-solid fa-receipt"></i>
+              Registrar Pago
+            </button>
+          </div>
+
+          <!-- Recent Clients Table -->
+          <div class="table-container">
+            <div class="table-header">
+              <h3><i class="fa-solid fa-clock-rotate-left"></i> Clientes Próximos a Vencer</h3>
+            </div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Cliente</th>
+                    <th>Plataforma</th>
+                    <th>Perfil</th>
+                    <th>Vencimiento</th>
+                    <th>Días Rest.</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="dashboardClientsBody">
+                  <tr>
+                    <td colspan="7" class="table-empty">
+                      <i class="fa-solid fa-inbox"></i>
+                      <p>No hay clientes registrados aún</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== CUENTAS ==================== -->
+        <div class="section" id="section-cuentas">
+          <div class="table-container">
+            <div class="table-header">
+              <h3><i class="fa-solid fa-tv"></i> Cuentas de Streaming</h3>
+              <div class="table-actions">
+                <div class="search-input-wrapper">
+                  <i class="fa-solid fa-search"></i>
+                  <input type="text" class="search-input" placeholder="Buscar cuenta..." id="searchAccounts" oninput="debouncedFilterAccounts()" />
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="openModal('accountModal')">
+                  <i class="fa-solid fa-plus"></i>
+                  Nueva Cuenta
+                </button>
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Plataforma</th>
+                    <th>Credenciales</th>
+                    <th>Perfiles</th>
+                    <th>Vencimiento Máster</th>
+                    <th>Días Rest.</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="accountsTableBody">
+                  <tr>
+                    <td colspan="7" class="table-empty">
+                      <i class="fa-solid fa-tv"></i>
+                      <p>Agrega tu primera cuenta de streaming</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== CLIENTES ==================== -->
+        <div class="section" id="section-clientes">
+
+          <!-- Pedidos Pendientes (desde el chatbot) -->
+          <div class="table-container" id="pendingOrdersContainer" style="display:none; margin-bottom: 24px;">
+            <div class="table-header">
+              <h3><i class="fa-solid fa-bell" style="color: var(--warning);"></i> Pedidos Pendientes <span class="badge badge-warning" id="pendingOrdersCount" style="margin-left: 8px;">0</span></h3>
+            </div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Cliente</th>
+                    <th>Teléfono</th>
+                    <th>Plataforma</th>
+                    <th>Cant.</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="pendingOrdersBody">
+                  <tr>
+                    <td colspan="8" class="table-empty">
+                      <i class="fa-solid fa-inbox"></i>
+                      <p>No hay pedidos pendientes</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <div class="table-header">
+              <h3><i class="fa-solid fa-users"></i> Clientes</h3>
+              <div class="table-actions">
+                <div class="search-input-wrapper">
+                  <i class="fa-solid fa-search"></i>
+                  <input type="text" class="search-input" placeholder="Buscar cliente..." id="searchClients" oninput="debouncedFilterClients()" />
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="openNewClientModal()">
+                  <i class="fa-solid fa-user-plus"></i>
+                  Nuevo Cliente
+                </button>
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Cliente</th>
+                    <th>WhatsApp</th>
+                    <th>Plataforma</th>
+                    <th>Perfil / PIN</th>
+                    <th>Precio</th>
+                    <th>Inicio</th>
+                    <th>Fin</th>
+                    <th>Días Rest.</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="clientsTableBody">
+                  <tr>
+                    <td colspan="10" class="table-empty">
+                      <i class="fa-solid fa-users"></i>
+                      <p>Agrega tu primer cliente</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== MOVIMIENTOS ==================== -->
+        <div class="section" id="section-movimientos">
+          <div class="table-container">
+            <div class="table-header">
+              <h3><i class="fa-solid fa-money-bill-transfer"></i> Movimientos</h3>
+              <div class="table-actions">
+                <div class="search-input-wrapper">
+                  <i class="fa-solid fa-search"></i>
+                  <input type="text" class="search-input" placeholder="Buscar movimiento..." id="searchMovements" oninput="debouncedFilterMovements()" />
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="openModal('movementModal')">
+                  <i class="fa-solid fa-plus"></i>
+                  Nuevo Movimiento
+                </button>
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Monto</th>
+                    <th>Método</th>
+                    <th>Nota</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="movementsTableBody">
+                  <tr>
+                    <td colspan="6" class="table-empty">
+                      <i class="fa-solid fa-receipt"></i>
+                      <p>No hay movimientos registrados</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== REPORTES ==================== -->
+        <div class="section" id="section-reportes">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <div class="stat-card-icon purple">
+                  <i class="fa-solid fa-calendar"></i>
+                </div>
+              </div>
+              <div class="stat-card-value" id="reportMonthlyIncome">$0.00</div>
+              <div class="stat-card-label">Ingresos del Mes</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <div class="stat-card-icon green">
+                  <i class="fa-solid fa-percent"></i>
+                </div>
+              </div>
+              <div class="stat-card-value" id="reportOccupancy">0%</div>
+              <div class="stat-card-label">Ocupación de Perfiles</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <div class="stat-card-icon blue">
+                  <i class="fa-solid fa-ranking-star"></i>
+                </div>
+              </div>
+              <div class="stat-card-value" id="reportTopPlatform">—</div>
+              <div class="stat-card-label">Plataforma Top</div>
+            </div>
+          </div>
+
+          <!-- Tabla de resumen por plataforma -->
+          <div class="table-container">
+            <div class="table-header">
+              <h3><i class="fa-solid fa-chart-bar"></i> Resumen por Plataforma</h3>
+            </div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Plataforma</th>
+                    <th>Cuentas</th>
+                    <th>Perfiles Totales</th>
+                    <th>Perfiles Ocupados</th>
+                    <th>Disponibles</th>
+                    <th>Ocupación</th>
+                  </tr>
+                </thead>
+                <tbody id="reportTableBody">
+                  <tr>
+                    <td colspan="6" class="table-empty">
+                      <i class="fa-solid fa-chart-bar"></i>
+                      <p>Agrega cuentas y clientes para ver reportes</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== CHATBOT ==================== -->
+        <div class="section" id="section-chatbot">
+          <!-- Estado del Bot -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <div class="stat-card-icon green">
+                  <i class="fa-brands fa-whatsapp"></i>
+                </div>
+              </div>
+              <div class="stat-card-value" id="botStatus">Desconectado</div>
+              <div class="stat-card-label">Estado del Bot</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <div class="stat-card-icon purple">
+                  <i class="fa-solid fa-message"></i>
+                </div>
+              </div>
+              <div class="stat-card-value" id="botMessagesCount">0</div>
+              <div class="stat-card-label">Mensajes Hoy</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <div class="stat-card-icon blue">
+                  <i class="fa-solid fa-robot"></i>
+                </div>
+              </div>
+              <div class="stat-card-value" id="botModelName">Gemini 1.5</div>
+              <div class="stat-card-label">Modelo IA</div>
+            </div>
+          </div>
+
+          <!-- Configuración del Contexto -->
+          <div class="table-container">
+            <div class="table-header">
+              <h3><i class="fa-solid fa-sliders"></i> Configuración del Chatbot</h3>
+            </div>
+            <div style="padding: 20px;">
+              <form id="chatbotConfigForm" onsubmit="saveChatbotConfig(event)">
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="botBusinessName"><i class="fa-solid fa-store"></i> Nombre del Negocio</label>
+                    <input type="text" id="botBusinessName" class="form-control" placeholder="Ej: StreamPlus" required />
+                  </div>
+                  <div class="form-group">
+                    <label for="botSchedule"><i class="fa-solid fa-clock"></i> Horarios de Atención</label>
+                    <input type="text" id="botSchedule" class="form-control" placeholder="Ej: Lun-Vie 9am-6pm, Sáb 10am-2pm" required />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="botPersonality"><i class="fa-solid fa-masks-theater"></i> Personalidad del Bot</label>
+                  <textarea id="botPersonality" class="form-control" rows="3" placeholder="Ej: Amable, profesional, usa emojis moderadamente. Responde en español. Siempre saluda al cliente por su nombre." required></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label for="botContext"><i class="fa-solid fa-book"></i> Contexto General del Negocio</label>
+                  <textarea id="botContext" class="form-control" rows="5" placeholder="Describe tu negocio, servicios, precios, promociones, reglas, métodos de pago, etc. Todo lo que el bot necesite saber para responder correctamente." required></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label for="botWelcomeMsg"><i class="fa-solid fa-hand-wave"></i> Mensaje de Bienvenida</label>
+                  <textarea id="botWelcomeMsg" class="form-control" rows="2" placeholder="Ej: ¡Hola! 👋 Bienvenido a StreamPlus. ¿En qué puedo ayudarte?"></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label for="botFallbackMsg"><i class="fa-solid fa-circle-exclamation"></i> Mensaje cuando no sabe responder</label>
+                  <input type="text" id="botFallbackMsg" class="form-control" placeholder="Ej: Lo siento, no tengo esa información. Un agente te atenderá pronto." />
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="botEnabled"><i class="fa-solid fa-power-off"></i> Estado del Bot</label>
+                    <select id="botEnabled" class="form-control">
+                      <option value="true">Activado</option>
+                      <option value="false">Desactivado</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="botMaxTokens"><i class="fa-solid fa-gauge"></i> Largo máximo de respuesta</label>
+                    <select id="botMaxTokens" class="form-control">
+                      <option value="256">Corta (256 tokens)</option>
+                      <option value="512" selected>Media (512 tokens)</option>
+                      <option value="1024">Larga (1024 tokens)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 16px;">
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-floppy-disk"></i> Guardar Configuración
+                  </button>
+                  <button type="button" class="btn btn-secondary" onclick="testChatbot()">
+                    <i class="fa-solid fa-flask"></i> Probar Bot
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Conexión WhatsApp -->
+          <div class="table-container" style="margin-top: 20px;">
+            <div class="table-header">
+              <h3><i class="fa-brands fa-whatsapp"></i> Conexión WhatsApp</h3>
+              <div class="table-actions">
+                <div class="bot-status-bar-mini">
+                  <div class="bot-status-indicator disconnected" id="botStatusDot"></div>
+                  <span id="botConnectionStatus">Desconectado</span>
+                </div>
+              </div>
+            </div>
+            <div style="padding: 20px;">
+              <div class="bot-connection-panel">
+
+                <!-- Estado inicial: conectando automáticamente -->
+                <div class="bot-auto-connecting" id="botAutoConnecting" style="display:none;">
+                  <div class="bot-loading-spinner"><i class="fa-solid fa-spinner fa-spin-pulse" style="font-size:2rem; color:var(--accent-light);"></i></div>
+                  <p style="color:var(--text-muted); margin:12px 0 0; text-align:center;">Conectando al servidor del bot...</p>
+                </div>
+
+                <!-- Estado inactivo: esperando conexión -->
+                <div class="bot-connection-error" id="botConnectionError">
+                  <div style="text-align:center; padding:20px;">
+                    <i class="fa-brands fa-whatsapp" style="font-size:2.5rem; color:var(--text-muted); margin-bottom:12px;"></i>
+                    <h4 style="color:var(--text-primary); margin:0 0 8px;">Bot de WhatsApp</h4>
+                    <p style="color:var(--text-muted); font-size:0.85rem; margin:0 0 16px;">Conecta al servidor para vincular tu WhatsApp</p>
+                    <button class="btn btn-primary btn-sm" onclick="connectBotServer()" id="botRetryBtn">
+                      <i class="fa-solid fa-plug"></i> Conectar
+                    </button>
+                  </div>
+                  <!-- URL avanzada -->
+                  <details class="bot-advanced-settings">
+                    <summary><i class="fa-solid fa-gear"></i> Ajustes avanzados</summary>
+                    <div style="padding:12px 0 0;">
+                      <label style="font-size:0.8rem; color:var(--text-muted); margin-bottom:4px; display:block;">URL del servidor del bot</label>
+                      <div style="display:flex; gap:8px;">
+                        <input type="text" id="botServerUrl" class="form-control" placeholder="https://tu-bot.up.railway.app" value="" style="flex:1;" />
+                        <button class="btn btn-primary btn-sm" onclick="saveBotUrl(); connectBotServer()">
+                          <i class="fa-solid fa-plug"></i> Conectar
+                        </button>
+                      </div>
+                    </div>
+                  </details>
+                </div>
+
+                <!-- QR Code (protagonista) -->
+                <div class="bot-qr-container" id="botQrContainer" style="display:none;">
+                  <div class="bot-qr-header">
+                    <i class="fa-brands fa-whatsapp" style="font-size:1.5rem; color:var(--whatsapp);"></i>
+                    <div>
+                      <h4 style="margin:0; color:var(--text-primary); font-size:1rem;">Vincula tu WhatsApp</h4>
+                      <p style="margin:0; color:var(--text-muted); font-size:0.8rem;">Escanea el código QR para activar el bot</p>
+                    </div>
+                  </div>
+                  <div class="bot-qr-code" id="botQrCode"></div>
+                  <div class="bot-qr-steps">
+                    <div class="bot-qr-step"><span>1</span> Abre <strong>WhatsApp</strong> en tu teléfono</div>
+                    <div class="bot-qr-step"><span>2</span> Toca <strong>Dispositivos vinculados</strong></div>
+                    <div class="bot-qr-step"><span>3</span> Escanea este <strong>código QR</strong></div>
+                  </div>
+                  <button class="btn btn-sm" onclick="resetBotSession()" id="botResetQrBtn" style="margin-top:12px; background: var(--bg-secondary); color: var(--text-muted); border: 1px solid var(--border-color);">
+                    <i class="fa-solid fa-rotate"></i> Generar nuevo QR
+                  </button>
+                </div>
+
+                <!-- Conectado -->
+                <div class="bot-connected-info" id="botConnectedInfo" style="display:none;">
+                  <div class="bot-connected-icon">
+                    <i class="fa-brands fa-whatsapp"></i>
+                  </div>
+                  <h4>Bot conectado y activo</h4>
+                  <p id="botPhoneNumber">Respondiendo mensajes automáticamente</p>
+                  <div style="display:flex; gap:8px; margin-top:12px;">
+                    <button class="btn btn-sm" onclick="resetBotSession()" id="botResetBtn" style="background: var(--warning); color: #000;">
+                      <i class="fa-solid fa-rotate"></i> Nuevo QR
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="disconnectBotServer()" id="botDisconnectBtn">
+                      <i class="fa-solid fa-stop"></i> Desconectar
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Logs (colapsable) -->
+                <details class="bot-logs-details" id="botLogs" style="display:none;">
+                  <summary style="cursor:pointer; font-size:0.8rem; color:var(--text-muted); padding:8px 0;"><i class="fa-solid fa-terminal"></i> Ver logs del bot</summary>
+                  <div class="bot-logs-content" id="botLogsContent"></div>
+                </details>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ajustes de Mensajería -->
+          <div class="table-container" style="margin-top: 20px;">
+            <div class="table-header">
+              <h3><i class="fa-solid fa-filter"></i> Filtros de Mensajería</h3>
+            </div>
+            <div style="padding: 20px;">
+              <div class="bot-settings-grid">
+                <label class="bot-toggle-card">
+                  <div class="bot-toggle-info">
+                    <i class="fa-solid fa-people-group"></i>
+                    <div>
+                      <strong>Grupos de WhatsApp</strong>
+                      <small>Responder automáticamente en grupos</small>
+                    </div>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" id="settingRespondGroups" onchange="saveBotSettings()">
+                    <span class="slider"></span>
+                  </label>
+                </label>
+                <label class="bot-toggle-card">
+                  <div class="bot-toggle-info">
+                    <i class="fa-solid fa-address-book"></i>
+                    <div>
+                      <strong>Contactos Guardados</strong>
+                      <small>Responder a contactos con nombre</small>
+                    </div>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" id="settingRespondSaved" checked onchange="saveBotSettings()">
+                    <span class="slider"></span>
+                  </label>
+                </label>
+                <label class="bot-toggle-card">
+                  <div class="bot-toggle-info">
+                    <i class="fa-solid fa-user-question"></i>
+                    <div>
+                      <strong>Contactos No Guardados</strong>
+                      <small>Responder a números desconocidos</small>
+                    </div>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" id="settingRespondUnsaved" checked onchange="saveBotSettings()">
+                    <span class="slider"></span>
+                  </label>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cuentas Disponibles -->
+          <div class="table-container" style="margin-top: 20px;">
+            <div class="table-header">
+              <h3><i class="fa-solid fa-shop"></i> Inventario para Venta (Bot)</h3>
+              <button class="btn btn-secondary btn-sm" onclick="loadAvailableAccounts()">
+                <i class="fa-solid fa-rotate"></i> Actualizar
+              </button>
+            </div>
+            <div style="padding: 20px;">
+              <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 12px;">
+                El bot ofrecerá automáticamente solo las plataformas con disponibilidad. No compartirá credenciales hasta confirmar pago.
+              </p>
+              <div id="availableAccountsList" class="available-accounts-grid">
+                <div style="text-align: center; color: var(--text-muted); padding: 20px;">
+                  <i class="fa-solid fa-spinner fa-spin"></i> Cargando inventario...
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Conversaciones Activas -->
+          <div class="table-container" style="margin-top: 20px;">
+            <div class="table-header">
+              <h3><i class="fa-solid fa-comments"></i> Conversaciones Activas</h3>
+              <button class="btn btn-secondary btn-sm" onclick="loadConversations()">
+                <i class="fa-solid fa-rotate"></i> Actualizar
+              </button>
+            </div>
+            <div class="conv-layout">
+              <!-- Lista de conversaciones -->
+              <div class="conv-list" id="convList">
+                <div class="conv-list-empty">
+                  <i class="fa-solid fa-inbox"></i>
+                  <p>Sin conversaciones aún</p>
+                  <small>Los chats aparecerán aquí cuando lleguen mensajes</small>
+                </div>
+              </div>
+              <!-- Vista del chat -->
+              <div class="conv-chat" id="convChat">
+                <div class="conv-chat-placeholder">
+                  <i class="fa-solid fa-message"></i>
+                  <p>Selecciona una conversación</p>
+                  <small>Haz clic en un chat para ver los mensajes y responder</small>
+                </div>
+                <!-- Header del chat (oculto inicialmente) -->
+                <div class="conv-chat-header" id="convChatHeader" style="display:none;">
+                  <div class="conv-chat-header-info">
+                    <div class="conv-chat-avatar" id="convChatAvatar">
+                      <i class="fa-solid fa-user"></i>
+                    </div>
+                    <div>
+                      <strong id="convChatName">—</strong>
+                      <small id="convChatPhone">—</small>
+                    </div>
+                  </div>
+                  <div class="conv-chat-header-actions">
+                    <button class="btn btn-secondary btn-sm" id="convPauseBtn" onclick="toggleConvPause()" title="Pausar/Reanudar bot">
+                      <i class="fa-solid fa-pause"></i> <span id="convPauseLabel">Pausar</span>
+                    </button>
+                  </div>
+                </div>
+                <!-- Mensajes -->
+                <div class="conv-messages" id="convMessages" style="display:none;"></div>
+                <!-- Input de respuesta -->
+                <div class="conv-reply" id="convReply" style="display:none;">
+                  <input type="text" id="convReplyInput" class="form-control" placeholder="Escribe una respuesta..." onkeydown="if(event.key==='Enter')sendConvReply()" />
+                  <button class="btn btn-primary" onclick="sendConvReply()">
+                    <i class="fa-solid fa-paper-plane"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Test del bot -->
+          <div class="table-container" style="margin-top: 20px;" id="chatbotTestSection" hidden>
+            <div class="table-header">
+              <h3><i class="fa-solid fa-flask"></i> Probar Chatbot</h3>
+            </div>
+            <div style="padding: 20px;">
+              <div id="chatTestMessages" class="chat-test-messages"></div>
+              <div style="display: flex; gap: 8px; margin-top: 12px;">
+                <input type="text" id="chatTestInput" class="form-control" placeholder="Escribe un mensaje de prueba..." style="flex:1;" onkeydown="if(event.key==='Enter')sendTestMessage()" />
+                <button class="btn btn-primary" onclick="sendTestMessage()">
+                  <i class="fa-solid fa-paper-plane"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ============================================================
+       MODALES
+       ============================================================ -->
+
+  <!-- Modal: Nueva Cuenta -->
+  <div class="modal-overlay" id="accountModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="accountModalTitle"><i class="fa-solid fa-tv"></i> Nueva Cuenta</h3>
+        <button class="modal-close" onclick="closeModal('accountModal')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="accountForm" onsubmit="saveAccount(event)">
+          <input type="hidden" id="accountId" />
+
+          <div class="form-group">
+            <label for="accountPlatform">Plataforma</label>
+            <select id="accountPlatform" class="form-control" required onchange="toggleCustomPlatform()">
+              <option value="">Seleccionar plataforma</option>
+              <option value="Netflix">Netflix</option>
+              <option value="Disney+">Disney+</option>
+              <option value="HBO Max">HBO Max</option>
+              <option value="Spotify">Spotify</option>
+              <option value="Amazon Prime">Amazon Prime</option>
+              <option value="Crunchyroll">Crunchyroll</option>
+              <option value="YouTube Premium">YouTube Premium</option>
+              <option value="Paramount+">Paramount+</option>
+              <option value="Apple TV+">Apple TV+</option>
+              <option value="Star+">Star+</option>
+              <option value="__custom__">Otro (escribir manualmente)</option>
+            </select>
+            <input type="text" id="accountPlatformCustom" class="form-control" placeholder="Nombre de la plataforma" style="display:none; margin-top:8px;" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="accountEmail">Correo de la cuenta</label>
+              <input type="email" id="accountEmail" class="form-control" placeholder="cuenta@email.com" required />
+            </div>
+            <div class="form-group">
+              <label for="accountPassword">Contraseña</label>
+              <input type="text" id="accountPassword" class="form-control" placeholder="contraseña123" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="accountProfiles">Perfiles totales</label>
+              <input type="number" id="accountProfiles" class="form-control" placeholder="5" min="1" max="10" required />
+            </div>
+            <div class="form-group">
+              <label for="accountExpiry">Vencimiento máster</label>
+              <input type="date" id="accountExpiry" class="form-control" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="accountNotes">Notas (opcional)</label>
+            <input type="text" id="accountNotes" class="form-control" placeholder="Ej: Plan familiar, compartido..." />
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('accountModal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="document.getElementById('accountForm').requestSubmit()">
+          <i class="fa-solid fa-floppy-disk"></i>
+          Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Nuevo Cliente -->
+  <div class="modal-overlay" id="clientModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="clientModalTitle"><i class="fa-solid fa-user-plus"></i> Nuevo Cliente</h3>
+        <button class="modal-close" onclick="closeModal('clientModal')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="clientForm" onsubmit="saveClient(event)">
+          <input type="hidden" id="clientId" />
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="clientName">Nombre completo</label>
+              <input type="text" id="clientName" class="form-control" placeholder="Juan Pérez" required />
+            </div>
+            <div class="form-group">
+              <label for="clientWhatsapp">WhatsApp</label>
+              <input type="tel" id="clientWhatsapp" class="form-control" placeholder="+521234567890" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="clientAccount">Cuenta asignada</label>
+            <select id="clientAccount" class="form-control" required onchange="updateProfileOptions()">
+              <option value="">Seleccionar cuenta...</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="clientProfile">Perfil asignado</label>
+              <input type="text" id="clientProfile" class="form-control" placeholder="Perfil 1" required />
+            </div>
+            <div class="form-group">
+              <label for="clientPin">PIN</label>
+              <input type="text" id="clientPin" class="form-control" placeholder="1234" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="clientStart">Fecha inicio</label>
+              <input type="date" id="clientStart" class="form-control" required />
+            </div>
+            <div class="form-group">
+              <label for="clientEnd">Fecha fin</label>
+              <input type="date" id="clientEnd" class="form-control" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="clientPrice">Precio</label>
+              <input type="number" id="clientPrice" class="form-control" placeholder="0" min="0" step="1" />
+            </div>
+            <div class="form-group">
+              <label for="clientPaymentStatus">Estado de pago</label>
+              <select id="clientPaymentStatus" class="form-control">
+                <option value="pagado">Pagado</option>
+                <option value="pendiente">Pendiente</option>
+              </select>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('clientModal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="document.getElementById('clientForm').requestSubmit()">
+          <i class="fa-solid fa-floppy-disk"></i>
+          Guardar
+        </button>
+        <button class="btn" id="btnSaveAndSendCreds" style="background: var(--whatsapp); color: #fff; display: none;" onclick="saveAndSendCredentials()">
+          <i class="fa-brands fa-whatsapp"></i>
+          Guardar y Enviar Credenciales
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Nuevo Movimiento -->
+  <div class="modal-overlay" id="movementModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="movementModalTitle"><i class="fa-solid fa-receipt"></i> Nuevo Movimiento</h3>
+        <button class="modal-close" onclick="closeModal('movementModal')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="movementForm" onsubmit="saveMovement(event)">
+          <input type="hidden" id="movementId" />
+
+          <div class="form-group">
+            <label for="movementClient">Cliente</label>
+            <select id="movementClient" class="form-control" required>
+              <option value="">Seleccionar cliente...</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="movementAmount">Monto</label>
+              <input type="number" id="movementAmount" class="form-control" placeholder="0.00" step="0.01" min="0" required />
+            </div>
+            <div class="form-group">
+              <label for="movementDate">Fecha de pago</label>
+              <input type="date" id="movementDate" class="form-control" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="movementMethod">Método de pago</label>
+            <select id="movementMethod" class="form-control" required>
+              <option value="">Seleccionar método...</option>
+              <option value="Efectivo">Efectivo</option>
+              <option value="Transferencia">Transferencia</option>
+              <option value="Nequi">Nequi</option>
+              <option value="Daviplata">Daviplata</option>
+              <option value="PayPal">PayPal</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="movementNote">Nota (opcional)</label>
+            <input type="text" id="movementNote" class="form-control" placeholder="Ej: Pago mes de febrero" />
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('movementModal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="document.getElementById('movementForm').requestSubmit()">
+          <i class="fa-solid fa-floppy-disk"></i>
+          Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Confirmación de eliminación -->
+  <div class="modal-overlay" id="confirmModal">
+    <div class="modal" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-triangle-exclamation" style="color: var(--danger);"></i> Confirmar</h3>
+        <button class="modal-close" onclick="closeModal('confirmModal')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="confirm-dialog">
+          <i class="fa-solid fa-trash-can"></i>
+          <h4 id="confirmTitle">¿Eliminar este registro?</h4>
+          <p id="confirmMessage">Esta acción no se puede deshacer.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('confirmModal')">Cancelar</button>
+        <button class="btn btn-danger" id="confirmDeleteBtn">
+          <i class="fa-solid fa-trash-can"></i>
+          Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ============================================================
+       SCRIPTS
+       ============================================================ -->
+  <!-- Firebase SDK (v9 compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+  <!-- App Scripts -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
