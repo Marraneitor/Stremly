@@ -978,6 +978,48 @@ app.post('/send', async (req, res) => {
   }
 });
 
+// ── Notify sale to self (connected WhatsApp number) ──
+app.post('/notify-sale', async (req, res) => {
+  try {
+    if (!sock || botState.status !== 'connected') {
+      return res.status(400).json({ error: 'Bot no conectado' });
+    }
+
+    const myId = sock.user?.id;
+    if (!myId) return res.status(400).json({ error: 'No se pudo obtener el número propio' });
+
+    // Normalize JID: "1234567890:12@s.whatsapp.net" → "1234567890@s.whatsapp.net"
+    const myJid = myId.includes(':') ? myId.split(':')[0] + '@s.whatsapp.net' : myId;
+
+    const { clientName, platform, profile, amount, currency, paymentMethod, note, appUrl } = req.body;
+
+    // Build message
+    const lines = [
+      '🎉 *¡Nueva venta registrada!*',
+      '',
+      `👤 *Cliente:* ${clientName || 'Sin nombre'}`,
+    ];
+    if (platform) lines.push(`📺 *Plataforma:* ${platform}`);
+    if (profile) lines.push(`🔑 *Perfil:* ${profile}`);
+    if (amount) lines.push(`💰 *Monto:* $${amount} ${currency || 'MXN'}`);
+    if (paymentMethod) lines.push(`💳 *Método:* ${paymentMethod}`);
+    if (note) lines.push(`📝 *Nota:* ${note}`);
+    lines.push('');
+    lines.push(`📅 *Fecha:* ${new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' })}`);
+    if (appUrl) {
+      lines.push('');
+      lines.push(`🔗 *Panel Streamly:* ${appUrl}`);
+    }
+
+    await sock.sendMessage(myJid, { text: lines.join('\n') });
+    addLog(`💰 Notificación de venta enviada a tu WhatsApp (${clientName || 'cliente'})`);
+    res.json({ ok: true });
+  } catch (err) {
+    addLog(`❌ Error enviando notificación de venta: ${err.message}`);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/pause/:jid', (req, res) => {
   const jid = decodeURIComponent(req.params.jid);
   const conv = conversations.get(jid);

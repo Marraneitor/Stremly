@@ -390,6 +390,15 @@ async function saveClient(e) {
             nota: `Pago ${account?.plataforma || ''} — ${data.perfil_asignado}`,
             creado_en: firebase.firestore.FieldValue.serverTimestamp()
           });
+          // Notify sale to WhatsApp
+          notifySaleToWhatsApp({
+            clientName: data.nombre,
+            platform: account?.plataforma,
+            profile: data.perfil_asignado,
+            amount: precio,
+            paymentMethod: 'Automático',
+            note: `Pago ${account?.plataforma || ''} — ${data.perfil_asignado}`
+          });
         } catch (mErr) {
           console.warn('No se pudo registrar movimiento automático:', mErr);
         }
@@ -614,6 +623,13 @@ async function saveMovement(e) {
       data.creado_en = firebase.firestore.FieldValue.serverTimestamp();
       await db.collection('movimientos').add(data);
       showToast('Movimiento registrado', 'success');
+      // Notify sale to WhatsApp
+      notifySaleToWhatsApp({
+        clientName: data.cliente_nombre,
+        amount: data.monto,
+        paymentMethod: data.metodo,
+        note: data.nota
+      });
     }
 
     closeModal('movementModal');
@@ -2113,6 +2129,36 @@ function addBotLog(msg) {
   if (!logsEl) return;
   logsEl.innerHTML += `<div class="bot-log-entry"><span class="bot-log-time">${new Date().toLocaleTimeString()}</span> ${escapeAttr(msg)}</div>`;
   logsEl.scrollTop = logsEl.scrollHeight;
+}
+
+/**
+ * Notify sale to connected WhatsApp (sends message to self)
+ */
+async function notifySaleToWhatsApp({ clientName, platform, profile, amount, currency, paymentMethod, note }) {
+  try {
+    const url = getBotUrl();
+    if (!url) return;
+    const res = await fetch(`${url}/notify-sale`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        clientName,
+        platform,
+        profile,
+        amount,
+        currency: currency || 'MXN',
+        paymentMethod,
+        note,
+        appUrl: window.location.origin + '/index.html'
+      })
+    });
+    if (res.ok) {
+      addBotLog('💰 Notificación de venta enviada a tu WhatsApp');
+    }
+  } catch (err) {
+    // Silent fail — don't break the main flow
+    console.warn('No se pudo enviar notificación de venta:', err.message);
+  }
 }
 
 /* ============================================================
