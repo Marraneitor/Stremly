@@ -164,6 +164,7 @@ async function adminLoginGoogle() {
       'auth/popup-blocked': 'Popup bloqueado por el navegador. Permite ventanas emergentes e inténtalo de nuevo.',
       'auth/popup-closed-by-user': 'Inicio de sesión cancelado.',
       'auth/cancelled-popup-request': 'Inicio de sesión cancelado.',
+      'auth/account-exists-with-different-credential': 'Ese correo ya existe con otro método (contraseña). Inicia sesión con correo/contraseña.',
       'auth/operation-not-allowed': 'Google Sign-In no está habilitado en Firebase Auth.',
       'auth/unauthorized-domain': 'Dominio no autorizado para iniciar sesión con Google.'
     };
