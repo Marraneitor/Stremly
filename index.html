@@ -479,6 +479,7 @@
                     <th data-i18n="th.platform">Plataforma</th>
                     <th data-i18n="th.credentials">Credenciales</th>
                     <th data-i18n="th.profiles">Perfiles</th>
+                    <th data-i18n="th.price_profile">$/Perfil</th>
                     <th data-i18n="th.master_expiry">Vencimiento Máster</th>
                     <th data-i18n="th.days_left">Días Rest.</th>
                     <th data-i18n="th.status">Estado</th>
@@ -487,7 +488,7 @@
                 </thead>
                 <tbody id="accountsTableBody">
                   <tr>
-                    <td colspan="7" class="table-empty">
+                    <td colspan="8" class="table-empty">
                       <i class="fa-solid fa-tv"></i>
                       <p data-i18n="accounts.empty">Agrega tu primera cuenta de streaming</p>
                     </td>
@@ -1172,6 +1173,11 @@
               <label for="accountExpiry" data-i18n="modal.master_expiry">Vencimiento máster</label>
               <input type="date" id="accountExpiry" class="form-control" required />
             </div>
+          </div>
+
+          <div class="form-group">
+            <label for="accountPricePerProfile" data-i18n="modal.price_per_profile">Precio por perfil ($)</label>
+            <input type="number" id="accountPricePerProfile" class="form-control" placeholder="Ej: 45" min="0" step="0.01" />
           </div>
 
           <div class="form-group">

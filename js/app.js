@@ -94,7 +94,7 @@ function renderAccountsTable(data = null) {
   if (items.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="7" class="table-empty">
+        <td colspan="8" class="table-empty">
           <i class="fa-solid fa-tv"></i>
           <p>Agrega tu primera cuenta de streaming</p>
         </td>
@@ -131,6 +131,7 @@ function renderAccountsTable(data = null) {
           </div>
         </td>
         <td>${renderProfileSlots(acc.perfiles_totales, clientCount)}</td>
+        <td><span style="color: var(--success); font-weight: 600;">${acc.precio_perfil ? formatCurrency(acc.precio_perfil) : '—'}</span></td>
         <td>${formatDate(acc.fecha_vencimiento_master)}</td>
         <td>${renderDaysRemaining(days)}</td>
         <td>${renderStatusBadge(days)}</td>
@@ -163,6 +164,7 @@ async function saveAccount(e) {
     correo_cuenta: document.getElementById('accountEmail').value.trim(),
     password: document.getElementById('accountPassword').value,
     perfiles_totales: parseInt(document.getElementById('accountProfiles').value),
+    precio_perfil: parseFloat(document.getElementById('accountPricePerProfile').value) || 0,
     fecha_vencimiento_master: new Date(document.getElementById('accountExpiry').value + 'T00:00:00'),
     notas: document.getElementById('accountNotes').value.trim()
   };
@@ -210,6 +212,7 @@ function editAccount(id) {
   document.getElementById('accountEmail').value = acc.correo_cuenta;
   document.getElementById('accountPassword').value = acc.password;
   document.getElementById('accountProfiles').value = acc.perfiles_totales;
+  document.getElementById('accountPricePerProfile').value = acc.precio_perfil || '';
   document.getElementById('accountExpiry').value = toInputDate(acc.fecha_vencimiento_master);
   document.getElementById('accountNotes').value = acc.notas || '';
   document.getElementById('accountModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Editar Cuenta';
@@ -827,6 +830,12 @@ function updateProfileOptions() {
   const accountId = document.getElementById('clientAccount').value;
   const account = accountsData.find(a => a.id === accountId);
   if (!account) return;
+
+  // Auto-rellenar precio si la cuenta tiene precio por perfil configurado
+  const priceField = document.getElementById('clientPrice');
+  if (priceField && account.precio_perfil && (!priceField.value || priceField.value === '0')) {
+    priceField.value = account.precio_perfil;
+  }
 
   // Sugerir el siguiente perfil disponible
   const assignedProfiles = clientsData
