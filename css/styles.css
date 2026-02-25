@@ -210,6 +210,44 @@ img { max-width: 100%; display: block; }
   margin-top: 4px;
 }
 
+.login-help {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -8px;
+  margin-bottom: 14px;
+}
+
+.login-help a {
+  font-size: 0.8125rem;
+  color: var(--accent-light);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.login-help a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.forgot-password-box {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+}
+
+.forgot-password-desc {
+  margin: 0 0 10px;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}
+
+.forgot-password-actions {
+  display: grid;
+  gap: 10px;
+}
+
 /* ── Formularios (compartido) ───────────────────────────── */
 .form-group {
   margin-bottom: 20px;

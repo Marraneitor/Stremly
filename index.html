@@ -158,11 +158,38 @@
           </div>
         </div>
 
+        <div class="login-help">
+          <a href="#" id="forgotPasswordLink" data-i18n="login.forgot">¿Olvidaste tu contraseña?</a>
+        </div>
+
         <button type="submit" class="btn btn-primary btn-block btn-lg" id="loginBtn" data-i18n="login.submit">
           <i class="fa-solid fa-right-to-bracket"></i>
           Iniciar Sesión
         </button>
       </form>
+
+      <div class="forgot-password-box hidden" id="forgotPasswordBox">
+        <p class="forgot-password-desc" data-i18n="login.forgot_desc">Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.</p>
+        <form id="forgotPasswordForm" autocomplete="off">
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label for="forgotEmail" data-i18n="login.email">Correo electrónico</label>
+            <input
+              type="email"
+              id="forgotEmail"
+              class="form-control"
+              placeholder="tu@email.com"
+              data-i18n-ph="login.email_ph"
+              autocomplete="email"
+              required
+            />
+          </div>
+
+          <div class="forgot-password-actions">
+            <button type="submit" class="btn btn-primary btn-block" id="forgotPasswordBtn" data-i18n="login.forgot_send">Enviar enlace de recuperación</button>
+            <button type="button" class="btn btn-secondary btn-block" id="forgotPasswordCancel" data-i18n="login.forgot_cancel">Volver al inicio de sesión</button>
+          </div>
+        </form>
+      </div>
 
       <div class="login-divider" data-i18n="login.divider">o</div>
 

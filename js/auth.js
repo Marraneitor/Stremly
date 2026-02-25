@@ -163,6 +163,7 @@ document.getElementById('showRegister').addEventListener('click', (e) => {
   e.preventDefault();
   document.getElementById('loginError').classList.remove('show');
   document.getElementById('registerError').classList.remove('show');
+  document.getElementById('forgotPasswordBox')?.classList.add('hidden');
   document.getElementById('loginPage').classList.add('hidden');
   document.getElementById('registerPage').classList.remove('hidden');
 });
@@ -171,6 +172,7 @@ document.getElementById('showLogin').addEventListener('click', (e) => {
   e.preventDefault();
   document.getElementById('loginError').classList.remove('show');
   document.getElementById('registerError').classList.remove('show');
+  document.getElementById('forgotPasswordBox')?.classList.add('hidden');
   document.getElementById('registerPage').classList.add('hidden');
   document.getElementById('loginPage').classList.remove('hidden');
 });
@@ -237,6 +239,7 @@ function getAuthErrorMessage(code, fallback) {
     'auth/user-not-found': 'No existe una cuenta con este correo',
     'auth/wrong-password': 'Contraseña incorrecta',
     'auth/invalid-email': 'Correo electrónico inválido',
+    'auth/missing-email': 'Ingresa tu correo electrónico',
     'auth/too-many-requests': 'Demasiados intentos. Intenta más tarde',
     'auth/invalid-credential': 'Credenciales inválidas. Verifica correo y contraseña',
     'auth/email-already-in-use': 'Este correo ya está registrado',
@@ -247,5 +250,80 @@ function getAuthErrorMessage(code, fallback) {
   };
   return messages[code] || fallback;
 }
+
+// ── Recuperación de contraseña (Email) ─────────────────────
+(function setupForgotPassword() {
+  const link = document.getElementById('forgotPasswordLink');
+  const box = document.getElementById('forgotPasswordBox');
+  const form = document.getElementById('forgotPasswordForm');
+  const emailInput = document.getElementById('forgotEmail');
+  const btn = document.getElementById('forgotPasswordBtn');
+  const cancelBtn = document.getElementById('forgotPasswordCancel');
+
+  // Guard: esta UI solo existe en pantallas con login
+  if (!link || !box || !form || !emailInput || !btn || !cancelBtn) return;
+
+  function openBox() {
+    // Prefill desde el email del login si existe
+    const loginEmailEl = document.getElementById('loginEmail');
+    const prefill = loginEmailEl?.value?.trim();
+    if (prefill && !emailInput.value) emailInput.value = prefill;
+
+    box.classList.remove('hidden');
+    setTimeout(() => emailInput.focus(), 0);
+  }
+
+  function closeBox() {
+    box.classList.add('hidden');
+  }
+
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    openBox();
+  });
+
+  cancelBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    closeBox();
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = emailInput.value.trim();
+
+    if (!email) {
+      showToast(typeof t === 'function' ? t('login.reset_missing_email', 'Ingresa tu correo electrónico') : 'Ingresa tu correo electrónico', 'warning');
+      emailInput.focus();
+      return;
+    }
+
+    btn.disabled = true;
+    const prev = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ' + (typeof t === 'function' ? t('login.forgot_sending', 'Enviando...') : 'Enviando...');
+
+    try {
+      await waitForFirebase();
+      await auth.sendPasswordResetEmail(email);
+
+      showToast(
+        typeof t === 'function'
+          ? t('login.reset_sent', 'Te enviamos un correo con el enlace para restablecer tu contraseña.')
+          : 'Te enviamos un correo con el enlace para restablecer tu contraseña.',
+        'success'
+      );
+      closeBox();
+    } catch (error) {
+      console.error('Password reset error:', error);
+      const fallback = typeof t === 'function'
+        ? t('login.reset_error', 'No se pudo enviar el enlace de recuperación.')
+        : 'No se pudo enviar el enlace de recuperación.';
+      const msg = getAuthErrorMessage(error.code, fallback);
+      showToast(msg, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = prev;
+    }
+  });
+})();
 
 console.log('🔐 Módulo de autenticación cargado');
